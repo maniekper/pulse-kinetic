@@ -1,10 +1,27 @@
-
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
+# Symfony & PHP
 /vendor/
-###< symfony/framework-bundle ###
+/var/
+/public/bundles/
+/public/build/
+
+# Środowisko i sekrety (NIGDY nie komituj tych plików)
+.env.local
+.env.local.php
+.env.*.local
+phpunit.xml
+phpunit.xml.dist
+
+# Baza danych SQLite (jeśli używasz do lokalnych testów)
+/var/data.db
+/*.sqlite
+
+# Edytory kodu i IDE
+.vscode/
+.idea/
+
+# Pliki systemowe
+.DS_Store
+Thumbs.db
+
+# Pliki projektowe (aby pliki koncepcyjne nie trafiały na serwer)
+*.xmind
