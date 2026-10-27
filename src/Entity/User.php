@@ -69,6 +69,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: WorkoutSession::class, mappedBy: 'user')]
     private Collection $workoutSessions;
 
+    #[ORM\Column(nullable: true)]
+    private ?float $currentWeight = null;
+
     public function __construct()
     {
         $this->machineRecords = new ArrayCollection();
@@ -315,6 +318,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $workoutSession->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCurrentWeight(): ?float
+    {
+        return $this->currentWeight;
+    }
+
+    public function setCurrentWeight(?float $currentWeight): static
+    {
+        $this->currentWeight = $currentWeight;
 
         return $this;
     }
