@@ -2,118 +2,162 @@
 
 namespace App\Controller;
 
-use App\Entity\WorkoutSet;
 use App\Service\RecordTrackerService;
-use App\Entity\Machine;
 use App\Entity\WorkoutSession;
 use App\Repository\RoutineRepository;
-use App\Repository\UserRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\WorkoutCalculatorService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class WorkoutSessionController extends AbstractController
 {
-    #[Route('/session/start', name: 'app_session_start')]
+    #[Route('/session/start/{routineId}', name: 'app_session_start')]
     public function startSession(
-        UserRepository $userRepo,
+        int $routineId,
         RoutineRepository $routineRepo,
         EntityManagerInterface $em
-    ): JsonResponse {
-        $user = $userRepo->findOneBy(['email' => 'test@pulsekinetic.com']);
-        $routine = $routineRepo->findOneBy(['name' => 'Trening Góra - Siła']);
+    ): Response {
+        $user = $this->getUser();
+        $routine = $routineRepo->find($routineId);
 
-        if (!$user || !$routine) {
-            return $this->json(['error' => 'Brak użytkownika lub przypisanego planu.']);
+        // Zabezpieczenie przed uruchomieniem cudzego planu
+        if (!$user || !$routine || $routine->getUser() !== $user) {
+            return $this->redirectToRoute('app_dashboard');
         }
 
         $session = new WorkoutSession();
         $session->setUser($user);
         $session->setRoutine($routine);
-        $session->setStartedAt(new \DateTime()); // Rejestrujemy dokładny czas startu
+        $session->setStartedAt(new \DateTime());
 
         $em->persist($session);
         $em->flush();
 
-        return $this->json([
-            'status' => 'Trening rozpoczety',
-            'plan' => $routine->getName(),
-            'czas_startu' => $session->getStartedAt()->format('Y-m-d H:i:s'),
-            'id_sesji' => $session->getId()
+        // Przekierowanie do widoku aktywnej sesji
+        return $this->redirectToRoute('app_session_active', ['id' => $session->getId()]);
+    }
+
+    #[Route('/session/{id}/active', name: 'app_session_active')]
+    public function activeSession(
+        int $id,
+        EntityManagerInterface $em,
+        WorkoutCalculatorService $calculator
+    ): Response {
+        $session = $em->getRepository(WorkoutSession::class)->find($id);
+
+        if (!$session || $session->getUser() !== $this->getUser() || $session->getEndedAt() !== null) {
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $routine = $session->getRoutine();
+        $user = $this->getUser();
+        $targets = [];
+        $lastSets = []; // Tabela na ostanie wyniki
+
+        foreach ($routine->getRoutineMachines() as $rm) {
+            $machine = $rm->getMachine();
+            $machineId = $machine->getId();
+            
+            // Wytyczne
+            $targets[$machineId] = $calculator->calculateTargets($user, $machine);
+            
+            // Szukamy ostatniej zapisanej serii dla tego użytkownika i maszyny
+            $lastSet = $em->createQueryBuilder()
+                ->select('s')
+                ->from(\App\Entity\WorkoutSet::class, 's')
+                ->join('s.workoutSession', 'ws')
+                ->where('ws.user = :user')
+                ->andWhere('s.machine = :machine')
+                ->setParameter('user', $user)
+                ->setParameter('machine', $machine)
+                ->orderBy('s.loggedAt', 'DESC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+                
+            $lastSets[$machineId] = $lastSet;
+        }
+
+        return $this->render('session/active.html.twig', [
+            'session' => $session,
+            'routine' => $routine,
+            'targets' => $targets,
+            'lastSets' => $lastSets
         ]);
     }
 
-    #[Route('/session/{id}/log-test-set', name: 'app_session_log_test_set')]
-    public function logTestSet(
+    #[Route('/session/{id}/log-set/{machineId}', name: 'app_session_log_set', methods: ['POST'])]
+    public function logSet(
         int $id,
+        int $machineId,
+        Request $request,
         EntityManagerInterface $em,
         RecordTrackerService $recordTracker
-    ): JsonResponse {
+    ): Response {
         $session = $em->getRepository(WorkoutSession::class)->find($id);
-        $machine = $em->getRepository(Machine::class)->findOneBy(['name' => 'Wyciskanie sztangi na ławce płaskiej']);
+        $machine = $em->getRepository(\App\Entity\Machine::class)->find($machineId);
 
-        if (!$session || !$machine) {
-            return $this->json(['error' => 'Brak sesji lub maszyny w bazie.']);
+        if (!$session || !$machine || $session->getUser() !== $this->getUser()) {
+            return $this->redirectToRoute('app_dashboard');
         }
 
-        $set = new WorkoutSet();
-        $set->setWorkoutSession($session);
-        $set->setMachine($machine);
-        $set->setSetNumber(1);
-        $set->setWeight(85.0); // Zwiększamy ciężar do 85 kg!
-        $set->setReps(4);
-        $set->setIsCompleted(true);
-        $set->setLoggedAt(new \DateTime());
+        $weight = $request->request->get('weight');
+        $reps = $request->request->get('reps');
 
-        $em->persist($set);
-        $em->flush();
+        if ($weight !== null && $reps !== null) {
+            // Obliczamy, która to seria na tej maszynie w obecnej sesji
+            $setNumber = $em->getRepository(\App\Entity\WorkoutSet::class)->count([
+                'workoutSession' => $session,
+                'machine' => $machine
+            ]) + 1;
 
-        // Uruchamiamy w tle sprawdzanie życiówki
-        $newRecord = $recordTracker->checkAndSaveRecord($set);
+            $set = new \App\Entity\WorkoutSet();
+            $set->setWorkoutSession($session);
+            $set->setMachine($machine);
+            $set->setSetNumber($setNumber);
+            $set->setWeight((float)$weight);
+            $set->setReps((int)$reps);
+            $set->setIsCompleted(true);
+            $set->setLoggedAt(new \DateTime());
 
-        return $this->json([
-            'status' => 'Seria zapisana',
-            'sesja_id' => $session->getId(),
-            'maszyna' => $machine->getName(),
-            'ciezar' => $set->getWeight() . ' kg',
-            'powtorzenia' => $set->getReps(),
-            'nowy_rekord' => $newRecord ? 'TAK! Nowy PR: ' . $newRecord->getMaxWeight() . 'kg x ' . $newRecord->getMaxRepsAtMaxWeight() : 'Nie'
-        ]);
+            $em->persist($set);
+            $em->flush();
+
+            // Uruchamiamy weryfikację rekordu
+            $newRecord = $recordTracker->checkAndSaveRecord($set);
+
+            // Zapisujemy komunikat, który wyświetlimy na ekranie
+            if ($newRecord) {
+                $this->addFlash('success', '🏆 NOWY REKORD! ' . $machine->getName() . ': ' . $weight . 'kg x ' . $reps);
+            } else {
+                $this->addFlash('success', 'Zapisano serię: ' . $weight . 'kg x ' . $reps);
+            }
+        }
+
+        return $this->redirectToRoute('app_session_active', ['id' => $session->getId()]);
     }
 
     #[Route('/session/{id}/end', name: 'app_session_end')]
     public function endSession(
         int $id,
         EntityManagerInterface $em
-    ): JsonResponse {
+    ): Response {
         $session = $em->getRepository(WorkoutSession::class)->find($id);
 
-        if (!$session) {
-            return $this->json(['error' => 'Brak sesji treningowej o podanym ID.']);
+        // Zabezpieczenie przed zamknięciem cudzej sesji lub już zakończonej
+        if (!$session || $session->getUser() !== $this->getUser() || $session->getEndedAt() !== null) {
+            return $this->redirectToRoute('app_dashboard');
         }
 
-        // 1. Zapisujemy czas zakończenia
+        // Zapisanie czasu zakończenia
         $session->setEndedAt(new \DateTime());
-
-        // 2. Obliczamy całkowity tonaż (ciężar * powtórzenia) dla wszystkich ukończonych serii
-        $tonnage = 0;
-        foreach ($session->getWorkoutSets() as $set) {
-            if ($set->isCompleted()) {
-                $tonnage += ($set->getWeight() * $set->getReps());
-            }
-        }
-        
-        $session->setTotalTonnage($tonnage);
         $em->flush();
 
-        // 3. Zwracamy podsumowanie
-        $duration = $session->getStartedAt()->diff($session->getEndedAt());
+        $this->addFlash('success', 'Trening zakończony! Dobra robota.');
 
-        return $this->json([
-            'status' => 'Trening zakonczony',
-            'czas_trwania' => $duration->format('%H:%I:%S'),
-            'calkowity_tonaz' => $session->getTotalTonnage() . ' kg'
-        ]);
+        return $this->redirectToRoute('app_dashboard');
     }
 }
