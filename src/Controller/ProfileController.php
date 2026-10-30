@@ -2,46 +2,51 @@
 
 namespace App\Controller;
 
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\GoalRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Attribute\Route;
 
 class ProfileController extends AbstractController
 {
-    #[Route('/profile/update-test', name: 'app_profile_update_test')]
-    public function updateTestProfile(
-        GoalRepository $goalRepo,
-        EntityManagerInterface $em
-    ): JsonResponse {
-        // Pobieramy aktualnie zalogowanego użytkownika
+    #[Route('/profile', name: 'app_profile')]
+    public function index(Request $request, GoalRepository $goalRepository, EntityManagerInterface $entityManager): Response
+    {
         $user = $this->getUser();
-
         if (!$user) {
-            return $this->json(['error' => 'Brak dostępu. Zaloguj się.']);
+            return $this->redirectToRoute('app_login');
         }
 
-       // Pobieramy wszystkie cele i wybieramy ostatni z listy
-        $goals = $goalRepo->findAll();
-        $newGoal = end($goals);
+        /** @var \App\Entity\User $user */
 
-        if (!$newGoal) {
-            return $this->json(['error' => 'Brak jakichkolwiek celów w bazie.']);
-        } 
+        // Obsługa zapisu z formularza
+        if ($request->isMethod('POST')) {
+            $user->setName($request->request->get('name'));
+            $user->setGender($request->request->get('gender'));
+            $user->setWeight((float) $request->request->get('weight'));
+            $user->setHeight((float) $request->request->get('height'));
+            $user->setAge((int) $request->request->get('age'));
 
-        // Aktualizujemy dane
-        $user->setCurrentWeight(85.5); // Ustawiamy nową wagę
-        $user->setCurrentGoal($newGoal); // Przypinamy nowy cel
+            $goalId = $request->request->get('goal_id');
+            if ($goalId) {
+                $newGoal = $goalRepository->find($goalId);
+                if ($newGoal) {
+                    $user->setCurrentGoal($newGoal);
+                }
+            }
 
-        // Zapisujemy zmiany w bazie
-        $em->flush();
+            $entityManager->flush();
+            $this->addFlash('success', 'Profil i parametry treningowe zostały zaktualizowane.');
+            
+            return $this->redirectToRoute('app_profile');
+        }
 
-        return $this->json([
-            'status' => 'Profil zostal zaktualizowany',
-            'uzytkownik' => $user->getUserIdentifier(),
-            'nowa_waga' => $user->getCurrentWeight() . ' kg',
-            'nowy_cel' => $user->getCurrentGoal()->getName()
+        $goals = $goalRepository->findAll();
+
+        return $this->render('profile/index.html.twig', [
+            'goals' => $goals
         ]);
     }
 }

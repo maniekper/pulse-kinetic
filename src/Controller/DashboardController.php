@@ -2,34 +2,29 @@
 
 namespace App\Controller;
 
-use App\Repository\RoutineRepository;
-use App\Repository\MachineRecordRepository; // Dodany import
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Repository\WorkoutPlanRepository;
 
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_dashboard')]
-    public function index(RoutineRepository $routineRepo, MachineRecordRepository $recordRepo): Response
+    public function index(WorkoutPlanRepository $workoutPlanRepository): Response
     {
         $user = $this->getUser();
-
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
 
-        $currentGoal = method_exists($user, 'getCurrentGoal') ? $user->getCurrentGoal() : null;
-        
-        $routines = $routineRepo->findBy(['user' => $user]);
-        // Pobieramy rekordy użytkownika
-        $records = $recordRepo->findBy(['user' => $user], ['achievedAt' => 'DESC']);
+        // Pobieramy najnowszy plan treningowy użytkownika (sortujemy malejąco po ID)
+        $latestPlan = $workoutPlanRepository->findOneBy(
+            ['user' => $user], 
+            ['id' => 'DESC']
+        );
 
         return $this->render('dashboard/index.html.twig', [
-            'user' => $user,
-            'currentGoal' => $currentGoal,
-            'routines' => $routines,
-            'records' => $records, // Przekazujemy do Twiga
+            'plan' => $latestPlan
         ]);
     }
 }

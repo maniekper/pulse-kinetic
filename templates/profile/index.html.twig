@@ -1,20 +1,79 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello ProfileController!{% endblock %}
+{% block title %}Mój Profil - Pulse Kinetic{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} fw-bold mb-4 border-{{ label }}" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+            <div class="card p-4 shadow-sm border-secondary bg-dark text-light">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold text-success m-0"><i class="bi bi-person-badge"></i> Mój Profil</h3>
+                    <span class="badge bg-secondary fs-6">{{ app.user.email }}</span>
+                </div>
+                
+                <form action="{{ path('app_profile') }}" method="POST">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-warning fw-bold">Imię / Pseudonim</label>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" name="name" value="{{ app.user.name }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-warning fw-bold">Płeć</label>
+                            <select name="gender" class="form-select bg-dark text-light border-secondary">
+                                <option value="" disabled {% if not app.user.gender %}selected{% endif %}>Wybierz...</option>
+                                <option value="Mężczyzna" {% if app.user.gender == 'Mężczyzna' %}selected{% endif %}>Mężczyzna</option>
+                                <option value="Kobieta" {% if app.user.gender == 'Kobieta' %}selected{% endif %}>Kobieta</option>
+                            </select>
+                        </div>
+                    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>E:/pulse-kinetic/src/Controller/ProfileController.php</code></li>
-        <li>Your template at <code>E:/pulse-kinetic/templates/profile/index.html.twig</code></li>
-    </ul>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-warning fw-bold">Wiek</label>
+                            <input type="number" class="form-control bg-dark text-light border-secondary" name="age" value="{{ app.user.age }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-warning fw-bold">Waga (kg)</label>
+                            <input type="number" step="0.1" class="form-control bg-dark text-light border-secondary" name="weight" value="{{ app.user.weight }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-warning fw-bold">Wzrost (cm)</label>
+                            <input type="number" step="1" class="form-control bg-dark text-light border-secondary" name="height" value="{{ app.user.height }}">
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+
+                    <div class="mb-4">
+                        <label class="form-label text-danger fw-bold fs-5"><i class="bi bi-bullseye"></i> Główny Cel Treningowy</label>
+                        <p class="text-muted small">Ta wartość decyduje o tym, jak generator "Pulse Kinetic" przypisuje objętość i powtórzenia.</p>
+                        <select name="goal_id" class="form-select form-select-lg bg-dark text-light border-secondary">
+                            {% for goal in goals %}
+                                <option value="{{ goal.id }}" {% if app.user.currentGoal and app.user.currentGoal.id == goal.id %}selected{% endif %}>
+                                    {{ goal.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold px-5">Zapisz Zmiany <i class="bi bi-save"></i></button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

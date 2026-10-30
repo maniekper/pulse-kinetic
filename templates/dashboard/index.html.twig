@@ -1,78 +1,80 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Panel Treningowy - Pulse Kinetic{% endblock %}
-
-{% block stylesheets %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #121212; color: #f8f9fa; }
-        .card { background-color: #1e1e1e; border: 1px solid #333; border-radius: 12px; }
-        .text-pulse { color: #0d6efd; }
-    </style>
-{% endblock %}
+{% block title %}Panel Główny - Pulse Kinetic{% endblock %}
 
 {% block body %}
 <div class="container mt-5">
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success fw-bold text-center border-success mb-4" role="alert">
-            {{ message }}
-        </div>
-    {% endfor %}
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="fw-bold">Witaj, <span class="text-pulse">{{ user.userIdentifier }}</span>!</h1>
-            <p class="text-muted">Twój bezpieczny panel treningowy Pulse Kinetic.</p>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Kafel z celem -->
-        <div class="col-md-6 mb-3">
-            <div class="card p-4 h-100 shadow-sm">
-                <h4 class="text-muted mb-3">Aktualny Cel</h4>
-                <h2 class="text-success fw-bold">{{ currentGoal ? currentGoal.name : 'Brak aktywnego celu' }}</h2>
-            </div>
-        </div>
-        
-        <!-- Kafel z wagą -->
-        <div class="col-md-6 mb-3">
-            <div class="card p-4 h-100 shadow-sm">
-                <h4 class="text-muted mb-3">Twoja Waga</h4>
-                <h2 class="text-warning fw-bold">
-                    {{ user.currentWeight ? user.currentWeight ~ ' kg' : 'Brak danych' }}
-                </h2>
-            </div>
-        </div>
-    </div>
     
-    <!-- NOWA SEKCJA: Rekordy -->
-    <div class="row mt-5 mb-4">
-        <div class="col-12">
-            <h3 class="fw-bold mb-4 text-warning">🏆 Twoje Życiówki (PR)</h3>
+    <!-- Powitanie i Szybkie Statystyki -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="text-light fw-bold">Cześć, <span class="text-success">{{ app.user.name }}</span>! ⚡</h2>
+            <p class="text-muted fs-5">Gotowy na dzisiejsze wyzwanie?</p>
         </div>
-        
-        {% if records is empty %}
-            <div class="col-12">
-                <div class="alert alert-dark border-warning text-warning text-center" role="alert">
-                    Brak rekordów. Zrób pierwszy trening, aby ustanowić życiówki!
+        <div class="col-md-4 text-md-end">
+            <div class="badge bg-dark border border-secondary p-3 text-start w-100 shadow-sm">
+                <div class="text-warning small text-uppercase fw-bold mb-1">Twój Cel</div>
+                <div class="fs-6 text-light">{{ app.user.currentGoal ? app.user.currentGoal.name : 'Brak wybranego celu' }}</div>
+                <hr class="border-secondary my-2">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted small">Waga: <strong class="text-light">{{ app.user.weight }} kg</strong></span>
+                    <a href="{{ path('app_profile') }}" class="text-success small text-decoration-none"><i class="bi bi-pencil-square"></i> Edytuj</a>
                 </div>
             </div>
-        {% else %}
-            {% for record in records %}
-                <div class="col-6 col-md-3 mb-3">
-                    <div class="card p-3 h-100 shadow-sm border-warning">
-                        <small class="text-muted fw-bold mb-1">{{ record.machine.name }}</small>
-                        <span class="fs-4 text-light fw-bold">{{ record.maxWeight }} kg</span>
-                        <span class="text-muted small">x {{ record.maxRepsAtMaxWeight }} powt.</span>
-                        <small class="text-secondary mt-2" style="font-size: 0.7rem;">{{ record.achievedAt|date('d.m.Y') }}</small>
-                    </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+        </div>
     </div>
 
-    <div class="mt-5 mb-5 border-top border-secondary pt-4">
-        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">Wyloguj się</a>
+    <!-- Sekcja Aktywnego Planu Treningowego -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-dark text-light border-secondary shadow p-4">
+                
+                {% if plan %}
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h4 class="text-warning fw-bold mb-1"><i class="bi bi-card-checklist"></i> Aktywny Plan</h4>
+                            <h5 class="text-light m-0">{{ plan.name }}</h5>
+                        </div>
+                        <span class="badge bg-success fs-6"><i class="bi bi-activity"></i> W toku</span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-4">
+                            <div class="p-3 border border-secondary rounded bg-opacity-10 bg-light text-center">
+                                <h2 class="fw-bold text-light m-0">{{ plan.workoutExercises|length }}</h2>
+                                <span class="text-muted small text-uppercase">Wszystkich ćwiczeń</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-8 d-flex align-items-center">
+                            <p class="text-muted m-0">
+                                Twój plan jest gotowy i czeka na realizację. System "Pulse Kinetic" precyzyjnie dobrał dla Ciebie obciążenia i zakresy powtórzeń na podstawie Twojego celu.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_generator_success', {'id': plan.id}) }}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-eye"></i> Podgląd Planu
+                        </a>
+                        <button class="btn btn-primary btn-lg fw-bold flex-grow-1 disabled">
+                            Rozpocznij Trening <i class="bi bi-play-fill"></i> (Wkrótce)
+                        </button>
+                    </div>
+
+                {% else %}
+                    <!-- Stan pusty (Brak planu) -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                        <h4 class="mt-3 fw-bold">Brak aktywnego planu</h4>
+                        <p class="text-muted mb-4">Twój kalendarz treningowy jest pusty. Zbudujmy idealny plan oparty na prawach biomechaniki.</p>
+                        <a href="{{ path('app_generator_start') }}" class="btn btn-success btn-lg fw-bold px-5">
+                            <i class="bi bi-magic"></i> Inteligentny Generator Planu
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
