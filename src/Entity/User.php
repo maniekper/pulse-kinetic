@@ -72,11 +72,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?float $currentWeight = null;
 
+    /**
+     * @var Collection<int, WorkoutPlan>
+     */
+    #[ORM\OneToMany(targetEntity: WorkoutPlan::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $workoutPlans;
+
     public function __construct()
     {
         $this->machineRecords = new ArrayCollection();
         $this->routines = new ArrayCollection();
         $this->workoutSessions = new ArrayCollection();
+        $this->workoutPlans = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -330,6 +337,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCurrentWeight(?float $currentWeight): static
     {
         $this->currentWeight = $currentWeight;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, WorkoutPlan>
+     */
+    public function getWorkoutPlans(): Collection
+    {
+        return $this->workoutPlans;
+    }
+
+    public function addWorkoutPlan(WorkoutPlan $workoutPlan): static
+    {
+        if (!$this->workoutPlans->contains($workoutPlan)) {
+            $this->workoutPlans->add($workoutPlan);
+            $workoutPlan->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkoutPlan(WorkoutPlan $workoutPlan): static
+    {
+        if ($this->workoutPlans->removeElement($workoutPlan)) {
+            // set the owning side to null (unless already changed)
+            if ($workoutPlan->getUser() === $this) {
+                $workoutPlan->setUser(null);
+            }
+        }
 
         return $this;
     }

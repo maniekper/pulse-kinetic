@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+{% block title %}Krok 2 - Czas trwania{% endblock %}
+{% block body %}
+<div class="container mt-5">
+    <div class="card bg-dark text-light border-secondary p-4 shadow">
+        <h3 class="text-success fw-bold">Krok 2: Długość cyklu</h3>
+        <p class="text-muted mb-4">Na ile tygodni zaplanować ten program?</p>
+        
+        <form action="{{ path('app_generator_step2_save') }}" method="POST">
+            <div class="mb-4">
+                <input type="range" class="form-range" min="{{ minWeeks }}" max="{{ maxWeeks }}" step="1" id="weeksRange" name="weeks" value="{{ minWeeks >= 4 ? minWeeks : 4 }}">
+                <h4 class="text-center text-warning mt-3"><span id="weeksOutput">4</span> tygodni(e)</h4>
+                {% if minWeeks > 1 %}
+                    <small class="text-info">Ze względu na wybraną częstotliwość, system wymaga zaplanowania co najmniej {{ minWeeks }} tygodni.</small>
+                {% endif %}
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{{ path('app_generator_start') }}" class="btn btn-outline-secondary">Wróć</a>
+                <button type="submit" class="btn btn-primary btn-lg">Dalej <i class="bi bi-arrow-right"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const range = document.getElementById('weeksRange');
+    const output = document.getElementById('weeksOutput');
+    range.addEventListener('input', function() { output.textContent = this.value; });
+    output.textContent = range.value;
+</script>
+{% endblock %}

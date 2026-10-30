@@ -69,6 +69,13 @@ class Machine
     #[ORM\OneToMany(targetEntity: WorkoutSet::class, mappedBy: 'machine')]
     private Collection $workoutSets;
 
+    #[ORM\ManyToOne(inversedBy: 'machines')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?MuscleGroup $muscleGroup = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $movementCategory = null;
+
     public function __construct()
     {
         $this->primaryMuscles = new ArrayCollection();
@@ -301,6 +308,30 @@ class Machine
                 $workoutSet->setMachine(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getMuscleGroup(): ?MuscleGroup
+    {
+        return $this->muscleGroup;
+    }
+
+    public function setMuscleGroup(?MuscleGroup $muscleGroup): static
+    {
+        $this->muscleGroup = $muscleGroup;
+
+        return $this;
+    }
+
+    public function getMovementCategory(): ?string
+    {
+        return $this->movementCategory;
+    }
+
+    public function setMovementCategory(?string $movementCategory): static
+    {
+        $this->movementCategory = $movementCategory;
 
         return $this;
     }

@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kreator Planu - Krok 1{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} fw-bold mb-4 border-{{ label }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            <div class="card p-4 shadow-sm border-secondary bg-dark text-light">
+                <h3 class="fw-bold mb-3 text-success">🤖 Inteligentny Trener</h3>
+                <p class="text-muted mb-4">Krok 1: Ile dni w tygodniu możesz przeznaczyć na trening?</p>
+
+                <form action="{{ path('app_generator_analyze') }}" method="POST">
+                    <div class="d-flex justify-content-between mb-4 flex-wrap gap-2">
+                        {% for i in 1..7 %}
+                            <input type="radio" class="btn-check" name="days" id="day{{ i }}" value="{{ i }}" {% if i == 3 %}checked{% endif %}>
+                            <label class="btn btn-outline-success fw-bold flex-grow-1" for="day{{ i }}">{{ i }}</label>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 fw-bold btn-lg">Dalej <i class="bi bi-arrow-right"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
