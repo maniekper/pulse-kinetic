@@ -1,79 +1,209 @@
-{% extends 'base.html.twig' %}
+{% extends 'app_layout.html.twig' %}
 
-{% block title %}Mój Profil - Pulse Kinetic{% endblock %}
+{% block title %}Twój Profil | PULSE KINETIC{% endblock %}
 
-{% block body %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            
+{% block app_content %}
+    <main class="kinetic-bg-container">
+        
+        <div class="kinetic-bg-gradient"></div>           
+        
+        <header class="kinetic-main-header">
+            <div class="kinetic-main-header-stripe"></div>
+            <div>
+                <h1 class="kinetic-main-header-title">PROFIL <span class="text-[#d1fc00]">OPERATORA</span></h1>
+                <p class="kinetic-main-header-subtitle">KONFIGURACJA PARAMETRÓW I PROTOKOŁU</p>
+            </div>
+            <div class="hidden md:block">
+                <span class="badge bg-[#1a1a1a] px-4 py-2 border border-white/10 font-headline font-bold text-xs tracking-widest text-[#767575]">{{ app.user.email }}</span>
+            </div>
+        </header>
+
+        <div class="relative z-10">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
-                    <div class="alert alert-{{ label }} fw-bold mb-4 border-{{ label }}" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+                    <div class="bg-[#d1fc00]/10 border border-[#d1fc00] p-4 mb-8 flex items-center gap-4">
+                        <span class="material-symbols-outlined text-[#d1fc00]">task_alt</span>
+                        <span class="font-headline font-bold text-[11px] text-[#d1fc00] uppercase tracking-widest">{{ message }}</span>
                     </div>
                 {% endfor %}
             {% endfor %}
-
-            <div class="card p-4 shadow-sm border-secondary bg-dark text-light">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold text-success m-0"><i class="bi bi-person-badge"></i> Mój Profil</h3>
-                    <span class="badge bg-secondary fs-6">{{ app.user.email }}</span>
-                </div>
-                
-                <form action="{{ path('app_profile') }}" method="POST">
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-warning fw-bold">Imię / Pseudonim</label>
-                            <input type="text" class="form-control bg-dark text-light border-secondary" name="name" value="{{ app.user.name }}" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label text-warning fw-bold">Płeć</label>
-                            <select name="gender" class="form-select bg-dark text-light border-secondary">
-                                <option value="" disabled {% if not app.user.gender %}selected{% endif %}>Wybierz...</option>
-                                <option value="Mężczyzna" {% if app.user.gender == 'Mężczyzna' %}selected{% endif %}>Mężczyzna</option>
-                                <option value="Kobieta" {% if app.user.gender == 'Kobieta' %}selected{% endif %}>Kobieta</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label text-warning fw-bold">Wiek</label>
-                            <input type="number" class="form-control bg-dark text-light border-secondary" name="age" value="{{ app.user.age }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label text-warning fw-bold">Waga (kg)</label>
-                            <input type="number" step="0.1" class="form-control bg-dark text-light border-secondary" name="weight" value="{{ app.user.weight }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label text-warning fw-bold">Wzrost (cm)</label>
-                            <input type="number" step="1" class="form-control bg-dark text-light border-secondary" name="height" value="{{ app.user.height }}">
-                        </div>
-                    </div>
-
-                    <hr class="border-secondary my-4">
-
-                    <div class="mb-4">
-                        <label class="form-label text-danger fw-bold fs-5"><i class="bi bi-bullseye"></i> Główny Cel Treningowy</label>
-                        <p class="text-muted small">Ta wartość decyduje o tym, jak generator "Pulse Kinetic" przypisuje objętość i powtórzenia.</p>
-                        <select name="goal_id" class="form-select form-select-lg bg-dark text-light border-secondary">
-                            {% for goal in goals %}
-                                <option value="{{ goal.id }}" {% if app.user.currentGoal and app.user.currentGoal.id == goal.id %}selected{% endif %}>
-                                    {{ goal.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary btn-lg fw-bold px-5">Zapisz Zmiany <i class="bi bi-save"></i></button>
-                    </div>
-                </form>
-
-            </div>
         </div>
-    </div>
-</div>
+
+        <form action="{{ path('app_profile') }}" method="POST" class="grid grid-cols-1 xl:grid-cols-3 gap-8 relative z-10">
+            
+            <!-- Lewa Kolumna (2 sekcje) -->
+            <div class="xl:col-span-2 space-y-8">
+                
+                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                    <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                        <span class="material-symbols-outlined text-[#767575]">badge</span>
+                    </div>
+                    <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-8">DANE IDENTYFIKACYJNE</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">IMIĘ / PSEUDONIM</label>
+                            <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] font-bold">
+                        </div>
+                        
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">PŁEĆ BAZOWA</label>
+                            
+                            <!-- CUSTOMOWY DROPDOWN: PŁEĆ -->
+                            <div class="relative" id="genderSelectContainer">
+                                <input type="hidden" name="gender" id="genderInput" value="{{ app.user.gender|default('') }}">
+                                
+                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
+                                    <span id="genderSelectedText">{{ app.user.gender ? app.user.gender : 'Wybierz...' }}</span>
+                                    <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
+                                </button>
+
+                                <div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex-col">
+                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Mężczyzna</div>
+                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Kobieta</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                    <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                        <span class="material-symbols-outlined text-[#767575]">monitor_weight</span>
+                    </div>
+                    <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-8">BIOMETRIA & PARAMETRY</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WIEK (LATA)</label>
+                            <input type="number" name="age" value="{{ app.user.age }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter">
+                        </div>
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WAGA (KG)</label>
+                            <input type="number" step="0.1" name="weight" value="{{ app.user.weight }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter text-[#d1fc00]">
+                        </div>
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WZROST (CM)</label>
+                            <input type="number" step="1" name="height" value="{{ app.user.height }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter">
+                        </div>
+                    </div>
+
+                    {% if app.user.weight and app.user.height %}
+                        {% set heightMeter = app.user.height / 100 %}
+                        {% set bmi = app.user.weight / (heightMeter * heightMeter) %}
+                        <div class="mt-8 border-t border-white/5 pt-6 flex items-center justify-between">
+                            <span class="font-headline font-bold text-[9px] text-[#767575] uppercase tracking-widest">AKTUALNY WSPÓŁCZYNNIK MASY (BMI)</span>
+                            <span class="font-headline font-black text-2xl text-white">{{ bmi|number_format(1, '.', '') }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Prawa Kolumna (Cel Treningowy i Zapis) -->
+            <div class="space-y-8">
+                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative h-full flex flex-col">
+                    <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                        <span class="material-symbols-outlined text-[#767575]">track_changes</span>
+                    </div>
+                    <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-4">DYREKTYWA SYSTEMU</h2>
+                    <p class="font-body text-[#767575] text-[11px] leading-relaxed mb-8">
+                        Wybór celu zmienia działanie generatora parametrów (przerwy, objętość, zakresy powtórzeń).
+                    </p>
+                    
+                    <div class="space-y-2 group mb-auto">
+                        <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">GŁÓWNY CEL OPERACYJNY</label>
+                        
+                        <!-- CUSTOMOWY DROPDOWN: CEL OPERACYJNY -->
+                        <div class="relative" id="goalSelectContainer">
+                            <input type="hidden" name="goal_id" id="goalInput" value="{{ app.user.currentGoal ? app.user.currentGoal.id : (goals|first).id|default('') }}">
+                            
+                            <button type="button" onclick="toggleDropdown('goalDropdown', 'goalArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-4 font-headline text-sm text-[#d1fc00] focus:outline-none focus:border-[#d1fc00] cursor-pointer font-black uppercase tracking-widest flex justify-between items-center text-left relative z-20">
+                                <span id="goalSelectedText">{{ app.user.currentGoal ? app.user.currentGoal.name : 'WYBIERZ CEL' }}</span>
+                                <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="goalArrow">expand_more</span>
+                            </button>
+
+                            <div id="goalDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex-col">
+                                {% for goal in goals %}
+                                    <div onclick="selectOption('goalInput', '{{ goal.id }}', 'goalSelectedText', '{{ goal.name }}', 'goalDropdown', 'goalArrow')" class="px-4 py-4 font-headline text-sm font-black text-white uppercase tracking-widest cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">
+                                        {{ goal.name }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="mt-12 w-full bg-[#d1fc00] hover:bg-[#c7ef00] py-5 px-6 flex items-center justify-between group transition-all duration-300 active:scale-[0.98]">
+                        <span class="font-headline font-black text-sm text-[#111111] uppercase tracking-widest">AKTUALIZUJ PARAMETRY</span>
+                        <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">save</span>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </main>
+
+    <!-- Skrypt do obsługi dropdownów -->
+    <script>
+        function toggleDropdown(menuId, arrowId) {
+            const menu = document.getElementById(menuId);
+            const arrow = document.getElementById(arrowId);
+            
+            // Zamknij inne otwarte dropdowny
+            document.querySelectorAll('[id$="Dropdown"]').forEach(el => {
+                if (el.id !== menuId && !el.classList.contains('hidden')) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                    const otherArrow = document.getElementById(el.id.replace('Dropdown', 'Arrow'));
+                    if(otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+                }
+            });
+
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                menu.classList.add('flex');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                menu.classList.add('hidden');
+                menu.classList.remove('flex');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function selectOption(inputId, value, textId, text, menuId, arrowId) {
+            document.getElementById(inputId).value = value;
+            document.getElementById(textId).innerText = text;
+            
+            const menu = document.getElementById(menuId);
+            const arrow = document.getElementById(arrowId);
+            menu.classList.add('hidden');
+            menu.classList.remove('flex');
+            arrow.style.transform = 'rotate(0deg)';
+        }
+
+        // Zamykanie przy kliknięciu na zewnątrz
+        document.addEventListener('click', function(event) {
+            const genderContainer = document.getElementById('genderSelectContainer');
+            const goalContainer = document.getElementById('goalSelectContainer');
+            
+            if (genderContainer && !genderContainer.contains(event.target)) {
+                const menu = document.getElementById('genderDropdown');
+                const arrow = document.getElementById('genderArrow');
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('flex');
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            }
+            
+            if (goalContainer && !goalContainer.contains(event.target)) {
+                const menu = document.getElementById('goalDropdown');
+                const arrow = document.getElementById('goalArrow');
+                if (menu && !menu.classList.contains('hidden')) {
+                    menu.classList.add('hidden');
+                    menu.classList.remove('flex');
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+    </script>
 {% endblock %}

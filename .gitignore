@@ -25,3 +25,9 @@ Thumbs.db
 
 # Pliki projektowe (aby pliki koncepcyjne nie trafiały na serwer)
 *.xmind
+###> symfony/webpack-encore-bundle ###
+/node_modules/
+/public/build/
+npm-debug.log
+yarn-error.log
+###< symfony/webpack-encore-bundle ###

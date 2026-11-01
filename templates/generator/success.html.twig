@@ -1,38 +1,98 @@
-{% extends 'base.html.twig' %}
-{% block title %}Twój Nowy Plan{% endblock %}
-{% block body %}
-<div class="container mt-5">
-    <div class="text-center mb-4">
-        <h2 class="text-success fw-bold">🎉 Plan gotowy!</h2>
-        <p class="text-muted">Algorytm ułożył kompletny plan treningowy omijając Twoje kontuzje.</p>
-    </div>
-    
-    <div class="card bg-dark text-light border-secondary p-4 shadow-sm">
-        <h3 class="text-warning fw-bold mb-4">{{ plan.name }}</h3>
+{% extends 'app_layout.html.twig' %}
+
+{% block title %}Plan Treningowy | PULSE KINETIC{% endblock %}
+
+{% block app_content %}
+    <main class="kinetic-bg-container">
         
-        <div class="row">
-            {% for sessionNum, exercises in sessions %}
-                <div class="col-md-6 mb-4">
-                    <div class="card border-secondary text-light h-100" style="background-color: #2c3034;">
-                        <div class="card-header fw-bold text-success border-secondary d-flex justify-content-between">
-                            <span>Trening nr {{ sessionNum }}</span>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            {% for ex in exercises %}
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                                    <span>{{ ex.machine.name }}</span>
-                                    <span class="badge bg-primary rounded-pill">{{ ex.sets }}x{{ ex.reps }}</span>
-                                </li>
-                            {% endfor %}
-                        </ul>
+        <div class="kinetic-bg-gradient"></div>
+
+        <header class="kinetic-main-header">
+            <div class="kinetic-main-header-stripe"></div>
+            <div>
+                <h1 class="kinetic-main-header-title">PLAN <span class="text-[#d1fc00]">TRENINGOWY</span></h1>
+                <p class="kinetic-main-header-subtitle">PODGLĄD BIEŻĄCEGO CYKLU OPERACYJNEGO</p>
+            </div>
+            <div class="hidden md:block">
+                <span class="badge bg-[#1a1a1a] px-4 py-2 border border-white/10 font-headline font-bold text-xs tracking-widest text-[#767575]">{{ app.user.email }}</span>
+            </div>
+        </header>
+
+        <div class="w-full max-w-7xl mx-auto relative z-10">
+            
+            <div class="bg-[#d1fc00] text-[#111111] p-6 md:p-8 mb-16 flex flex-col md:flex-row items-center justify-between shadow-[0_10px_40px_rgba(209,252,0,0.15)] relative overflow-hidden">
+                <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-8 -translate-y-8">
+                    <span class="material-symbols-outlined text-[12rem]">memory</span>
+                </div>
+                <div class="flex items-center gap-5 relative z-10">
+                    <span class="material-symbols-outlined text-4xl md:text-5xl">inventory_2</span>
+                    <div>
+                        <div class="font-label text-[10px] uppercase tracking-widest font-black opacity-70 mb-1">AKTYWNY IDENTYFIKATOR BAZY</div>
+                        <div class="font-headline font-black text-2xl md:text-3xl uppercase tracking-wider leading-none">{{ plan.name }}</div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
 
-        <div class="mt-4 text-center">
-            <a href="{{ path('app_generator_start') }}" class="btn btn-outline-light">Utwórz inny plan</a>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-16">
+                {% for sessionNum, exercises in sessions %}
+                    
+                    {% set dayMuscles = [] %}
+                    {% for ex in exercises %}
+                        {% set mName = ex.machine.muscle.name ?? '' %}
+                        {% if mName and mName not in dayMuscles %}
+                            {% set dayMuscles = dayMuscles|merge([mName]) %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% set planDays = sessions|length %}
+                    {% set workoutTypeLabel = '' %}
+                    {% if planDays <= 3 or dayMuscles|length >= 5 %}
+                        {% set workoutTypeLabel = 'FBW (TRENING CAŁEGO CIAŁA)' %}
+                    {% else %}
+                        {% set workoutTypeLabel = dayMuscles|join(' / ')|upper %}
+                        {% if workoutTypeLabel == '' %}
+                            {% set workoutTypeLabel = 'MIX PARTII' %}
+                        {% endif %}
+                    {% endif %}
+
+                    <div class="bg-[#111111] border border-white/10 shadow-2xl flex flex-col hover:border-[#d1fc00]/30 transition-colors group">
+                        
+                        <div class="bg-[#1a1a1a] border-b border-white/5 p-5 md:p-6 flex flex-col sm:flex-row justify-between sm:items-center relative overflow-hidden gap-4">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#484847] group-hover:bg-[#d1fc00] transition-colors"></div>
+                            
+                            <div class="flex flex-col z-10 ml-2">
+                                <h3 class="font-headline font-black text-xl text-white uppercase tracking-widest">
+                                    DZIEŃ <span class="text-[#d1fc00]">0{{ sessionNum }}</span>
+                                </h3>
+                                <span class="font-label text-[10px] text-[#d1fc00] uppercase tracking-widest mt-1 font-bold">
+                                    {{ workoutTypeLabel }}
+                                </span>
+                            </div>
+                            
+                            <span class="font-label text-[9px] text-[#767575] tracking-widest uppercase bg-[#0e0e0e] border border-white/5 px-3 py-1 self-start sm:self-auto shrink-0">
+                                {{ exercises|length }} ĆWICZEŃ
+                            </span>
+                        </div>
+                        
+                        <div class="p-4 md:p-6 flex-1 flex flex-col gap-3">
+                            {% for ex in exercises %}
+                                {% include 'components/_exercise_row.html.twig' with {
+                                    'exercise': ex,
+                                    'index': loop.index
+                                } %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                {% endfor %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-6 border-t border-white/5 pt-12 pb-24">
+                <a href="{{ path('app_generator_start') }}" class="px-8 py-5 border border-white/10 text-[#767575] hover:text-white hover:bg-white/5 font-headline font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined text-lg">refresh</span> GENERUJ NOWY
+                </a>
+            </div>
+            
         </div>
-    </div>
-</div>
+    </main>
 {% endblock %}

@@ -1,80 +1,134 @@
-{% extends 'base.html.twig' %}
+{% extends 'app_layout.html.twig' %}
 
-{% block title %}Panel Główny - Pulse Kinetic{% endblock %}
+{% block title %}Dashboard | PULSE KINETIC{% endblock %}
 
-{% block body %}
-<div class="container mt-5">
-    
-    <!-- Powitanie i Szybkie Statystyki -->
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h2 class="text-light fw-bold">Cześć, <span class="text-success">{{ app.user.name }}</span>! ⚡</h2>
-            <p class="text-muted fs-5">Gotowy na dzisiejsze wyzwanie?</p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <div class="badge bg-dark border border-secondary p-3 text-start w-100 shadow-sm">
-                <div class="text-warning small text-uppercase fw-bold mb-1">Twój Cel</div>
-                <div class="fs-6 text-light">{{ app.user.currentGoal ? app.user.currentGoal.name : 'Brak wybranego celu' }}</div>
-                <hr class="border-secondary my-2">
-                <div class="d-flex justify-content-between">
-                    <span class="text-muted small">Waga: <strong class="text-light">{{ app.user.weight }} kg</strong></span>
-                    <a href="{{ path('app_profile') }}" class="text-success small text-decoration-none"><i class="bi bi-pencil-square"></i> Edytuj</a>
+{% block app_content %}
+    <main class="kinetic-bg-container">
+        
+        <div class="kinetic-bg-gradient"></div>
+
+        <header class="kinetic-main-header">
+            <div class="kinetic-main-header-stripe"></div>
+            <div>
+                <h1 class="kinetic-main-header-title">DASHBOARD <span class="text-[#d1fc00]">GŁÓWNY</span></h1>
+                <p class="kinetic-main-header-subtitle">CENTRUM DOWODZENIA I ANALITYKI</p>
+            </div>
+            <div class="hidden md:block">
+                <span class="badge bg-[#1a1a1a] px-4 py-2 border border-white/10 font-headline font-bold text-xs tracking-widest text-[#767575]">{{ app.user.email }}</span>
+            </div>
+        </header>
+
+        <div class="relative z-10">
+            
+            <div class="font-label text-[10px] text-outline tracking-[0.2em] uppercase mb-8 text-[#767575]">
+                FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong> &bull; SESSION {{ completedSessionsCount + 1 }}
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-10">
+                
+                <!-- LEWA KOLUMNA: Plan na dziś (7/12) -->
+                <div class="xl:col-span-7 flex flex-col gap-6">
+                    
+                    <div class="kinetic-section-title-wrap">
+                        <h2 class="kinetic-section-title">ZAPLANOWANY BLOK NA DZIŚ</h2>
+                        <span class="font-headline font-bold text-[10px] text-[#d1fc00] tracking-widest ml-auto">0% COMPLETE</span>
+                    </div>
+
+                    {% if plan %}
+                        <div class="flex flex-col gap-2">
+                            {% set maxDays = 0 %}
+                            {% for ex in plan.workoutExercises %}
+                                {% if ex.dayNumber > maxDays %}
+                                    {% set maxDays = ex.dayNumber %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% set currentDayNumber = maxDays > 0 ? (completedSessionsCount % maxDays) + 1 : 1 %}
+                            {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == currentDayNumber) %}
+                            
+                            {% for exercise in todaysExercises|slice(0, 4) %}
+                                {% include 'components/_exercise_row.html.twig' with {
+                                    'exercise': exercise,
+                                    'index': loop.index,
+                                    'show_status': true
+                                } %}
+                            {% else %}
+                                <div class="text-[#767575] text-sm py-4 uppercase tracking-widest font-bold font-headline">Brak przypisanych ćwiczeń dla tej sesji.</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div class="kinetic-panel relative">
+                                <span class="material-symbols-outlined absolute top-6 right-6 text-[#d1fc00]">schedule</span>
+                                <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">SZACOWANY CZAS TRENINGU</div>
+                                <div class="font-headline font-black text-3xl text-white tracking-tighter leading-none">{{ estimatedTimeMinutes > 0 ? estimatedTimeMinutes : '--' }} MINUT</div>
+                                <div class="font-label text-[9px] text-[#767575] uppercase mt-2 tracking-widest">ZAWIERA 10 MIN ROZGRZEWKI</div>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="kinetic-panel border-[#ff7351]/30 text-center flex flex-col items-center !p-12">
+                            <span class="material-symbols-outlined text-[#ff7351] text-5xl mb-4 animate-pulse">warning</span>
+                            <span class="font-headline text-white font-bold uppercase tracking-widest mb-2">Brak aktywnego protokołu</span>
+                            <span class="font-body text-[#767575] text-sm uppercase tracking-wider">Wygeneruj plan, aby odblokować moduł analityczny.</span>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <!-- PRAWA KOLUMNA: Osiągi (5/12) -->
+                <div class="xl:col-span-5 flex flex-col gap-6">
+                    
+                    <div class="kinetic-section-title-wrap">
+                        <h2 class="kinetic-section-title">OSIĄGI OGÓLNE</h2>
+                    </div>
+
+                    <div class="kinetic-panel relative flex flex-col justify-center min-h-[160px]">
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-headline font-black text-6xl text-[#d1fc00] tracking-tighter leading-none">{{ (totalTonnage / 1000)|number_format(1, '.', '') }}</span>
+                            <span class="font-headline font-bold text-lg text-[#767575] uppercase">TON</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-4 text-[#d1fc00] font-headline font-bold text-[10px] uppercase tracking-widest">
+                            <span class="material-symbols-outlined text-sm">trending_up</span>
+                            Wydajność operacyjna w normie
+                        </div>
+                    </div>
+
+                    <div class="kinetic-panel !p-6">
+                        <div class="flex items-end justify-between h-20 gap-2 mb-2">
+                            {% for data in chartData %}
+                                {% set heightPercentage = (data.tonnage / (maxChartValue > 0 ? maxChartValue : 1)) * 100 %}
+                                <div class="w-full {% if data.tonnage > 0 %}bg-[#d1fc00] shadow-[0_0_15px_rgba(209,252,0,0.3)]{% else %}bg-white/5{% endif %} rounded-t-[1px] transition-all duration-1000" 
+                                     style="height: {{ heightPercentage > 5 ? heightPercentage : 5 }}%;"
+                                     title="{{ data.tonnage }} KG">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="flex justify-between font-headline font-bold text-[9px] text-[#767575] uppercase tracking-widest">
+                            {% for data in chartData %}
+                                <span>{{ data.day }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="kinetic-panel flex flex-col gap-4 !p-6">
+                        {% for lift in maxLifts %}
+                            <div class="flex justify-between items-end {% if not loop.last %}border-b border-white/5 pb-3{% endif %} hover:bg-white/5 transition-colors p-2 -mx-2 rounded-sm">
+                                <div class="flex flex-col">
+                                    <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">{{ lift.machineName }}</span>
+                                    <span class="font-headline font-black text-lg text-white">{{ lift.maxWeight }} KG</span>
+                                </div>
+                                {% if loop.last %}
+                                    <span class="font-label text-[9px] text-[#d1fc00] uppercase tracking-widest font-black">ALL TIME HIGH</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-[#767575] text-xs font-bold uppercase tracking-widest font-headline block">Brak zarejestrowanych rekordów.</span>
+                        {% endfor %}
+                    </div>
+
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Sekcja Aktywnego Planu Treningowego -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card bg-dark text-light border-secondary shadow p-4">
-                
-                {% if plan %}
-                    <div class="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <h4 class="text-warning fw-bold mb-1"><i class="bi bi-card-checklist"></i> Aktywny Plan</h4>
-                            <h5 class="text-light m-0">{{ plan.name }}</h5>
-                        </div>
-                        <span class="badge bg-success fs-6"><i class="bi bi-activity"></i> W toku</span>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-sm-4">
-                            <div class="p-3 border border-secondary rounded bg-opacity-10 bg-light text-center">
-                                <h2 class="fw-bold text-light m-0">{{ plan.workoutExercises|length }}</h2>
-                                <span class="text-muted small text-uppercase">Wszystkich ćwiczeń</span>
-                            </div>
-                        </div>
-                        <div class="col-sm-8 d-flex align-items-center">
-                            <p class="text-muted m-0">
-                                Twój plan jest gotowy i czeka na realizację. System "Pulse Kinetic" precyzyjnie dobrał dla Ciebie obciążenia i zakresy powtórzeń na podstawie Twojego celu.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <a href="{{ path('app_generator_success', {'id': plan.id}) }}" class="btn btn-outline-light btn-lg">
-                            <i class="bi bi-eye"></i> Podgląd Planu
-                        </a>
-                        <button class="btn btn-primary btn-lg fw-bold flex-grow-1 disabled">
-                            Rozpocznij Trening <i class="bi bi-play-fill"></i> (Wkrótce)
-                        </button>
-                    </div>
-
-                {% else %}
-                    <!-- Stan pusty (Brak planu) -->
-                    <div class="text-center py-5">
-                        <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
-                        <h4 class="mt-3 fw-bold">Brak aktywnego planu</h4>
-                        <p class="text-muted mb-4">Twój kalendarz treningowy jest pusty. Zbudujmy idealny plan oparty na prawach biomechaniki.</p>
-                        <a href="{{ path('app_generator_start') }}" class="btn btn-success btn-lg fw-bold px-5">
-                            <i class="bi bi-magic"></i> Inteligentny Generator Planu
-                        </a>
-                    </div>
-                {% endif %}
-
-            </div>
-        </div>
-    </div>
-</div>
+    </main>
 {% endblock %}

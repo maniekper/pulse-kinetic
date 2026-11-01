@@ -1,0 +1,33 @@
+{# templates/components/_exercise_row.html.twig #}
+<div class="kinetic-panel flex flex-col xl:flex-row xl:justify-between xl:items-center gap-5 w-full !p-5">
+    
+    <!-- Numer i Nazwa -->
+    <div class="flex items-center gap-5">
+        <span class="font-headline font-black text-lg text-[#484847]">
+            {{ index < 10 ? '0' ~ index : index }}
+        </span>
+        <span class="kinetic-ex-name">
+            {{ exercise.machine.name|default('ĆWICZENIE') }}
+        </span>
+    </div>
+    
+    <!-- Parametry (Serie i Powtórzenia) -->
+    <div class="flex flex-wrap items-center gap-3 shrink-0">
+        <div class="bg-[#0e0e0e] border border-white/10 px-5 py-3 flex items-baseline gap-2">
+            <span class="kinetic-ex-value">{{ exercise.sets }}</span>
+            <span class="kinetic-ex-label">SERIE</span>
+        </div>
+        <div class="bg-[#0e0e0e] border border-white/10 px-5 py-3 flex items-baseline gap-2">
+            <span class="kinetic-ex-value">{{ exercise.reps }}</span>
+            <span class="kinetic-ex-label">POWTÓRZEŃ</span>
+        </div>
+        
+        {# Opcjonalny status (używany np. w Dashboardzie) #}
+        {% if show_status|default(false) %}
+            <div class="bg-[#0e0e0e] text-[#767575] px-4 py-3 font-headline font-black text-sm w-16 text-center border border-white/10 ml-2 hidden sm:block">
+                ---
+            </div>
+        {% endif %}
+    </div>
+
+</div>

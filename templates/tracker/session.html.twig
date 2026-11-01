@@ -1,0 +1,415 @@
+{% extends 'base.html.twig' %}
+{% block title %}KINETIC_LAB | Active Workout{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container": "#1a1919",
+                        "primary": "#f4ffc6",
+                        "primary-dim": "#c7ef00",
+                        "surface": "#0e0e0e",
+                        "on-surface-variant": "#adaaaa",
+                        "primary-container": "#d1fc00",
+                        "surface-container-lowest": "#000000",
+                        "surface-container-high": "#201f1f",
+                        "outline-variant": "#484847",
+                        "on-primary-container": "#4c5d00",
+                        "surface-container-low": "#131313",
+                        "surface-container-highest": "#262626",
+                        "on-surface": "#ffffff",
+                        "outline": "#767575",
+                        "error-container": "#b92902"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .kinetic-stripe::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: #d1fc00; }
+        .sheared-progress { clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Nadpisanie tła body dla tego konkretnego widoku */
+        body { background-color: #0e0e0e !important; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+    <!-- TopAppBar -->
+    <header class="fixed top-0 w-full border-none bg-[#0e0e0e] flex justify-between items-center px-6 h-16 z-50">
+        <div class="flex items-center gap-4">
+            <span class="text-xl font-black text-[#d1fc00] tracking-widest font-headline uppercase italic">KINETIC_LAB</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#d1fc00]">timer</span>
+                <span class="font-headline font-bold text-primary-container tracking-tighter" id="globalWorkoutTimer">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-48 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Header Section -->
+        <div class="lg:col-span-12 mb-4">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="font-label text-xs font-bold text-outline uppercase tracking-[0.2em] mb-1 block">Session Active</span>
+                    <h1 class="font-headline text-3xl md:text-5xl font-extrabold uppercase tracking-tighter text-on-surface italic">
+                        TRENING W TOKU: <span class="text-primary-container">{{ app.user.currentGoal ? app.user.currentGoal.name : 'TRENING' }}</span>
+                    </h1>
+                </div>
+                <div class="w-full md:w-72">
+                    <div class="flex justify-between items-end mb-2">
+                        <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase">Progress</span>
+                        <span class="font-headline font-bold text-primary-container" id="workoutProgressText">0%</span>
+                    </div>
+                    <div class="h-2 bg-surface-container-highest w-full sheared-progress">
+                        <div class="h-full bg-primary-container w-0" id="workoutProgressBar" style="transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Execution Area -->
+        <div class="lg:col-span-8 space-y-6">
+            {% for machineName, sets in groupedSets %}
+                <section class="bg-surface-container p-6 relative exercise-block" data-machine-id="{{ sets[0].machine.id }}">
+                    <div class="flex flex-col gap-6">
+                        <div class="flex flex-col md:flex-row gap-6 items-start">
+                            <div class="flex-1 flex flex-col w-full">
+                                <h2 class="font-headline text-4xl font-black uppercase leading-none tracking-tighter mb-6 italic">
+                                    {{ loop.index > 9 ? loop.index : '0' ~ loop.index }}. {{ machineName }}
+                                </h2>
+                                
+                                <div class="w-full max-w-2xl mb-6 bg-surface-container-high overflow-hidden relative border border-outline-variant/20 hidden md:flex" style="height: 250px;">
+                                    <div class="w-1/2 h-full border-r border-outline-variant/30 relative">
+                                        <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-cover opacity-90 mix-blend-luminosity">
+                                        <div class="absolute top-2 left-2 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-0.5 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
+                                            <span class="text-primary-container mr-1">01</span> FAZA: ZGIĘCIE
+                                        </div>
+                                    </div>
+                                    <div class="w-1/2 h-full relative">
+                                        <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-cover opacity-90 mix-blend-luminosity">
+                                        <div class="absolute top-2 right-2 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-0.5 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
+                                            <span class="text-primary-container mr-1">02</span> FAZA: WYPROST
+                                        </div>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 bg-primary-container text-on-primary-container px-3 py-1 font-headline font-bold text-xs uppercase tracking-tighter z-10">
+                                        {{ sets[0].machine.mechanicType == 'compound' ? 'PRIMARY LIFT' : 'ISOLATION' }}
+                                    </div>
+                                </div>
+                                
+                                <p class="text-on-surface-variant font-body text-sm max-w-2xl mb-8 leading-relaxed">
+                                    {{ sets[0].machine.description }}
+                                </p>
+
+                                <!-- Nagłówki tabeli -->
+                                <div class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-4 border-b border-outline-variant/20">
+                                    <div class="col-span-2 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase">Set</div>
+                                    <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">KG</div>
+                                    <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">REPS</div>
+                                    <div class="col-span-2 text-right"></div>
+                                </div>
+
+                                <!-- Serie -->
+                                {% for set in sets %}
+                                    <div id="set-row-{{ set.id }}" class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-3 items-center set-row relative {% if set.isCompleted %}opacity-50 bg-surface-container-low{% else %}kinetic-stripe bg-surface-container-high{% endif %}" data-set-id="{{ set.id }}">
+                                        <div class="col-span-2 font-headline font-bold text-xl md:text-2xl set-number {% if set.isCompleted %}text-on-surface{% else %}text-primary-container{% endif %}">
+                                            {{ set.setNumber > 9 ? set.setNumber : '0' ~ set.setNumber }}
+                                        </div>
+                                        
+                                        <div class="col-span-4 px-1 md:px-2">
+                                            {% if set.isCompleted %}
+                                                <div class="bg-surface-container-highest py-2 text-center font-headline font-bold text-on-surface">{{ set.weight }}</div>
+                                            {% else %}
+                                                <input type="number" step="0.5" id="weight-{{ set.id }}" class="w-full bg-[#131313] border border-outline-variant/30 text-center font-headline font-bold text-lg focus:outline-none focus:border-primary-container text-on-surface p-2" placeholder="0" value="{{ set.weight > 0 ? set.weight : '' }}">
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-span-4 px-1 md:px-2">
+                                            {% if set.isCompleted %}
+                                                <div class="bg-surface-container-highest py-2 text-center font-headline font-bold text-on-surface">{{ set.reps }}</div>
+                                            {% else %}
+                                                <input type="number" id="reps-{{ set.id }}" class="w-full bg-[#131313] border border-outline-variant/30 text-center font-headline font-bold text-lg focus:outline-none focus:border-primary-container text-on-surface p-2" placeholder="0" value="{{ set.reps > 0 ? set.reps : '' }}">
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-span-2 text-right pe-2 set-action-container">
+                                            {% if set.isCompleted %}
+                                                <span class="material-symbols-outlined text-primary-container">check_circle</span>
+                                            {% else %}
+                                                <button class="material-symbols-outlined text-outline hover:text-primary-container transition-colors save-set-btn cursor-pointer" onclick="saveSet({{ set.id }}, this)">check</button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+
+        <!-- Sidebar Section -->
+        <aside class="lg:col-span-4 space-y-6">
+            <!-- Rest Timer Card -->
+            <section class="bg-surface-container p-6 flex flex-col items-center justify-center text-center sticky top-24 z-40">
+                <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Current Rest Interval</span>
+                <div class="relative flex items-center justify-center w-48 h-48 mb-6">
+                    <svg class="w-full h-full -rotate-90">
+                        <circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="4"></circle>
+                        <circle id="restTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="0" stroke-width="4"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="restTimerDisplay" class="font-headline text-4xl font-black text-on-surface">--:--</span>
+                        <span class="font-label text-[10px] text-outline uppercase tracking-widest">Remaining</span>
+                    </div>
+                </div>
+                <div class="flex w-full gap-2">
+                    <button onclick="addRestTime(30)" class="flex-1 border border-outline-variant/40 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors">
+                        +30s
+                    </button>
+                    <button onclick="skipRestTime()" class="flex-1 bg-surface-container-highest py-3 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary-container text-outline transition-colors">
+                        SKIP
+                    </button>
+                </div>
+                <div id="targetRestTimeData" data-time="{{ restTime }}" class="hidden"></div>
+            </section>
+
+            <!-- Queue (Lista następnych ćwiczeń) -->
+            <section class="bg-surface-container p-6 hidden md:block">
+                <h3 class="font-headline text-lg font-bold uppercase tracking-tight mb-4 border-l-2 border-primary-container pl-3 text-on-surface">Queue</h3>
+                <div class="space-y-4">
+                    {% for machineName, sets in groupedSets %}
+                        <div class="flex items-center justify-between group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-surface-container-high flex items-center justify-center font-headline font-bold text-outline">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</div>
+                                <div>
+                                    <span class="block font-headline text-sm font-bold uppercase tracking-tight text-on-surface">{{ machineName }}</span>
+                                    <span class="block font-label text-[10px] text-outline uppercase">{{ sets|length }} SETS</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined text-outline text-sm">hourglass_empty</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </aside>
+    </main>
+
+    <!-- Sticky Bottom Bar -->
+    <footer class="fixed bottom-0 left-0 w-full z-50 bg-[#0e0e0e]/95 backdrop-blur-md border-t border-outline-variant/30 px-6 md:px-12 py-4 flex flex-col md:flex-row gap-6 items-center justify-between shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+        <div class="flex gap-8 md:gap-12 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+            <div class="flex flex-col shrink-0">
+                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Volume</span>
+                <span class="font-headline font-black text-xl text-on-surface"><span id="totalVolumeCounter">0</span> KG</span>
+            </div>
+            <div class="flex flex-col shrink-0">
+                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Sets Done</span>
+                <span class="font-headline font-black text-xl text-on-surface"><span id="setsCompletedCounter">0</span> / <span id="totalSetsCounter">0</span></span>
+            </div>
+            <div class="flex flex-col shrink-0">
+                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Session Time</span>
+                <span class="font-headline font-black text-xl text-primary-container" id="sessionTimerBottom">00:00</span>
+            </div>
+        </div>
+        <div class="flex w-full md:w-auto gap-4 shrink-0">
+            <button onclick="finishWorkout()" class="flex-1 md:w-48 bg-transparent py-4 font-headline font-black text-xs uppercase tracking-[0.2em] hover:bg-error-container transition-all text-outline hover:text-white border border-outline-variant/30">
+                END WORKOUT
+            </button>
+            <button id="globalFinishSetBtn" class="flex-[2] md:w-72 bg-primary-container text-on-primary-container py-4 px-8 font-headline font-black text-sm uppercase tracking-[0.15em] hover:bg-primary-dim transition-transform active:scale-95 duration-75 flex items-center justify-center gap-3">
+                FINISH SET
+                <span class="material-symbols-outlined font-bold">double_arrow</span>
+            </button>
+        </div>
+    </footer>
+</div>
+
+<script>
+    // System statystyk
+    let totalSets = document.querySelectorAll('.set-row').length;
+    let completedSets = document.querySelectorAll('.set-row.bg-surface-container-low').length;
+    document.getElementById('totalSetsCounter').innerText = totalSets;
+    
+    let currentVolume = 0;
+    {% for set in session.workoutSets %}
+        {% if set.isCompleted %}
+            currentVolume += ({{ set.weight }} * {{ set.reps }});
+        {% endif %}
+    {% endfor %}
+    
+    function updateStats() {
+        document.getElementById('setsCompletedCounter').innerText = completedSets;
+        document.getElementById('totalVolumeCounter').innerText = currentVolume;
+        let progress = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+        document.getElementById('workoutProgressText').innerText = progress + '%';
+        document.getElementById('workoutProgressBar').style.width = progress + '%';
+        updateActiveStateVisuals();
+    }
+    updateStats();
+
+    // Globalny czas trwania treningu
+    let workoutSeconds = 0;
+    setInterval(() => {
+        workoutSeconds++;
+        let h = Math.floor(workoutSeconds / 3600);
+        let m = Math.floor((workoutSeconds % 3600) / 60);
+        let s = workoutSeconds % 60;
+        let formattedStr = h > 0 ? (h < 10 ? "0" + h : h) + ":" : "";
+        formattedStr += (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        document.getElementById('globalWorkoutTimer').innerText = formattedStr;
+        document.getElementById('sessionTimerBottom').innerText = formattedStr;
+    }, 1000);
+
+    // Stoper przerw (Rest Timer)
+    let restInterval;
+    let currentRestSeconds = 0;
+    let maxRestSeconds = parseInt(document.getElementById('targetRestTimeData').getAttribute('data-time'));
+    const circle = document.getElementById('restTimerCircle');
+    const circumference = 552.92;
+
+    function startRestTimer(duration) {
+        clearInterval(restInterval);
+        currentRestSeconds = duration;
+        maxRestSeconds = duration > maxRestSeconds ? duration : maxRestSeconds;
+        const display = document.getElementById('restTimerDisplay');
+        display.classList.replace('text-outline', 'text-on-surface');
+        display.classList.replace('text-success', 'text-on-surface');
+        updateRestDisplay();
+
+        restInterval = setInterval(() => {
+            if (currentRestSeconds <= 0) {
+                clearInterval(restInterval);
+                display.innerText = "READY!";
+                display.classList.replace('text-on-surface', 'text-success');
+                circle.style.strokeDashoffset = 0;
+            } else {
+                currentRestSeconds--;
+                updateRestDisplay();
+            }
+        }, 1000);
+    }
+
+    function updateRestDisplay() {
+        const display = document.getElementById('restTimerDisplay');
+        let m = Math.floor(currentRestSeconds / 60);
+        let s = currentRestSeconds % 60;
+        display.innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        let fraction = currentRestSeconds / maxRestSeconds;
+        if(fraction > 1) fraction = 1;
+        circle.style.strokeDashoffset = circumference * (1 - fraction);
+    }
+
+    function addRestTime(seconds) {
+        if(currentRestSeconds <= 0) currentRestSeconds = 0;
+        currentRestSeconds += seconds;
+        if(!restInterval || currentRestSeconds <= seconds) startRestTimer(currentRestSeconds);
+    }
+
+    function skipRestTime() {
+        clearInterval(restInterval);
+        currentRestSeconds = 0;
+        const display = document.getElementById('restTimerDisplay');
+        display.innerText = "00:00";
+        circle.style.strokeDashoffset = 0;
+        display.classList.replace('text-on-surface', 'text-outline');
+    }
+
+    // Zarządzanie stanem aktywnym (Kinetic Stripe)
+    function updateActiveStateVisuals() {
+        let rows = document.querySelectorAll('.set-row');
+        let foundActive = false;
+        rows.forEach(row => {
+            row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
+            let numberDiv = row.querySelector('.set-number');
+            if(numberDiv) numberDiv.classList.remove('text-primary-container');
+            
+            if (!row.classList.contains('bg-surface-container-low') && !foundActive) {
+                row.classList.add('kinetic-stripe', 'bg-surface-container-high');
+                if(numberDiv) numberDiv.classList.add('text-primary-container');
+                foundActive = true;
+            }
+        });
+    }
+
+    // Zapis AJAX
+    function saveSet(setId, btnElement) {
+        const weight = document.getElementById('weight-' + setId).value;
+        const reps = document.getElementById('reps-' + setId).value;
+
+        if(!weight || !reps) {
+            alert('Wprowadź ciężar i ilość powtórzeń.');
+            return;
+        }
+
+        const originalBtnHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '...';
+        btnElement.disabled = true;
+
+        fetch('/tracker/set/complete/' + setId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ weight: weight, reps: reps })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                const row = document.getElementById('set-row-' + setId);
+                row.querySelector('div:nth-child(2)').innerHTML = `<div class="bg-surface-container-highest py-2 text-center font-headline font-bold text-on-surface">${weight}</div>`;
+                row.querySelector('div:nth-child(3)').innerHTML = `<div class="bg-surface-container-highest py-2 text-center font-headline font-bold text-on-surface">${reps}</div>`;
+                row.querySelector('.set-action-container').innerHTML = '<span class="material-symbols-outlined text-primary-container">check_circle</span>';
+                
+                row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
+                row.classList.add('opacity-50', 'bg-surface-container-low');
+                
+                let numberDiv = row.querySelector('.set-number');
+                if(numberDiv) {
+                    numberDiv.classList.remove('text-primary-container');
+                    numberDiv.classList.add('text-on-surface');
+                }
+
+                completedSets++;
+                currentVolume += (parseFloat(weight) * parseInt(reps));
+                updateStats();
+                startRestTimer(parseInt(document.getElementById('targetRestTimeData').getAttribute('data-time')));
+            } else {
+                alert('Błąd zapisu.');
+                btnElement.innerHTML = originalBtnHtml;
+                btnElement.disabled = false;
+            }
+        });
+    }
+
+    // Obsługa głównego przycisku w stopce
+    document.getElementById('globalFinishSetBtn').addEventListener('click', function() {
+        const activeRow = document.querySelector('.set-row.kinetic-stripe');
+        if(activeRow) {
+            saveSet(activeRow.getAttribute('data-set-id'), activeRow.querySelector('.save-set-btn'));
+        } else {
+             alert('Trening zakończony! Brak aktywnych serii.');
+        }
+    });
+
+    function finishWorkout() {
+        if(confirm('Zakończyć sesję i zapisać progres?')) {
+            window.location.href = '/dashboard'; 
+        }
+    }
+</script>
+{% endblock %}

@@ -1,34 +1,127 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Log in!{% endblock %}
+{% block title %}Zaloguj się | PULSE KINETIC{% endblock %}
 
 {% block body %}
-<form method="post">
-    {% if error %}
-        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0 bg-[url('https://lh3.googleusercontent.com/aida-public/AB6AXuB9CPa6Eq5KlTfOtCl1bzXSjySf_qP9UHNSr0Yj5u2xz4cRVGk2k58hFVrfibTDRs3ymh30djHUrTN7MQOuPYmpQ3kbmi9Aq-rwpCKPCGy6xMrng7TJuluadf5pC9Cl_9G9Hzn5otZcH84vNj5UoYSueqya6O3qU_oxcIw33JgRlRisn9iX_rISIPcLdI00Xa-swqm8QyKVBMLh5EsfUP4ym_u4SThwWT1uI2tvfVr80zwWZPzqHu0HdkL-Kz5C6EQdUSABQnxwf9A')] bg-cover bg-center grayscale contrast-125 opacity-20 pointer-events-none"></div>
+<div class="fixed inset-0 z-0 bg-gradient-to-b from-[#0e0e0e]/80 to-[#0e0e0e]/95 pointer-events-none"></div>
 
-    {% if app.user %}
-        <div class="mb-3">
-            You are logged in as {{ app.user.userIdentifier }}, <a href="{{ logout_path() }}">Logout</a>
+<!-- Layout Shell -->
+<main class="relative z-10 w-full min-h-screen max-w-7xl mx-auto px-8 lg:px-12 py-12 flex flex-col md:flex-row items-center justify-between gap-16">
+    
+    <!-- Lewa kolumna: Branding & Messaging -->
+    <div class="hidden md:flex flex-col justify-center h-[80vh] w-[55%] space-y-10">
+        <div class="space-y-2">
+            <span class="font-headline font-black italic text-[#d1fc00] text-2xl tracking-tighter">PULSE KINETIC</span>
+            <div class="h-1 w-12 bg-[#d1fc00]"></div>
         </div>
-    {% endif %}
 
-    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-    <label for="inputEmail">Email</label>
-    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-    <label for="inputPassword">Password</label>
-    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
-    <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+        <h1 class="font-headline font-black text-6xl lg:text-[7.5rem] leading-[0.85] tracking-tighter uppercase text-white italic">
+            ZALOGUJ<br>_DO<br><span class="text-[#d1fc00]">PULSE</span>
+        </h1>
 
-    <div class="checkbox mb-3">
-        <label>
-            <input type="checkbox" name="_remember_me"> Remember me
-        </label>
+        <div class="space-y-8 max-w-md pt-4">
+            <p class="font-body text-[#767575] text-[15px] leading-relaxed">
+                Uzyskaj dostęp do swojego laboratorium wydajności. Śledź dane biometryczne, wykonuj precyzyjne protokoły treningowe i przesuwaj granice swojego potencjału kinetycznego.
+            </p>
+            <div class="flex items-center gap-8 pt-4">
+                <div class="flex flex-col gap-1">
+                    <span class="font-headline font-black text-[2rem] text-white leading-none">2.4k+</span>
+                    <span class="font-headline font-bold text-[9px] text-[#767575] uppercase tracking-widest mt-1">AKTYWNI SPORTOWCY</span>
+                </div>
+                <div class="w-px h-10 bg-white/10"></div>
+                <div class="flex flex-col gap-1">
+                    <span class="font-headline font-black text-[2rem] text-white leading-none">99.8%</span>
+                    <span class="font-headline font-bold text-[9px] text-[#767575] uppercase tracking-widest mt-1">PRECYZJA DZIAŁANIA</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <button class="btn btn-lg btn-primary" type="submit">
-        Sign in
-    </button>
-</form>
+    <!-- Prawa kolumna: Zaktualizowany Formularz Logowania (Głębsza czerń) -->
+    <div class="w-full md:w-[480px] bg-[#111111]/95 backdrop-blur-xl p-10 lg:p-12 border-l border-t border-white/5 relative overflow-hidden shadow-2xl">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#d1fc00]/10 -mr-12 -mt-12 rotate-45 pointer-events-none" style="clip-path: polygon(100% 0, 0 0, 100% 100%);"></div>
+        
+        <div class="relative z-10 space-y-8">
+            <div class="space-y-1">
+                <h2 class="font-headline font-black text-xl text-white uppercase tracking-tight">ZALOGUJ SIĘ DO PULSE KINETIC</h2>
+                <p class="text-[10px] text-[#767575] uppercase tracking-widest font-headline font-bold">WYMAGANY PROTOKÓŁ AUTENTYKACJI</p>
+            </div>
+
+            <form method="post" class="space-y-6">
+                {% if error %}
+                    <div class="bg-[#ff7351]/10 border border-[#ff7351] text-[#ff7351] text-xs font-bold uppercase tracking-wide p-4">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                <!-- Zaktualizowane Pola Input (Ciemniejsze tło, subtelniejszy border) -->
+                <div class="space-y-2 group">
+                    <label for="username" class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">UŻYTKOWNIK / E-MAIL</label>
+                    <div class="relative">
+                        <input class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-4 font-headline text-sm text-white placeholder:text-white/20 transition-all rounded-none focus:ring-0 focus:border-[#d1fc00] font-bold" 
+                               id="username" name="email" value="{{ last_username }}" placeholder="WPROWADŹ IDENTYFIKATOR" type="email" autocomplete="email" required autofocus>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#d1fc00] transition-colors pointer-events-none text-lg">person</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 group">
+                    <label for="password" class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">KLUCZ DOSTĘPU</label>
+                    <div class="relative">
+                        <input class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-4 font-headline text-sm text-white placeholder:text-white/20 transition-all rounded-none focus:ring-0 focus:border-[#d1fc00] font-bold tracking-widest" 
+                               id="password" name="password" placeholder="••••••••" type="password" autocomplete="current-password" required>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#d1fc00] transition-colors pointer-events-none text-lg">lock</span>
+                    </div>
+                </div>
+
+                <!-- Checkbox & Link -->
+                <div class="flex items-center justify-between pt-1">
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <div class="relative w-4 h-4 border border-white/20 group-hover:border-[#d1fc00] transition-colors bg-[#1a1a1a]">
+                            <input type="checkbox" name="_remember_me" id="_remember_me" class="absolute inset-0 opacity-0 cursor-pointer peer">
+                            <div class="absolute inset-0 bg-[#d1fc00] opacity-0 peer-checked:opacity-100 flex items-center justify-center transition-opacity">
+                                <span class="material-symbols-outlined text-[#111111] text-[12px] font-black">check</span>
+                            </div>
+                        </div>
+                        <span class="text-[9px] uppercase tracking-widest text-[#767575] font-headline font-bold">ZAPAMIĘTAJ STACJĘ</span>
+                    </label>
+                    <a class="text-[9px] uppercase tracking-widest text-[#d1fc00] hover:text-white transition-colors font-headline font-bold" href="#">UTRACONY DOSTĘP?</a>
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <!-- Główny Przycisk -->
+                <div class="pt-2">
+                    <button class="w-full bg-[#d1fc00] hover:bg-[#c7ef00] py-4 px-6 flex items-center justify-between group transition-all duration-300 active:scale-[0.98]" type="submit">
+                        <span class="font-headline font-black text-base text-[#111111] uppercase tracking-tighter">AKTYWUJ SESJĘ</span>
+                        <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5 text-xl">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Linki Zewnętrzne -->
+            <div class="pt-2 flex flex-col gap-5">
+                <p class="text-[9px] text-center text-[#767575] uppercase tracking-widest font-headline font-bold">
+                    NOWY REKRUT? <a class="text-white hover:text-[#d1fc00] transition-colors" href="#">ZAREJESTRUJ SIĘ</a>
+                </p>
+                
+                <div class="flex items-center gap-3">
+                    <div class="h-px flex-1 bg-white/10"></div>
+                    <span class="text-[8px] text-[#767575] uppercase tracking-[0.2em] font-headline font-bold">LINK ZEWNĘTRZNY</span>
+                    <div class="h-px flex-1 bg-white/10"></div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="border border-white/10 py-2.5 px-3 flex items-center justify-center gap-2 hover:bg-white/5 transition-colors bg-[#1a1a1a]">
+                        <span class="font-headline font-bold text-[9px] text-white uppercase tracking-wider">GOOGLE</span>
+                    </button>
+                    <button class="border border-white/10 py-2.5 px-3 flex items-center justify-center gap-2 hover:bg-white/5 transition-colors bg-[#1a1a1a]">
+                        <span class="font-headline font-bold text-[9px] text-white uppercase tracking-wider">APPLE ID</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 {% endblock %}

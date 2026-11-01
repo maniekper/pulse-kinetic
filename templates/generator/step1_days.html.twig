@@ -1,82 +1,225 @@
 {% extends 'base.html.twig' %}
-{% block title %}Krok 1 - Częstotliwość{% endblock %}
-{% block body %}
-<div class="container mt-5">
-    
-    <!-- Pasek z obecnym celem treningowym -->
-    <div class="alert alert-dark border-secondary d-flex justify-content-between align-items-center mb-4 shadow-sm" role="alert">
-        <div>
-            <i class="bi bi-bullseye text-warning fs-4 me-2"></i>
-            <span class="text-light">Aktualny cel treningowy: 
-                <strong class="text-warning">{{ app.user.currentGoal ? app.user.currentGoal.name : 'Brak' }}</strong>
-            </span>
-        </div>
-        <!-- Przycisk wywołujący ostrzeżenie (Modal) -->
-        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#warningModal">
-            Zmień cel <i class="bi bi-gear-fill"></i>
-        </button>
-    </div>
 
-    <!-- Główny formularz Kroku 1 -->
-    <div class="card bg-dark text-light border-secondary p-4 shadow">
-        <h3 class="text-success fw-bold">Krok 1: Jak często chcesz ćwiczyć?</h3>
-        <p class="text-muted mb-4">Dostosujemy plan do Twojego kalendarza.</p>
+{% block title %}Krok 01 - Częstotliwość | PULSE KINETIC{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-[#0e0e0e] flex flex-col items-center justify-center p-6 relative">
+    
+    <!-- Tło -->
+    <div class="fixed inset-0 z-0 bg-gradient-to-b from-[#0e0e0e]/80 to-[#0e0e0e]/95 pointer-events-none"></div>
+
+    <!-- Główny Kontener -->
+    <main class="relative z-10 w-full max-w-4xl bg-[#111111]/95 backdrop-blur-xl border-l border-t border-white/5 shadow-2xl p-8 md:p-12">
         
-        <form action="{{ path('app_generator_step1_save') }}" method="POST">
-            <div class="mb-4">
-                <select name="days" class="form-select form-select-lg bg-dark text-light border-secondary">
-                    <option value="2">2 dni w tygodniu (Polecane dla zajętych)</option>
-                    <option value="3">3 dni w tygodniu</option>
-                    <option value="4" selected>4 dni w tygodniu (Optymalnie - Klasyczny Split)</option>
-                    <option value="5">5 dni w tygodniu</option>
-                </select>
+        <div class="absolute top-0 right-0 w-16 h-16 bg-[#d1fc00]/10 -mr-8 -mt-8 rotate-45 pointer-events-none"></div>
+
+        <!-- Nagłówek -->
+        <div class="mb-12 border-b border-white/5 pb-6">
+            <span class="font-headline font-black italic text-[#d1fc00] text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
+            <h1 class="font-headline font-black text-4xl md:text-5xl text-white uppercase tracking-tighter italic">
+                KROK 01: <span class="text-[#d1fc00]">CZĘSTOTLIWOŚĆ</span>
+            </h1>
+            <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">DOSTOSOWANIE OBCIĄŻENIA DO KALENDARZA OPERACYJNEGO</p>
+        </div>
+
+        <!-- Pływające Powiadomienia Systemowe (Toasty) -->
+        <div class="fixed top-8 left-1/2 -translate-x-1/2 z-[99999] flex flex-col gap-4 w-full max-w-2xl px-4 pointer-events-none">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="pointer-events-auto bg-[#1a1a1a] border-l-4 {% if label == 'danger' or label == 'error' %}border-[#ff7351]{% else %}border-[#d1fc00]{% endif %} p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-start gap-4">
+                        <span class="material-symbols-outlined {% if label == 'danger' or label == 'error' %}text-[#ff7351]{% else %}text-[#d1fc00]{% endif %} text-2xl">
+                            {% if label == 'danger' or label == 'error' %}warning{% else %}task_alt{% endif %}
+                        </span>
+                        <div class="flex-1 pt-1">
+                            <span class="font-headline font-black text-xs md:text-sm text-white uppercase tracking-widest leading-relaxed">{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-[#767575] hover:text-white transition-colors pt-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-lg">close</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <!-- Aktualny Cel (Banner) -->
+        <div class="bg-[#1a1a1a] border border-white/10 p-6 mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-surface-container-highest flex items-center justify-center border border-white/5">
+                    <span class="material-symbols-outlined text-[#d1fc00]">my_location</span>
+                </div>
+                <div>
+                    <div class="font-label text-[9px] text-[#767575] uppercase tracking-widest mb-1">AKTYWNY KIERUNEK ROZWOJU</div>
+                    <div class="font-headline font-black text-lg text-white uppercase tracking-wider">{{ app.user.currentGoal ? app.user.currentGoal.name : 'Brak przypisanego celu' }}</div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-lg">Dalej <i class="bi bi-arrow-right"></i></button>
+            <button type="button" onclick="openModal()" class="border border-[#ff7351]/50 text-[#ff7351] hover:bg-[#ff7351] hover:text-[#111111] px-6 py-3 font-headline font-bold text-[10px] uppercase tracking-widest transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+                <span class="material-symbols-outlined text-sm">warning</span> ZMIEŃ CEL
+            </button>
+        </div>
+
+        <!-- Formularz wyboru dni -->
+        <form action="{{ path('app_generator_step1_save') }}" method="POST" class="space-y-8">
+            <div class="space-y-4">
+                <label class="font-headline font-black text-sm text-white uppercase tracking-widest block mb-4">ILE DNI W TYGODNIU MOŻESZ TRENOWAĆ?</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="days" value="2" class="absolute opacity-0 peer">
+                        <div class="border border-white/10 bg-[#141414] p-6 peer-checked:border-[#d1fc00] peer-checked:bg-[#d1fc00]/5 transition-all">
+                            <div class="font-headline font-black text-3xl text-white group-hover:text-[#d1fc00] transition-colors peer-checked:text-[#d1fc00]">02</div>
+                            <div class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">DNI W TYGODNIU (DLA ZAJĘTYCH)</div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="days" value="3" class="absolute opacity-0 peer">
+                        <div class="border border-white/10 bg-[#141414] p-6 peer-checked:border-[#d1fc00] peer-checked:bg-[#d1fc00]/5 transition-all">
+                            <div class="font-headline font-black text-3xl text-white group-hover:text-[#d1fc00] transition-colors peer-checked:text-[#d1fc00]">03</div>
+                            <div class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">DNI W TYGODNIU (STANDARD)</div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="days" value="4" class="absolute opacity-0 peer" checked>
+                        <div class="border border-white/10 bg-[#141414] p-6 peer-checked:border-[#d1fc00] peer-checked:bg-[#d1fc00]/5 transition-all">
+                            <div class="font-headline font-black text-3xl text-white group-hover:text-[#d1fc00] transition-colors peer-checked:text-[#d1fc00]">04</div>
+                            <div class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">DNI W TYGODNIU (OPTYMALNIE / SPLIT)</div>
+                        </div>
+                    </label>
+                    
+                    <label class="relative cursor-pointer group">
+                        <input type="radio" name="days" value="5" class="absolute opacity-0 peer">
+                        <div class="border border-white/10 bg-[#141414] p-6 peer-checked:border-[#d1fc00] peer-checked:bg-[#d1fc00]/5 transition-all">
+                            <div class="font-headline font-black text-3xl text-white group-hover:text-[#d1fc00] transition-colors peer-checked:text-[#d1fc00]">05</div>
+                            <div class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">DNI W TYGODNIU (PRO)</div>
+                        </div>
+                    </label>
+                    
+                </div>
+            </div>
+
+            <div class="pt-6 flex justify-end border-t border-white/5">
+                <button type="submit" class="w-full md:w-auto bg-[#d1fc00] hover:bg-[#c7ef00] py-4 px-10 flex items-center justify-center gap-3 transition-colors group">
+                    <span class="font-headline font-black text-sm text-[#111111] uppercase tracking-widest">AKTYWUJ KROK 02</span>
+                    <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">arrow_forward</span>
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+
+<!-- MODAL KULOODPORNY (Zawsze nad wszystkim) -->
+<div id="goalModal" class="fixed inset-0 w-full h-full z-[999999] opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center">
+    
+    <!-- Tło zaciemniające (pełny ekran) -->
+    <div class="absolute inset-0 w-full h-full bg-[#000000]/90 backdrop-blur-md cursor-pointer" onclick="closeModal()"></div>
+    
+    <!-- Zawartość modala (wycentrowana) -->
+    <div class="relative z-10 w-full max-w-xl bg-[#111111] border-l-[6px] border-[#ff7351] p-10 shadow-[0_0_80px_rgba(255,115,81,0.2)] mx-4 transform scale-95 transition-transform duration-300" id="modalContent">
+        
+        <div class="flex items-center gap-5 mb-8 border-b border-white/5 pb-6">
+            <span class="material-symbols-outlined text-[#ff7351] text-[3rem]">warning</span>
+            <h3 class="font-headline font-black text-2xl text-white uppercase tracking-widest leading-none">ISTOTNA ZMIANA<br>PROTOKOŁU</h3>
+        </div>
+        
+        <p class="font-body text-[#767575] text-sm leading-relaxed mb-10">
+            Zmiana celu to <strong class="text-white">radykalna zmiana mechaniki treningu</strong>. Algorytm całkowicie zrewolucjonizuje Twoje plany: przydział serii, zakresy powtórzeń oraz czas przerw.
+        </p>
+        
+        <form action="{{ path('app_generator_change_goal') }}" method="POST">
+            <div class="mb-12">
+                <label class="font-headline font-bold text-[11px] text-[#ff7351] uppercase tracking-[0.2em] block mb-4">WYBIERZ NOWY KIERUNEK ROZWOJU:</label>
+                
+                <!-- Customowy Dropdown -->
+                <div class="relative" id="customSelectContainer">
+                    <!-- Ukryty input, który faktycznie wysyła dane do kontrolera -->
+                    <input type="hidden" name="new_goal_id" id="newGoalIdInput" value="{{ app.user.currentGoal ? app.user.currentGoal.id : (goals|first).id }}">
+
+                    <!-- Widoczny Przycisk (zastępuje natywny select) -->
+                    <button type="button" onclick="toggleDropdown()" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/20 px-4 py-4 font-headline text-base text-white focus:outline-none focus:border-[#ff7351] cursor-pointer tracking-widest uppercase font-bold shadow-inner flex justify-between items-center text-left relative z-20">
+                        <span id="selectedGoalText">{{ app.user.currentGoal ? app.user.currentGoal.name : 'WYBIERZ CEL' }}</span>
+                        <span class="material-symbols-outlined text-[#767575] text-2xl transition-transform duration-200" id="dropdownArrow">expand_more</span>
+                    </button>
+
+                    <!-- Rozwijane Menu (Lista opcji) -->
+                    <div id="customDropdownMenu" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex-col">
+                        {% for goal in goals %}
+                            <!-- Zamiast option - klikalny div z naszymi własnymi stylami hover -->
+                            <div onclick="selectGoal('{{ goal.id }}', '{{ goal.name }}')" class="px-4 py-4 font-headline text-sm font-bold text-white uppercase tracking-widest cursor-pointer hover:bg-[#ff7351] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-white">
+                                {{ goal.name }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-end border-t border-white/5 pt-6">
+                <button type="button" onclick="closeModal()" class="px-8 py-4 border border-white/10 text-[#767575] hover:text-white hover:border-white hover:bg-white/5 font-headline font-bold text-[11px] uppercase tracking-widest transition-colors w-full sm:w-auto">
+                    ANULUJ
+                </button>
+                <button type="submit" class="bg-[#ff7351] text-[#111111] hover:bg-[#ff8a6d] px-8 py-4 font-headline font-black text-[11px] uppercase tracking-widest transition-colors w-full sm:w-auto flex justify-center items-center gap-3">
+                    <span class="material-symbols-outlined text-lg">sync</span> AKCEPTUJĘ
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
-<!-- OSTRZEGAWCZY MODAL (Wyskakujące okno) -->
-<div class="modal fade" id="warningModal" tabindex="-1" aria-labelledby="warningModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light border-danger">
-      
-      <div class="modal-header border-secondary bg-danger bg-opacity-25">
-        <h5 class="modal-title text-danger fw-bold" id="warningModalLabel">
-            <i class="bi bi-exclamation-triangle-fill"></i> ISTOTNA ZMIANA
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      
-      <form action="{{ path('app_generator_change_goal') }}" method="POST">
-          <div class="modal-body">
-            <p class="fs-5">Czy na pewno chcesz zmienić cel treningowy?</p>
-            <p class="text-muted small">
-                Zmiana celu (np. z budowy siły na redukcję) to <strong>radykalna zmiana mechaniki treningu</strong>. 
-                Algorytm całkowicie zrewolucjonizuje Twoje przyszłe plany: zmieni przydział serii, wymusi inne zakresy powtórzeń oraz zmodyfikuje czas przerw między ćwiczeniami, aby chronić Twój układ nerwowy.
-            </p>
-            
-            <hr class="border-secondary">
-            
-            <div class="mb-3 mt-3">
-                <label class="form-label text-warning fw-bold">Wybierz nowy kierunek rozwoju:</label>
-                <select name="new_goal_id" class="form-select bg-dark text-light border-secondary">
-                    {% for goal in goals %}
-                        <option value="{{ goal.id }}" {% if app.user.currentGoal and app.user.currentGoal.id == goal.id %}selected{% endif %}>
-                            {{ goal.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-          </div>
-          
-          <div class="modal-footer border-secondary">
-            <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Anuluj</button>
-            <button type="submit" class="btn btn-danger fw-bold">Akceptuję, zmień cel</button>
-          </div>
-      </form>
-      
-    </div>
-  </div>
-</div>
+<script>
+    // Skrypt wykorzystujący opacity i pointer-events, co zapobiega psuciu układu flex
+    function openModal() {
+        const modal = document.getElementById('goalModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }
+    
+    function closeModal() {
+        const modal = document.getElementById('goalModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+    // Obsługa customowego dropdowna dla celów
+    function toggleDropdown() {
+        const menu = document.getElementById('customDropdownMenu');
+        const arrow = document.getElementById('dropdownArrow');
+        
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            menu.classList.add('flex');
+            arrow.style.transform = 'rotate(180deg)';
+        } else {
+            menu.classList.add('hidden');
+            menu.classList.remove('flex');
+            arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    function selectGoal(id, name) {
+        // Zapisz ID do ukrytego inputa (do wysłania w POST)
+        document.getElementById('newGoalIdInput').value = id;
+        // Zmień widoczny tekst
+        document.getElementById('selectedGoalText').innerText = name;
+        // Zamknij menu
+        toggleDropdown();
+    }
+
+    // Zamknięcie dropdowna po kliknięciu gdziekolwiek poza nim
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('customSelectContainer');
+        const menu = document.getElementById('customDropdownMenu');
+        if (container && !container.contains(event.target) && !menu.classList.contains('hidden')) {
+            toggleDropdown();
+        }
+    });
+</script>
 {% endblock %}
