@@ -20,19 +20,25 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // 1. Aktywny plan użytkownika
         $plan = $em->getRepository(WorkoutPlan::class)->findOneBy(['user' => $user], ['id' => 'DESC']);
 
-        // 2. Pobranie historii sesji (do zliczenia tonażu i numeru treningu)
-        $sessions = $em->getRepository(WorkoutSession::class)->findBy(['user' => $user]);
-        $totalTonnage = 0;
-        $completedSessionsCount = count($sessions);
-        
-        foreach ($sessions as $session) {
-            $totalTonnage += $session->getTotalTonnage();
+        if (!$plan) {
+            $this->addFlash('warning', 'Witaj w systemie! Zanim ruszysz, wygeneruj swój pierwszy protokół operacyjny.');
+            return $this->redirectToRoute('app_generator_start'); 
         }
 
-        // 3. Wyciągnięcie TOP 3 Rekordów (Max Lifts)
+        // --- ZLICZAMY TYLKO FIZYCZNIE ZAKOŃCZONE SESJE ---
+        $sessions = $em->getRepository(WorkoutSession::class)->findBy(['user' => $user]);
+        $totalTonnage = 0;
+        $completedSessionsCount = 0;
+        
+        foreach ($sessions as $session) {
+            if ($session->getEndedAt() !== null) {
+                $completedSessionsCount++;
+                $totalTonnage += $session->getTotalTonnage();
+            }
+        }
+
         $qb = $em->createQueryBuilder();
         $maxLifts = $qb->select('m.name as machineName, MAX(ws.weight) as maxWeight')
             ->from(WorkoutSet::class, 'ws')
@@ -47,13 +53,11 @@ class DashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // 4. Szacowanie czasu treningu (Algorytm TUT) dla BIEŻĄCEJ sesji
         $estimatedTimeMinutes = 0;
         if ($plan && $user instanceof \App\Entity\User && $user->getCurrentGoal()) {
             $goal = $user->getCurrentGoal();
-            $totalSeconds = 600; // 10 minut bazy na rozgrzewkę
+            $totalSeconds = 600; 
             
-            // ZNALEZIENIE MAKSYMALNEJ LICZBY DNI W PLANIE
             $maxDays = 0;
             foreach ($plan->getWorkoutExercises() as $ex) {
                 if ($ex->getDayNumber() > $maxDays) {
@@ -61,7 +65,6 @@ class DashboardController extends AbstractController
                 }
             }
             
-            // ZAPĘTLENIE (MODULO) - zapobiega szukaniu "Dnia 15" w 3-dniowym planie
             $nextDayNumber = $maxDays > 0 ? ($completedSessionsCount % $maxDays) + 1 : 1;
 
             foreach ($plan->getWorkoutExercises() as $workoutExercise) {
@@ -88,18 +91,16 @@ class DashboardController extends AbstractController
             $estimatedTimeMinutes = (int) round($totalSeconds / 60);
         }
 
-        // 5. Dane do wykresu (Ostatnie 7 dni)
         $chartData = [];
         $maxChartValue = 0;
         $today = new \DateTime();
 
         for ($i = 6; $i >= 0; $i--) {
             $date = (clone $today)->modify("-{$i} days");
-            $dayName = strtoupper($date->format('D')); // MON, TUE, WED...
+            $dayName = strtoupper($date->format('D')); 
             
             $dayTonnage = 0;
             foreach ($sessions as $session) {
-                // Sprawdzamy czy sesja odbyła się danego dnia
                 if ($session->getStartedAt() && $session->getStartedAt()->format('Y-m-d') === $date->format('Y-m-d')) {
                     $dayTonnage += $session->getTotalTonnage();
                 }
@@ -115,7 +116,6 @@ class DashboardController extends AbstractController
             }
         }
         
-        // Zabezpieczenie przed dzieleniem przez zero przy pustym wykresie
         if ($maxChartValue === 0) {
             $maxChartValue = 1;
         }

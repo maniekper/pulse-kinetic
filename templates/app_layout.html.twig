@@ -3,16 +3,15 @@
 {% block body %}
 <div class="flex min-h-screen w-full bg-[#0a0a0a]">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 lg:w-72 border-r border-outline-variant/20 flex flex-col shrink-0 hidden md:flex">
+    <aside class="w-64 lg:w-72 border-r border-outline-variant/20 flex-col shrink-0 hidden md:flex sticky top-0 h-screen bg-[#0a0a0a]">
         
-        <div class="h-20 flex items-center px-8 border-b border-outline-variant/20">
+        <div class="h-20 flex items-center px-8 border-b border-outline-variant/20 shrink-0">
             <span class="font-headline text-xl font-black italic uppercase text-primary-container tracking-widest">
                 PULSE KINETIC
             </span>
         </div>
 
-        <div class="px-8 py-8">
+        <div class="px-8 py-8 shrink-0">
             <div class="font-label text-[10px] text-outline uppercase tracking-widest mt-1">
                 WITAJ Z POWROTEM
             </div>
@@ -21,19 +20,23 @@
             </div>
         </div>
 
-        <nav class="flex-1 px-4 space-y-1">
-            <a href="{{ path('app_dashboard') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}">
+        <nav class="flex-1 px-4 space-y-1 overflow-y-auto hide-scrollbar">
+            {% set sidebarPlan = plan|default(null) %}
+            {% if not sidebarPlan and app.user and app.user.workoutPlans|length > 0 %}
+                {% set sidebarPlan = app.user.workoutPlans|last %}
+            {% endif %}
+            
+            <a href="{% if sidebarPlan %}{{ path('app_dashboard') }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
                 <span class="material-symbols-outlined text-xl">grid_view</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Dashboard</span>
             </a>
             
-            {% set sidebarPlan = plan|default(null) %}
-            <a href="{% if sidebarPlan %}{{ path('app_generator_success', {'id': sidebarPlan.id}) }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-50 cursor-not-allowed{% endif %} {{ app.request.attributes.get('_route') == 'app_generator_success' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}">
+            <a href="{% if sidebarPlan %}{{ path('app_generator_success', {'id': sidebarPlan.id}) }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_generator_success' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
                 <span class="material-symbols-outlined text-xl">fitness_center</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Plan Treningowy</span>
             </a>
             
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors">
+            <a href="{{ path('app_achievements') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_achievements' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}">
                 <span class="material-symbols-outlined text-xl">show_chart</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Osiągnięcia</span>
             </a>
@@ -44,25 +47,25 @@
             </a>
         </nav>
 
-        <div class="p-6 mt-auto flex flex-col gap-4">
+        <div class="p-6 shrink-0 flex flex-col gap-4 border-t border-outline-variant/10 mt-auto">
             {% if sidebarPlan %}
-                <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id, 'day': 1}) }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors">
+                <!-- Usunięto parametr 'day' -->
+                <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id}) }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors cursor-pointer block">
                     ROZPOCZNIJ TRENING
                 </a>
             {% else %}
-                <a href="{{ path('app_generator_start') }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors">
-                    BUILD PLAN
+                <a href="{{ path('app_generator_start') }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors shadow-[0_0_20px_rgba(209,252,0,0.3)] border border-[#d1fc00] cursor-pointer block">
+                    BUDUJ PLAN
                 </a>
             {% endif %}
             
-            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface transition-colors mt-2">
+            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 text-on-surface-variant hover:text-on-surface transition-colors mt-2 cursor-pointer">
                 <span class="material-symbols-outlined text-sm">logout</span>
                 <span class="font-headline font-bold text-[10px] uppercase tracking-widest">Logout</span>
             </a>
         </div>
     </aside>
 
-    <!-- DYNAMICZNA ZAWARTOŚĆ PODSTRON -->
     <div class="flex-1 flex flex-col min-w-0">
         {% block app_content %}{% endblock %}
     </div>

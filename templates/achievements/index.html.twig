@@ -1,0 +1,142 @@
+{% extends 'app_layout.html.twig' %}
+
+{% block title %}Osiągnięcia | PULSE KINETIC{% endblock %}
+
+{% block app_content %}
+    <main class="kinetic-bg-container">
+        
+        <div class="kinetic-bg-gradient"></div>
+
+        <header class="kinetic-main-header">
+            <div class="kinetic-main-header-stripe"></div>
+            <div>
+                <h1 class="kinetic-main-header-title">PROFIL <span class="text-primary-container">OSIĄGNIĘĆ</span></h1>
+                <p class="kinetic-main-header-subtitle">KARTOTEKA OPERACYJNA I REKORDY MAKSYMALNE</p>
+            </div>
+            <div class="hidden md:block">
+                <span class="badge bg-[#1a1a1a] px-4 py-2 border border-white/10 font-headline font-bold text-xs tracking-widest text-[#767575]">{{ app.user.email }}</span>
+            </div>
+        </header>
+
+        <div class="relative z-10 space-y-12">
+            
+            <!-- SEKCJA 1: ANALITYKA GLOBALNA -->
+            <div>
+                <div class="kinetic-section-title-wrap mb-6">
+                    <h2 class="kinetic-section-title">LIFETIME STATS</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- KAFELEK 1: Tonaż -->
+                    <div class="kinetic-panel flex flex-col justify-center items-center text-center !p-10 relative overflow-hidden group">
+                        
+                        <!-- ZNAK WODNY (Wymuszone style inline gwarantują działanie bez rekompilacji) -->
+                        <div class="absolute pointer-events-none transition-transform duration-500 group-hover:scale-110" style="right: -20px; bottom: -30px; opacity: 0.05; z-index: 0;">
+                            <span class="material-symbols-outlined text-primary-container" style="font-size: 12rem;">fitness_center</span>
+                        </div>
+                        
+                        <!-- TEKST (Na wierzchu) -->
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div class="font-label text-xs text-outline uppercase tracking-[0.2em] mb-4">CAŁKOWITY PRZERZUCONY TONAŻ</div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="font-headline font-black text-6xl text-primary-container tracking-tighter leading-none">{{ (lifetimeTonnage / 1000)|number_format(1, '.', '') }}</span>
+                                <span class="font-headline font-bold text-xl text-[#767575] uppercase">TON</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- KAFELEK 2: Sesje -->
+                    <div class="kinetic-panel flex flex-col justify-center items-center text-center !p-10 relative overflow-hidden group">
+                        
+                        <!-- ZNAK WODNY -->
+                        <div class="absolute pointer-events-none transition-transform duration-500 group-hover:scale-110" style="right: -20px; bottom: -30px; opacity: 0.05; z-index: 0;">
+                            <span class="material-symbols-outlined text-white" style="font-size: 12rem;">task_alt</span>
+                        </div>
+                        
+                        <!-- TEKST (Na wierzchu) -->
+                        <div class="relative z-10 flex flex-col items-center">
+                            <div class="font-label text-xs text-outline uppercase tracking-[0.2em] mb-4">UKOŃCZONE CYKLE TRENINGOWE</div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="font-headline font-black text-6xl text-white tracking-tighter leading-none">{{ totalSessions }}</span>
+                                <span class="font-headline font-bold text-xl text-[#767575] uppercase">SESJI</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA 2: CYBER-ODZNAKI (Przykładowy szkielet milestonów) -->
+            <div>
+                <div class="kinetic-section-title-wrap mb-6">
+                    <h2 class="kinetic-section-title">ODZNAKI OPERACYJNE</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    {# Odznaka odblokowana (jeśli tonaż > 0) #}
+                    <div class="bg-[#111111] border {{ lifetimeTonnage > 0 ? 'border-primary-container shadow-[0_0_15px_var(--theme-shadow)]' : 'border-white/5 opacity-50' }} p-6 flex flex-col items-center text-center gap-3 transition-all">
+                        <span class="material-symbols-outlined text-4xl {{ lifetimeTonnage > 0 ? 'text-primary-container' : 'text-[#484847]' }}">local_fire_department</span>
+                        <span class="font-headline font-black text-sm text-white uppercase tracking-widest">Inicjacja Systemu</span>
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-wider">Zarejestrowano pierwszy tonaż operacyjny.</span>
+                    </div>
+
+                    {# Odznaka w toku (przykład: 100 Ton) #}
+                    <div class="bg-[#111111] border {{ lifetimeTonnage >= 100000 ? 'border-primary-container shadow-[0_0_15px_var(--theme-shadow)]' : 'border-white/5 opacity-50' }} p-6 flex flex-col items-center text-center gap-3 transition-all">
+                        <span class="material-symbols-outlined text-4xl {{ lifetimeTonnage >= 100000 ? 'text-primary-container' : 'text-[#484847]' }}">weight</span>
+                        <span class="font-headline font-black text-sm text-white uppercase tracking-widest">Tytanowy Kościec</span>
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-wider">Przerzucono łącznie 100 Ton żelastwa.</span>
+                    </div>
+
+                    {# Odznaka w toku (przykład: 50 Sesji) #}
+                    <div class="bg-[#111111] border {{ totalSessions >= 50 ? 'border-primary-container shadow-[0_0_15px_var(--theme-shadow)]' : 'border-white/5 opacity-50' }} p-6 flex flex-col items-center text-center gap-3 transition-all">
+                        <span class="material-symbols-outlined text-4xl {{ totalSessions >= 50 ? 'text-primary-container' : 'text-[#484847]' }}">military_tech</span>
+                        <span class="font-headline font-black text-sm text-white uppercase tracking-widest">Weteran Sektora</span>
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-wider">Ukończono 50 pełnych protokołów treningowych.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEKCJA 3: REJESTR MAKSYMÓW -->
+            <div>
+                <div class="kinetic-section-title-wrap mb-6">
+                    <h2 class="kinetic-section-title">REJESTR MAKSYMÓW (ALL TIME HIGH)</h2>
+                </div>
+                
+                <div class="bg-[#111111] border border-white/10 shadow-2xl flex flex-col">
+                    {% if records|length > 0 %}
+                        {% for record in records %}
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center p-4 md:p-6 {% if not loop.last %}border-b border-white/5{% endif %} hover:bg-white/5 transition-colors relative overflow-hidden group">
+                                <div class="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary-container transition-colors"></div>
+                                
+                                <div class="flex flex-col z-10 sm:ml-2 mb-2 sm:mb-0">
+                                    <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-1">{{ record.machine.mechanicType|default('Maszyna') }}</span>
+                                    <h3 class="font-headline font-bold text-lg text-white uppercase tracking-widest leading-tight">
+                                        {{ record.machine.name }}
+                                    </h3>
+                                </div>
+                                
+                                <div class="flex items-end gap-4 shrink-0 bg-[#0e0e0e] border border-white/5 px-4 py-2">
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-label text-[9px] text-[#767575] uppercase tracking-widest">CIĘŻAR</span>
+                                        <span class="font-headline font-black text-2xl text-primary-container leading-none">{{ record.maxWeight }} <span class="text-sm text-white">KG</span></span>
+                                    </div>
+                                    <div class="w-px h-8 bg-white/10"></div>
+                                    <div class="flex flex-col items-start">
+                                        <span class="font-label text-[9px] text-[#767575] uppercase tracking-widest">POWT.</span>
+                                        <span class="font-headline font-black text-2xl text-white leading-none">{{ record.maxRepsAtMaxWeight }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-12 text-center flex flex-col items-center">
+                            <span class="material-symbols-outlined text-[#484847] text-6xl mb-4">hourglass_empty</span>
+                            <span class="font-headline font-bold text-sm text-[#767575] uppercase tracking-widest">Brak zarejestrowanych rekordów w bazie operacyjnej.</span>
+                            <span class="font-label text-[10px] text-[#484847] uppercase mt-2 tracking-widest">Zakończ pierwszy trening, aby zainicjować logi.</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </main>
+{% endblock %}

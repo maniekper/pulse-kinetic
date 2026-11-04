@@ -32,8 +32,24 @@ class ProfileController extends AbstractController
             $goalId = $request->request->get('goal_id');
             if ($goalId) {
                 $newGoal = $goalRepository->find($goalId);
-                if ($newGoal) {
+                if ($newGoal && $newGoal !== $user->getCurrentGoal()) {
                     $user->setCurrentGoal($newGoal);
+                    
+                    // Usuwamy stary plan, żeby system wymusił wygenerowanie nowego na Dashboardzie
+                    $oldPlan = $entityManager->getRepository(\App\Entity\WorkoutPlan::class)->findOneBy(['user' => $user], ['id' => 'DESC']);
+                    if ($oldPlan) {
+                        $entityManager->remove($oldPlan);
+                        
+                        // Czyścimy też w tle aktywną (niezakończoną) sesję
+                        $activeSession = $entityManager->getRepository(\App\Entity\WorkoutSession::class)->findOneBy([
+                            'user' => $user,
+                            'endedAt' => null
+                        ]);
+                        if ($activeSession) {
+                            $entityManager->remove($activeSession);
+                        }
+                    }
+                    $this->addFlash('warning', 'Parametry zmienione. Przejdź na Dashboard, by wygenerować nowy protokół dla tego celu.');
                 }
             }
 
@@ -46,7 +62,22 @@ class ProfileController extends AbstractController
         $goals = $goalRepository->findAll();
 
         return $this->render('profile/index.html.twig', [
-            'goals' => $goals
+            'goals' => $goals,
+            'bannedMachines' => $user->getBannedMachines()
         ]);
     }
+
+    #[Route('/profile/unban/{id}', name: 'app_profile_unban', methods: ['POST'])]
+    public function unbanMachine(\App\Entity\Machine $machine, EntityManagerInterface $em): Response
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        if ($user) {
+            $user->removeBannedMachine($machine);
+            $em->flush();
+            $this->addFlash('success', 'Maszyna przywrócona. Będzie ponownie brana pod uwagę przez generator.');
+        }
+        return $this->redirectToRoute('app_profile');
+    }
+
 }

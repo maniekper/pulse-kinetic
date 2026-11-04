@@ -26,8 +26,9 @@
 /* NOWA SEKCYJA: GLOBALNE KOMPONENTY KINETIC */
 @layer components {
     /* Style dla tekstów w wierszach ćwiczeń */
-    .kinetic-ex-name {
-        @apply font-headline text-base md:text-lg font-bold text-white uppercase tracking-wider leading-tight;
+    .kinetic-ex-value {
+        @apply font-headline font-black text-base md:text-xl leading-none;
+        color: var(--theme-main);
     }
     .kinetic-ex-value {
         @apply font-headline font-black text-base md:text-xl text-[#d1fc00] leading-none;
@@ -49,8 +50,10 @@
         @apply flex justify-between items-end mb-12 border-b border-white/5 pb-6 relative z-10;
     }
     .kinetic-main-header-stripe {
-        @apply absolute bottom-0 left-0 w-24 h-[2px] bg-[#d1fc00];
+        @apply absolute bottom-0 left-0 w-24 h-[2px];
+        background-color: var(--theme-main);
     }
+
     .kinetic-main-header-title {
         @apply font-headline font-black text-5xl text-white uppercase tracking-tighter italic;
     }
@@ -60,12 +63,17 @@
 
     /* Standardowy panel operacyjny */
     .kinetic-panel {
-        @apply bg-[#141414] border border-white/10 p-6 hover:border-[#d1fc00]/30 transition-colors shadow-sm;
+        @apply bg-[#141414] border border-white/10 p-6 transition-colors shadow-sm;
+    }
+
+    .kinetic-panel:hover {
+        border-color: var(--theme-shadow);
     }
 
     /* Podtytuły sekcji */
     .kinetic-section-title-wrap {
-        @apply flex items-center gap-4 border-l-4 border-[#d1fc00] pl-3;
+        @apply flex items-center gap-4 pl-3;
+        border-left: 4px solid var(--theme-main);
     }
     .kinetic-section-title {
         @apply font-headline font-bold text-lg uppercase tracking-tight text-white;
@@ -80,7 +88,7 @@
         top: 0;
         bottom: 0;
         width: 4px;
-        background-color: #d1fc00;
+        background-color: var(--theme-main);
     }
     .sheared-progress {
         clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%);

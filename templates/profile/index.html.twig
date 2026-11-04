@@ -21,9 +21,9 @@
         <div class="relative z-10">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
-                    <div class="bg-[#d1fc00]/10 border border-[#d1fc00] p-4 mb-8 flex items-center gap-4">
-                        <span class="material-symbols-outlined text-[#d1fc00]">task_alt</span>
-                        <span class="font-headline font-bold text-[11px] text-[#d1fc00] uppercase tracking-widest">{{ message }}</span>
+                    <div class="bg-primary-container/10 border border-primary-container p-4 mb-8 flex items-center gap-4">
+                        <span class="material-symbols-outlined text-primary-container">task_alt</span>
+                        <span class="font-headline font-bold text-[11px] text-primary-container uppercase tracking-widest">{{ message }}</span>
                     </div>
                 {% endfor %}
             {% endfor %}
@@ -33,41 +33,7 @@
             
             <!-- Lewa Kolumna (2 sekcje) -->
             <div class="xl:col-span-2 space-y-8">
-                
-                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
-                    <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
-                        <span class="material-symbols-outlined text-[#767575]">badge</span>
-                    </div>
-                    <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-8">DANE IDENTYFIKACYJNE</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">IMIĘ / PSEUDONIM</label>
-                            <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] font-bold">
-                        </div>
-                        
-                        <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">PŁEĆ BAZOWA</label>
-                            
-                            <!-- CUSTOMOWY DROPDOWN: PŁEĆ -->
-                            <div class="relative" id="genderSelectContainer">
-                                <input type="hidden" name="gender" id="genderInput" value="{{ app.user.gender|default('') }}">
-                                
-                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
-                                    <span id="genderSelectedText">{{ app.user.gender ? app.user.gender : 'Wybierz...' }}</span>
-                                    <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
-                                </button>
-
-                                <div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex-col">
-                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Mężczyzna</div>
-                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Kobieta</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                 <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
                         <span class="material-symbols-outlined text-[#767575]">monitor_weight</span>
                     </div>
@@ -97,6 +63,39 @@
                         </div>
                     {% endif %}
                 </div>
+                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                    <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                        <span class="material-symbols-outlined text-[#767575]">badge</span>
+                    </div>
+                    <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-8">DANE IDENTYFIKACYJNE</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">IMIĘ / PSEUDONIM</label>
+                            <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] font-bold">
+                        </div>
+                        
+                        <div class="space-y-2 group">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">PŁEĆ BAZOWA</label>
+                            
+                            <!-- CUSTOMOWY DROPDOWN: PŁEĆ -->
+                            <div class="relative" id="genderSelectContainer">
+                                <input type="hidden" name="gender" id="genderInput" value="{{ app.user.gender|default('') }}">
+                                
+                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
+                                    <span id="genderSelectedText">{{ app.user.gender ? app.user.gender : 'Wybierz...' }}</span>
+                                    <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
+                                </button>
+
+<div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Mężczyzna</div>
+                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Kobieta</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+               
             </div>
 
             <!-- Prawa Kolumna (Cel Treningowy i Zapis) -->
@@ -137,9 +136,42 @@
                         <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">save</span>
                     </button>
                 </div>
-            </div>
-
+                </div>
         </form>
+                <!-- SEKCJA: WYKLUCZONY SPRZĘT (Teraz jest bezpiecznie na zewnątrz) -->
+        <div class="relative z-10 mt-8">
+            <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative flex flex-col">
+                <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                    <span class="material-symbols-outlined text-[#767575]">block</span>
+                </div>
+                <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-4">WYKLUCZONY SPRZĘT</h2>
+                <p class="font-body text-[#767575] text-[11px] leading-relaxed mb-6">
+                    Poniższe maszyny zostały zablokowane operacyjnie i nie będą przydzielane przez generator podczas budowy nowych planów.
+                </p>
+
+                <div class="space-y-3">
+                    {% if bannedMachines is defined and bannedMachines|length > 0 %}
+                        {% for machine in bannedMachines %}
+                            <div class="flex items-center justify-between bg-[#1a1a1a] border border-white/5 p-4 group hover:border-primary-container transition-colors">
+                                <div class="flex flex-col">
+                                    <span class="font-label text-[9px] text-[#767575] uppercase tracking-widest">{{ machine.mechanicType|default('Maszyna') }}</span>
+                                    <span class="font-headline font-bold text-sm text-white uppercase tracking-widest">{{ machine.name }}</span>
+                                </div>
+                                <form action="{{ path('app_profile_unban', {'id': machine.id}) }}" method="POST">
+                                    <button type="submit" class="text-[#767575] hover:text-primary-container transition-colors p-2 cursor-pointer" title="Przywróć do generatora">
+                                        <span class="material-symbols-outlined">settings_backup_restore</span>
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center p-6 border border-white/5 border-dashed">
+                            <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">Brak wykluczeń. Algorytm ma pełen dostęp do zbrojowni.</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Skrypt do obsługi dropdownów -->

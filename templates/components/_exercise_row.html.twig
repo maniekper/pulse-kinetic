@@ -21,6 +21,13 @@
             <span class="kinetic-ex-value">{{ exercise.reps }}</span>
             <span class="kinetic-ex-label">POWTÓRZEŃ</span>
         </div>
+        {% set firstMuscle = exercise.machine.primaryMuscles|first %}
+<button type="button" 
+        onclick="openSwapModal({{ exercise.id }}, '{{ exercise.machine.name|escape('js') }}', '{{ firstMuscle ? firstMuscle.name|escape('js') : '' }}')" 
+        class="text-[#767575] hover:text-primary-container transition-colors p-2 flex items-center justify-center cursor-pointer"
+        title="Wymień maszynę i dodaj obecną do Czarnej Listy">
+    <span class="material-symbols-outlined text-xl">swap_horiz</span>
+</button>
         
         {# Opcjonalny status (używany np. w Dashboardzie) #}
         {% if show_status|default(false) %}

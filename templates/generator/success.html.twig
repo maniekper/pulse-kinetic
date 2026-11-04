@@ -3,14 +3,14 @@
 {% block title %}Plan Treningowy | PULSE KINETIC{% endblock %}
 
 {% block app_content %}
-    <main class="kinetic-bg-container">
+    <main class="kinetic-bg-container relative">
         
         <div class="kinetic-bg-gradient"></div>
 
         <header class="kinetic-main-header">
             <div class="kinetic-main-header-stripe"></div>
             <div>
-                <h1 class="kinetic-main-header-title">PLAN <span class="text-[#d1fc00]">TRENINGOWY</span></h1>
+                <h1 class="kinetic-main-header-title">PLAN <span class="text-primary-container">TRENINGOWY</span></h1>
                 <p class="kinetic-main-header-subtitle">PODGLĄD BIEŻĄCEGO CYKLU OPERACYJNEGO</p>
             </div>
             <div class="hidden md:block">
@@ -20,7 +20,7 @@
 
         <div class="w-full max-w-7xl mx-auto relative z-10">
             
-            <div class="bg-[#d1fc00] text-[#111111] p-6 md:p-8 mb-16 flex flex-col md:flex-row items-center justify-between shadow-[0_10px_40px_rgba(209,252,0,0.15)] relative overflow-hidden">
+            <div class="bg-primary-container text-on-primary-container p-6 md:p-8 mb-16 flex flex-col md:flex-row items-center justify-between shadow-[0_10px_40px_var(--theme-shadow)] relative overflow-hidden">
                 <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-8 -translate-y-8">
                     <span class="material-symbols-outlined text-[12rem]">memory</span>
                 </div>
@@ -38,7 +38,7 @@
                     
                     {% set dayMuscles = [] %}
                     {% for ex in exercises %}
-                        {% set mName = ex.machine.muscle.name ?? '' %}
+                        {% set mName = ex.machine.primaryMuscles|first.name ?? '' %}
                         {% if mName and mName not in dayMuscles %}
                             {% set dayMuscles = dayMuscles|merge([mName]) %}
                         {% endif %}
@@ -55,16 +55,16 @@
                         {% endif %}
                     {% endif %}
 
-                    <div class="bg-[#111111] border border-white/10 shadow-2xl flex flex-col hover:border-[#d1fc00]/30 transition-colors group">
+                    <div class="bg-[#111111] border border-white/10 shadow-2xl flex flex-col hover:border-primary-container/30 transition-colors group">
                         
                         <div class="bg-[#1a1a1a] border-b border-white/5 p-5 md:p-6 flex flex-col sm:flex-row justify-between sm:items-center relative overflow-hidden gap-4">
-                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#484847] group-hover:bg-[#d1fc00] transition-colors"></div>
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#484847] group-hover:bg-primary-container transition-colors"></div>
                             
                             <div class="flex flex-col z-10 ml-2">
                                 <h3 class="font-headline font-black text-xl text-white uppercase tracking-widest">
-                                    DZIEŃ <span class="text-[#d1fc00]">0{{ sessionNum }}</span>
+                                    DZIEŃ <span class="text-primary-container">0{{ sessionNum }}</span>
                                 </h3>
-                                <span class="font-label text-[10px] text-[#d1fc00] uppercase tracking-widest mt-1 font-bold">
+                                <span class="font-label text-[10px] text-primary-container uppercase tracking-widest mt-1 font-bold">
                                     {{ workoutTypeLabel }}
                                 </span>
                             </div>
@@ -92,7 +92,109 @@
                     <span class="material-symbols-outlined text-lg">refresh</span> GENERUJ NOWY
                 </a>
             </div>
-            
         </div>
+
+        <!-- MODAL ZMIANY MASZYNY (Ukryty domyślnie) -->
+        <div id="swapModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[999] hidden items-center justify-center p-4">
+            <div class="bg-[#111111] border border-primary-container shadow-[0_0_40px_var(--theme-shadow)] w-full max-w-lg flex flex-col relative">
+                <div class="p-6 border-b border-white/5 bg-[#1a1a1a] flex justify-between items-center">
+                    <h3 class="font-headline font-black text-lg text-white uppercase tracking-widest">Wymiana Sprzętu</h3>
+                    <button type="button" onclick="closeSwapModal()" class="text-[#767575] hover:text-white transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-2xl">close</span>
+                    </button>
+                </div>
+                
+                <form id="swapForm" method="POST" action="" class="p-6 flex flex-col gap-6">
+                    <div>
+                        <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">OBECNY SPRZĘT (TRAFI NA CZARNĄ LISTĘ):</div>
+                        <div id="currentMachineName" class="font-headline font-bold text-sm text-[#ff4444] uppercase tracking-widest bg-[#ff4444]/10 border border-[#ff4444]/20 p-3 line-through"></div>
+                    </div>
+                    
+                    <div>
+                        <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">WYBIERZ ZASTĘPSTWO (TA SAMA PARTIA):</div>
+                        <select id="newMachineSelect" name="new_machine_id" onchange="updateFormAction()" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold cursor-pointer">
+                            <!-- Opcje wstrzykiwane przez JS -->
+                        </select>
+                    </div>
+
+                    <button type="submit" id="swapSubmitBtn" class="w-full bg-primary-container hover:bg-primary-dim py-4 flex items-center justify-center gap-3 transition-colors mt-4 cursor-pointer">
+                        <span class="material-symbols-outlined text-on-primary-container">published_with_changes</span>
+                        <span class="font-headline font-black text-xs text-on-primary-container uppercase tracking-widest">POTWIERDŹ ZMIANĘ</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </main>
+
+    <!-- SKRYPT OBSŁUGUJĄCY MODAL I FILTROWANIE MASZYN -->
+    <script>
+        // Eksportujemy bazę maszyn z PHP do JS
+        const machinesData = [
+            {% for m in allMachines %}
+                {
+                    id: {{ m.id }},
+                    name: "{{ m.name|escape('js') }}",
+                    muscles: [
+                        {% for mus in m.primaryMuscles %}
+                            "{{ mus.name|escape('js') }}"{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        let currentExerciseId = null;
+
+        function openSwapModal(exerciseId, machineName, muscleName) {
+            currentExerciseId = exerciseId;
+            const modal = document.getElementById('swapModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.getElementById('currentMachineName').innerText = machineName;
+            
+            const select = document.getElementById('newMachineSelect');
+            const submitBtn = document.getElementById('swapSubmitBtn');
+            select.innerHTML = '';
+            
+            // Szukamy maszyn na ten sam mięsień, wykluczając aktualną
+            const compatibleMachines = machinesData.filter(m => 
+                m.muscles.includes(muscleName) && m.name !== machineName
+            );
+            
+            if (compatibleMachines.length === 0) {
+                select.innerHTML = '<option value="">Brak alternatyw dla tej partii w bazie</option>';
+                select.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-30', 'cursor-not-allowed');
+            } else {
+                select.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-30', 'cursor-not-allowed');
+                
+                compatibleMachines.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.innerText = m.name;
+                    select.appendChild(opt);
+                });
+            }
+            updateFormAction();
+        }
+
+        function closeSwapModal() {
+            const modal = document.getElementById('swapModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateFormAction() {
+            const select = document.getElementById('newMachineSelect');
+            const form = document.getElementById('swapForm');
+            if (select.value && currentExerciseId) {
+                form.action = '/tracker/swap/' + currentExerciseId + '/' + select.value;
+            }
+        }
+    </script>
 {% endblock %}

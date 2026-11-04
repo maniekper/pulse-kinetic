@@ -8,11 +8,19 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\Machine;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+/**
+ * @var Collection<int, Machine>
+ */
+    #[ORM\ManyToMany(targetEntity: Machine::class)]
+    #[ORM\JoinTable(name: 'user_banned_machines')]
+    private Collection $bannedMachines;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -84,6 +92,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->routines = new ArrayCollection();
         $this->workoutSessions = new ArrayCollection();
         $this->workoutPlans = new ArrayCollection();
+        $this->bannedMachines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -368,6 +377,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             }
         }
 
+        return $this;
+    }
+    public function getBannedMachines(): Collection
+    {
+        return $this->bannedMachines;
+    }
+
+    public function addBannedMachine(Machine $machine): static
+    {
+        if (!$this->bannedMachines->contains($machine)) {
+            $this->bannedMachines->add($machine);
+        }
+        return $this;
+    }
+
+    public function removeBannedMachine(Machine $machine): static
+    {
+        $this->bannedMachines->removeElement($machine);
         return $this;
     }
 }

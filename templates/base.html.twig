@@ -15,6 +15,15 @@
             {# Ładujemy tylko i wyłącznie nasz skompilowany plik z Tailwinda #}
             {{ encore_entry_link_tags('app') }}
         {% endblock %}
+        {% set isFemale = app.user and app.user.gender|lower == 'kobieta' %}
+    <style>
+        :root {
+            --theme-main: {{ isFemale ? '#f000ff' : '#d1fc00' }};
+            --theme-dim: {{ isFemale ? '#c200cc' : '#c7ef00' }};
+            --theme-text: {{ isFemale ? '#ffffff' : '#111111' }};
+            --theme-shadow: {{ isFemale ? 'rgba(240, 0, 255, 0.3)' : 'rgba(209, 252, 0, 0.3)' }};
+        }
+    </style>
     </head>
     
     <body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col antialiased">

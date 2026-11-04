@@ -161,6 +161,13 @@ class GeneratorController extends AbstractController
 
         $allMachines = $machineRepository->findAll();
 
+        $bannedMachinesIds = [];
+        if ($user instanceof \App\Entity\User) {
+            foreach ($user->getBannedMachines() as $bMachine) {
+                $bannedMachinesIds[] = $bMachine->getId();
+            }
+        }
+
         for ($sessionNum = 1; $sessionNum <= $totalSessions; $sessionNum++) {
             $blueprintIndex = ($sessionNum - 1) % count($activeBlueprint);
             $targetMuscles = $activeBlueprint[$blueprintIndex];
@@ -170,6 +177,11 @@ class GeneratorController extends AbstractController
                 $muscleSpecificMachines = [];
                 
                 foreach ($allMachines as $machine) {
+                    // Omijamy zablokowany sprzęt
+                    if (in_array($machine->getId(), $bannedMachinesIds)) {
+                        continue;
+                    }
+                    
                     $primaryNames = array_map(fn($m) => $m->getName(), $machine->getPrimaryMuscles()->toArray());
                     if (in_array($targetMuscle, $primaryNames)) {
                         $muscleSpecificMachines[] = $machine;
@@ -216,7 +228,7 @@ class GeneratorController extends AbstractController
     }
 
     #[Route('/generator/success/{id}', name: 'app_generator_success')]
-    public function success(WorkoutPlan $plan, Request $request): Response
+    public function success(WorkoutPlan $plan, Request $request, \App\Repository\MachineRepository $machineRepo): Response
     {
         if ($plan->getUser() !== $this->getUser()) throw $this->createAccessDeniedException();
 
@@ -229,7 +241,8 @@ class GeneratorController extends AbstractController
         return $this->render('generator/success.html.twig', [
             'plan' => $plan,
             'sessions' => $sessions,
-            'daysPerWeek' => 4 
+            'daysPerWeek' => 4,
+            'allMachines' => $machineRepo->findAll() // NOWE: Przekazujemy maszyny do modalu
         ]);
     }
 }
