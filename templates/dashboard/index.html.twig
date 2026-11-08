@@ -21,8 +21,7 @@
         <div class="relative z-10">
             
             <div class="font-label text-[10px] text-outline tracking-[0.2em] uppercase mb-8 text-[#767575]">
-                FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong> &bull; SESSION {{ completedSessionsCount + 1 }}
-            </div>
+FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong> &bull; SESSION {{ nextDayNumber }}            </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-10">
                 
@@ -36,16 +35,7 @@
 
                     {% if plan %}
                         <div class="flex flex-col gap-2">
-                            {% set maxDays = 0 %}
-                            {% for ex in plan.workoutExercises %}
-                                {% if ex.dayNumber > maxDays %}
-                                    {% set maxDays = ex.dayNumber %}
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% set currentDayNumber = maxDays > 0 ? (completedSessionsCount % maxDays) + 1 : 1 %}
-                            {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == currentDayNumber) %}
-                            
+{% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}                            
                             <!-- Zdjeliśmy ucinaie do 4, by wyświetlić wszystkie maszyny -->
                             {% for exercise in todaysExercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
@@ -132,4 +122,101 @@
             </div>
         </div>
     </main>
+    <!-- MODAL ZMIANY MASZYNY DLA DASHBOARDU -->
+    <div id="swapModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[999] hidden items-center justify-center p-4">
+        <div class="bg-[#111111] border border-primary-container shadow-[0_0_40px_var(--theme-shadow)] w-full max-w-lg flex flex-col relative">
+            <div class="p-6 border-b border-white/5 bg-[#1a1a1a] flex justify-between items-center">
+                <h3 class="font-headline font-black text-lg text-white uppercase tracking-widest">Wymiana Sprzętu</h3>
+                <button type="button" onclick="closeSwapModal()" class="text-[#767575] hover:text-white transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-2xl">close</span>
+                </button>
+            </div>
+            
+            <form id="swapForm" method="POST" action="" class="p-6 flex flex-col gap-6">
+                <div>
+                    <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">OBECNY SPRZĘT (TRAFI NA CZARNĄ LISTĘ):</div>
+                    <div id="currentMachineName" class="font-headline font-bold text-sm text-[#ff4444] uppercase tracking-widest bg-[#ff4444]/10 border border-[#ff4444]/20 p-3 line-through"></div>
+                </div>
+                
+                <div>
+                    <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">WYBIERZ ZASTĘPSTWO (TA SAMA PARTIA):</div>
+                    <select id="newMachineSelect" name="new_machine_id" onchange="updateFormAction()" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold cursor-pointer">
+                    </select>
+                </div>
+
+                <button type="submit" id="swapSubmitBtn" class="w-full bg-primary-container hover:bg-primary-dim py-4 flex items-center justify-center gap-3 transition-colors mt-4 cursor-pointer">
+                    <span class="material-symbols-outlined text-on-primary-container">published_with_changes</span>
+                    <span class="font-headline font-black text-xs text-on-primary-container uppercase tracking-widest">POTWIERDŹ ZMIANĘ</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SKRYPT MODALA -->
+    <script>
+        const machinesData = [
+            {% for m in allMachines %}
+                {
+                    id: {{ m.id }},
+                    name: "{{ m.name|escape('js') }}",
+                    muscles: [
+                        {% for mus in m.primaryMuscles %}
+                            "{{ mus.name|escape('js') }}"{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        let currentExerciseId = null;
+
+        function openSwapModal(exerciseId, machineName, muscleName) {
+            currentExerciseId = exerciseId;
+            const modal = document.getElementById('swapModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            document.getElementById('currentMachineName').innerText = machineName;
+            
+            const select = document.getElementById('newMachineSelect');
+            const submitBtn = document.getElementById('swapSubmitBtn');
+            select.innerHTML = '';
+            
+            const compatibleMachines = machinesData.filter(m => 
+                m.muscles.includes(muscleName) && m.name !== machineName
+            );
+            
+            if (compatibleMachines.length === 0) {
+                select.innerHTML = '<option value="">Brak alternatyw dla tej partii w bazie</option>';
+                select.disabled = true;
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-30', 'cursor-not-allowed');
+            } else {
+                select.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-30', 'cursor-not-allowed');
+                compatibleMachines.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.innerText = m.name;
+                    select.appendChild(opt);
+                });
+            }
+            updateFormAction();
+        }
+
+        function closeSwapModal() {
+            const modal = document.getElementById('swapModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function updateFormAction() {
+            const select = document.getElementById('newMachineSelect');
+            const form = document.getElementById('swapForm');
+            if (select.value && currentExerciseId) {
+                form.action = '/tracker/swap/' + currentExerciseId + '/' + select.value;
+            }
+        }
+    </script>
 {% endblock %}

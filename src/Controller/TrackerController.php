@@ -27,42 +27,50 @@ class TrackerController extends AbstractController
         }
 
         // --- AUTOMATYCZNE CZYSZCZENIE WISZĄCEJ SESJI ---
-        // Szukamy sesji tego użytkownika, która nie została jeszcze zakończona
         $activeSession = $entityManager->getRepository(WorkoutSession::class)->findOneBy([
             'user' => $this->getUser(),
             'endedAt' => null
         ]);
 
-        // Jeśli znaleźliśmy niezakończoną sesję, usuwamy ją z bazy
         if ($activeSession) {
             $entityManager->remove($activeSession);
-            $entityManager->flush(); // Od razu czyścimy, żeby zrobić miejsce dla nowej
+            $entityManager->flush(); 
         }
-        // ----------------------------------------------
 
-        // --- AUTOMATYCZNE WYLICZANIE DNIA (Tylko ukończone sesje) ---
+        // --- AUTOMATYCZNE WYLICZANIE DNIA (Omijanie pustych dni) ---
         $completedSessionsCount = (int) $entityManager->createQuery(
             'SELECT COUNT(s.id) FROM App\\Entity\\WorkoutSession s WHERE s.user = :user AND s.endedAt IS NOT NULL'
         )
             ->setParameter('user', $this->getUser())
             ->getSingleScalarResult();
 
-        $maxDays = 0;
+        // 1. Zbieramy tylko aktywne dni
+        $activeDays = [];
         foreach ($plan->getWorkoutExercises() as $ex) {
-            if ($ex->getDayNumber() > $maxDays) {
-                $maxDays = $ex->getDayNumber();
+            $exDay = $ex->getDayNumber();
+            if (!in_array($exDay, $activeDays)) {
+                $activeDays[] = $exDay;
             }
         }
-        
-        $day = $maxDays > 0 ? ($completedSessionsCount % $maxDays) + 1 : 1;
+        sort($activeDays);
 
-        // 1. Tworzymy nową sesję treningową
+        if (empty($activeDays)) {
+            $this->addFlash('error', 'Ten plan nie posiada żadnych aktywnych ćwiczeń. Wygeneruj nowy.');
+            return $this->redirectToRoute('app_generator_start');
+        }
+
+        // 2. Wyliczamy następny AKTYWNY dzień
+        $activeDaysCount = count($activeDays);
+        $activeDayIndex = $completedSessionsCount % $activeDaysCount;
+        $day = $activeDays[$activeDayIndex];
+
+        // 3. Tworzymy nową sesję treningową
         $session = new WorkoutSession();
         $session->setUser($this->getUser());
         $session->setStartedAt(new \DateTime());
         $entityManager->persist($session);
 
-        // 2. Pobieramy ćwiczenia tylko dla konkretnego, wyliczonego dnia
+        // 4. Pobieramy ćwiczenia tylko dla wyliczonego, aktywnego dnia
         $exercisesForDay = [];
         foreach ($plan->getWorkoutExercises() as $ex) {
             if ($ex->getDayNumber() === $day) {
@@ -70,7 +78,7 @@ class TrackerController extends AbstractController
             }
         }
 
-        // 3. Generujemy puste serie z inteligentnym pobieraniem danych
+        // 5. Generujemy puste serie
         foreach ($exercisesForDay as $ex) {
             $machine = $ex->getMachine();
             $setsCount = $ex->getSets();
@@ -131,7 +139,6 @@ class TrackerController extends AbstractController
             ? call_user_func([$user, 'getCurrentGoal'])
             : null;
         
-        // Zabezpieczenie: jeśli w bazie brakuje danych, przypisujemy 180s (3 min) i 90s (1.5 min)
         $restCompound = ($goal && $goal->getRestCompoundSeconds()) ? $goal->getRestCompoundSeconds() : 180;
         $restIsolation = ($goal && $goal->getRestIsolationSeconds()) ? $goal->getRestIsolationSeconds() : 90;
 
@@ -140,11 +147,9 @@ class TrackerController extends AbstractController
             $machineName = $machine->getName();
             $groupedSets[$machineName][] = $set;
             
-            // Pobieramy typ maszyny (wymuszamy małe litery i ucinamy spacje dla bezpieczeństwa)
             $type = strtolower(trim((string)$machine->getMechanicType()));
             
             if (!isset($restTimes[$machineName])) {
-                // Sprawdzamy najpopularniejsze warianty nazw
                 if (in_array($type, ['compound', 'wielostawowe', 'wielostawowa', 'złożone'])) {
                     $restTimes[$machineName] = $restCompound;
                 } else {
@@ -202,7 +207,8 @@ class TrackerController extends AbstractController
     public function swapMachine(
         int $exercise_id,
         int $new_machine_id,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        Request $request 
     ): Response {
         $exercise = $em->getRepository(\App\Entity\WorkoutExercise::class)->find($exercise_id);
         $newMachine = $em->getRepository(\App\Entity\Machine::class)->find($new_machine_id);
@@ -214,17 +220,22 @@ class TrackerController extends AbstractController
             throw $this->createAccessDeniedException('Odmowa dostępu.');
         }
 
-        // Dodanie starej maszyny na czarną listę
         $oldMachine = $exercise->getMachine();
         if ($oldMachine) {
             $user->addBannedMachine($oldMachine);
         }
         
-        // Podmiana na nową w planie
         $exercise->setMachine($newMachine);
         $em->flush();
 
         $this->addFlash('success', 'Sprzęt podmieniony. Stara maszyna trafiła do wykluczeń.');
+
+        $referer = $request->headers->get('referer');
+        
+        if ($referer) {
+            return $this->redirect($referer);
+        }
+
         return $this->redirectToRoute('app_generator_success', ['id' => $exercise->getWorkoutPlan()->getId()]);
     }
 }

@@ -1,0 +1,87 @@
+{% extends 'app_layout.html.twig' %}
+
+{% block title %}Dodaj Nową Maszynę | PULSE KINETIC{% endblock %}
+
+{% block app_content %}
+<main class="kinetic-bg-container relative">
+    <div class="kinetic-bg-gradient"></div>
+
+    <header class="kinetic-main-header relative z-10">
+        <div class="kinetic-main-header-stripe bg-[#ff7351]"></div>
+        <div>
+            <h1 class="kinetic-main-header-title">DODAJ <span class="text-[#ff7351]">SPRZĘT</span></h1>
+            <p class="kinetic-main-header-subtitle">REJESTRACJA NOWEJ JEDNOSTKI W BAZIE WIEDZY</p>
+        </div>
+    </header>
+
+    <div class="w-full max-w-4xl mx-auto relative z-10 px-4 md:px-8 pb-24">
+        
+        <div class="bg-[#111111] border border-white/10 shadow-[0_0_40px_rgba(255,115,81,0.1)] p-8 md:p-12 relative">
+            <div class="absolute top-0 right-0 bg-[#ff7351]/10 border-b border-l border-[#ff7351]/30 px-4 py-2 font-headline font-bold text-[9px] text-[#ff7351] uppercase tracking-widest">
+                STATUS: NOWY OBIEKT
+            </div>
+
+{{ form_start(form, {'attr': {'class': 'flex flex-col gap-6 mt-4', 'enctype': 'multipart/form-data'}}) }}                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        {{ form_label(form.name, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.name) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.category, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.category) }}
+                    </div>
+                </div>
+
+                <div>
+                    {{ form_label(form.mechanicType, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                    {{ form_widget(form.mechanicType) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.description, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                    {{ form_widget(form.description) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.tips, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                    {{ form_widget(form.tips) }}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#1a1a1a] p-4 border border-white/5">
+                    <div>
+                        {{ form_label(form.imageStart, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.imageStart, {'attr': {'placeholder': 'np. nowa_maszyna_start.jpg', 'class': 'w-full bg-[#1a1a1a] border-0 border-b-2 border-white/20 px-4 py-3 font-headline text-sm text-white focus:outline-none focus:border-[#ff7351] transition-colors mb-4'}}) }}
+                    </div>
+                    <div>
+                        {{ form_label(form.imageEnd, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.imageEnd, {'attr': {'placeholder': 'np. nowa_maszyna_end.jpg', 'class': 'w-full bg-[#1a1a1a] border-0 border-b-2 border-white/20 px-4 py-3 font-headline text-sm text-white focus:outline-none focus:border-[#ff7351] transition-colors mb-4'}}) }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        {{ form_label(form.primaryMuscles, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#ff7351] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.primaryMuscles) }}
+                        <span class="font-label text-[9px] text-[#767575] block mt-1 uppercase tracking-widest">Wciśnij CTRL by zaznaczyć wiele.</span>
+                    </div>
+                    <div>
+                        {{ form_label(form.secondaryMuscles, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
+                        {{ form_widget(form.secondaryMuscles) }}
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row justify-end gap-4 mt-8 pt-6 border-t border-white/5">
+                    <a href="{{ path('app_admin_machine_index') }}" class="px-8 py-4 border border-white/10 text-[#767575] hover:text-white hover:border-white hover:bg-white/5 font-headline font-bold text-[11px] uppercase tracking-widest transition-colors text-center w-full md:w-auto">
+                        ANULUJ
+                    </a>
+                    <button type="submit" class="bg-[#ff7351] text-[#111111] hover:bg-[#ff8a6d] px-8 py-4 font-headline font-black text-[11px] uppercase tracking-widest transition-colors flex justify-center items-center gap-3 w-full md:w-auto">
+                        <span class="material-symbols-outlined text-lg">add_circle</span> DODAJ DO BAZY
+                    </button>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</main>
+{% endblock %}

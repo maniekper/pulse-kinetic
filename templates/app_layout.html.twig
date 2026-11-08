@@ -45,6 +45,12 @@
                 <span class="material-symbols-outlined text-xl">person</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Profil</span>
             </a>
+            {% if is_granted('ROLE_ADMIN') %}
+    <a href="{{ path('app_admin_machine_index') }}" class="flex items-center gap-3 text-[#767575] hover:text-[#ff7351] hover:bg-[#1a1a1a] p-4 border-l-4 border-transparent hover:border-[#ff7351] transition-all mb-2 mt-4">
+        <span class="material-symbols-outlined text-xl">database</span>
+        <span class="font-headline font-bold text-xs uppercase tracking-widest">Baza Sprzętu</span>
+    </a>
+{% endif %}
         </nav>
 
         <div class="p-6 shrink-0 flex flex-col gap-4 border-t border-outline-variant/10 mt-auto">

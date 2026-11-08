@@ -85,7 +85,7 @@
     <!-- TopAppBar -->
     <header class="fixed top-0 w-full border-none bg-[#0e0e0e] flex justify-between items-center px-6 h-16 z-50">
         <div class="flex items-center gap-4">
-            <span class="text-xl font-black text-[#d1fc00] tracking-widest font-headline uppercase italic">KINETIC_LAB</span>
+            <span class="text-xl font-black text-[#d1fc00] tracking-widest font-headline uppercase italic">PULSE KINETIC</span>
         </div>
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-2">
@@ -177,13 +177,13 @@
     <div class="w-1/2 h-full border-r border-outline-variant/30 relative flex items-center justify-center bg-black/20">
         <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-contain opacity-90 mix-blend-luminosity">
         <div class="absolute top-3 left-3 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-1 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
-            <span class="text-primary-container mr-1">01</span> FAZA: ZGIĘCIE
+            <span class="text-primary-container mr-1">1</span> FAZA
         </div>
     </div>
     <div class="w-1/2 h-full relative flex items-center justify-center bg-black/20">
         <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-contain opacity-90 mix-blend-luminosity">
         <div class="absolute top-3 right-3 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-1 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
-            <span class="text-primary-container mr-1">02</span> FAZA: WYPROST
+            <span class="text-primary-container mr-1">2</span> FAZA
         </div>
     </div>
 </div>
@@ -457,12 +457,15 @@
     }
 
     function normalizeMuscleName(name) {
-        return name.trim().toLowerCase()
-            .replace(/ł/g, 'l').replace(/ś/g, 's').replace(/ć/g, 'c')
-            .replace(/ń/g, 'n').replace(/ż/g, 'z').replace(/ź/g, 'z')
-            .replace(/ó/g, 'o').replace(/ę/g, 'e').replace(/ą/g, 'a')
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '');
+        // 1. Ujednolicamy nazwę zachowując polskie znaki i zamieniając spację na myślnik
+        let normalized = name.trim().toLowerCase().replace(/\s+/g, '-');
+        
+        // 2. Łatamy różnice w nazwach między bazą danych a plikiem SVG
+        if (normalized === 'prosty-brzucha') return 'prosty-brzuch';
+        if (normalized === 'skośne-brzucha') return 'skośne-brzuch';
+        if (normalized === 'przywodziciele') return 'przwodziciele'; // Naprawa literówki z SVG
+        
+        return normalized;
     }
 
     function showExercise(index) {
@@ -696,6 +699,100 @@
         });
     }
 
+   function saveSet(setId, btnElement) {
+        const weightInput = document.getElementById('weight-' + setId);
+        const repsInput = document.getElementById('reps-' + setId);
+        
+        if(!weightInput || !repsInput) return;
+        const weight = weightInput.value;
+        const reps = repsInput.value;
+
+        if(!weight || !reps) {
+            showCustomAlert('Wprowadź ciężar i ilość powtórzeń.');
+            return;
+        }
+
+        const originalBtnHtml = btnElement.innerHTML;
+        btnElement.innerHTML = '...';
+        btnElement.disabled = true;
+
+        fetch('/tracker/set/complete/' + setId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ weight: weight, reps: reps })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                const row = document.getElementById('set-row-' + setId);
+                if(row) {
+                    const col2 = row.querySelector('div:nth-child(2)');
+                    const col3 = row.querySelector('div:nth-child(3)');
+                    const actionCont = row.querySelector('.set-action-container');
+                    
+                    if(col2) col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${weight}</div>`;
+                    if(col3) col3.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${reps}</div>`;
+                    if(actionCont) actionCont.innerHTML = '<span class="material-symbols-outlined text-primary-container">check_circle</span>';
+                    
+                    row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
+                    row.classList.add('opacity-50', 'bg-surface-container-low');
+                    
+                    let numberDiv = row.querySelector('.set-number');
+                    if(numberDiv) {
+                        numberDiv.classList.remove('text-primary-container');
+                        numberDiv.classList.add('text-on-surface');
+                    }
+                }
+
+                // === AUTOMATYCZNE PRZEPISANIE KG DO NASTĘPNEJ SERII ===
+                const currentRow = document.getElementById('set-row-' + setId);
+                if (currentRow) {
+                    const nextRow = currentRow.nextElementSibling;
+                    // Sprawdzamy czy kolejny element to wiersz serii w tym samym ćwiczeniu
+                    if (nextRow && nextRow.classList.contains('set-row')) {
+                        const nextSetId = nextRow.getAttribute('data-set-id');
+                        const nextWeightInput = document.getElementById('weight-' + nextSetId);
+                        // Jeśli pole w następnej serii jest puste lub wynosi 0, uzupełniamy je
+                        if (nextWeightInput && (!nextWeightInput.value || parseFloat(nextWeightInput.value) === 0)) {
+                            nextWeightInput.value = weight;
+                        }
+                    }
+                }
+                // ====================================================
+
+                completedSets++;
+                currentVolume += (parseFloat(weight) * parseInt(reps));
+                updateStats();
+                
+                // AUTOMATYCZNY START PRZERWY
+                initiateRest();
+                
+                // AUTO-PRZESKOK przez nawigację
+                const blocks = document.querySelectorAll('.exercise-block');
+                const currentBlock = blocks[currentExIndex];
+                if(currentBlock) {
+                    const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
+                    const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
+                    
+                    if(allSetsInBlock === completedSetsInBlock) {
+                        setTimeout(() => {
+                            navigateExercise(1);
+                        }, 1200); 
+                    }
+                }
+                
+            } else {
+                showCustomAlert('Wystąpił błąd zapisu serii w bazie danych.');
+                btnElement.innerHTML = originalBtnHtml;
+                btnElement.disabled = false;
+            }
+        })
+        .catch(() => {
+            showCustomAlert('Błąd połączenia z serwerem. Spróbuj ponownie.');
+            btnElement.innerHTML = originalBtnHtml;
+            btnElement.disabled = false;
+        });
+    }
     function saveSet(setId, btnElement) {
         const weightInput = document.getElementById('weight-' + setId);
         const repsInput = document.getElementById('reps-' + setId);
@@ -741,6 +838,22 @@
                     }
                 }
 
+                // === AUTOMATYCZNE PRZEPISANIE KG DO NASTĘPNEJ SERII ===
+                const currentRow = document.getElementById('set-row-' + setId);
+                if (currentRow) {
+                    const nextRow = currentRow.nextElementSibling;
+                    // Sprawdzamy czy kolejny element to wiersz serii w tym samym ćwiczeniu
+                    if (nextRow && nextRow.classList.contains('set-row')) {
+                        const nextSetId = nextRow.getAttribute('data-set-id');
+                        const nextWeightInput = document.getElementById('weight-' + nextSetId);
+                        // Jeśli pole w następnej serii jest puste lub wynosi 0, uzupełniamy je
+                        if (nextWeightInput && (!nextWeightInput.value || parseFloat(nextWeightInput.value) === 0)) {
+                            nextWeightInput.value = weight;
+                        }
+                    }
+                }
+                // ====================================================
+
                 completedSets++;
                 currentVolume += (parseFloat(weight) * parseInt(reps));
                 updateStats();
@@ -775,6 +888,7 @@
         });
     }
 
+    
     const globalBtn = document.getElementById('globalFinishSetBtn');
     if (globalBtn) {
         globalBtn.addEventListener('click', function() {

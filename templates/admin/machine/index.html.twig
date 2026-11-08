@@ -1,0 +1,157 @@
+{% extends 'app_layout.html.twig' %}
+
+{% block title %}Zarządzanie Bazą Sprzętu | PULSE KINETIC{% endblock %}
+
+{% block app_content %}
+<main class="kinetic-bg-container relative">
+    <div class="kinetic-bg-gradient"></div>
+
+    <header class="kinetic-main-header relative z-10">
+        <div class="kinetic-main-header-stripe bg-[#ff7351]"></div>
+        <div>
+            <h1 class="kinetic-main-header-title">PANEL <span class="text-[#ff7351]">ADMINISTRATORA</span></h1>
+            <p class="kinetic-main-header-subtitle">ZARZĄDZANIE BAZĄ ĆWICZEŃ I MASZYN</p>
+        </div>
+    </header>
+
+    <div class="w-full max-w-7xl mx-auto relative z-10 px-4 md:px-8 pb-24">
+        
+        <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+            <span class="font-headline font-bold text-xs text-[#767575] uppercase tracking-widest">
+                ZAREJESTROWANE OBIEKTY: <span class="text-white">{{ machines|length }}</span>
+            </span>
+            <!-- Przycisk DODAJ NOWĄ (do implementacji) -->
+            <a href="{{ path('app_admin_machine_new') }}" class="bg-[#d1fc00] text-[#111111] hover:bg-[#c7ef00] px-6 py-3 font-headline font-black text-[10px] uppercase tracking-widest transition-colors flex items-center gap-2">
+    <span class="material-symbols-outlined text-sm">add</span> DODAJ MASZYNĘ
+</a>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            {% for machine in machines %}
+                <div class="bg-[#111111] border border-white/10 shadow-2xl p-6 md:p-8 relative group hover:border-[#ff7351]/30 transition-colors">
+                    
+                    <!-- Kategoria (Tag) -->
+                    <div class="absolute top-0 right-0 bg-[#1a1a1a] border-b border-l border-white/5 px-4 py-2 font-headline font-bold text-[9px] text-[#767575] uppercase tracking-widest">
+                        PARTIA: <span class="text-white">{{ machine.category }}</span>
+                    </div>
+
+                    <div class="flex flex-col xl:flex-row gap-8">
+                        
+                        <!-- SEKCJA 1: Zdjęcia faz -->
+                        <div class="xl:w-1/3 flex flex-col gap-2 shrink-0">
+                            <div class="flex gap-2 h-48 bg-[#1a1a1a] border border-white/5 p-2">
+                                <!-- FAZA 1 -->
+                                <div class="w-1/2 relative bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden group-hover:border-[#ff7351]/20 transition-colors">
+                                    <img src="{{ asset('images/machines/' ~ machine.imageStart) }}" alt="{{ machine.name }} Faza 1" class="w-full h-full object-contain mix-blend-luminosity opacity-70 hover:opacity-100 hover:mix-blend-normal transition-all">
+                                    <span class="absolute top-2 left-2 bg-black/80 px-2 py-1 font-headline font-bold text-[9px] text-white tracking-widest">F1</span>
+                                </div>
+                                <!-- FAZA 2 -->
+                                <div class="w-1/2 relative bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden group-hover:border-[#ff7351]/20 transition-colors">
+                                    <img src="{{ asset('images/machines/' ~ machine.imageEnd) }}" alt="{{ machine.name }} Faza 2" class="w-full h-full object-contain mix-blend-luminosity opacity-70 hover:opacity-100 hover:mix-blend-normal transition-all">
+                                    <span class="absolute top-2 left-2 bg-black/80 px-2 py-1 font-headline font-bold text-[9px] text-white tracking-widest">F2</span>
+                                </div>
+                            </div>
+                            <div class="font-label text-[9px] text-[#767575] text-center uppercase tracking-widest">
+                                Pliki: {{ machine.imageStart }} / {{ machine.imageEnd }}
+                            </div>
+                        </div>
+
+                        <!-- SEKCJA 2: Opis i mechanika -->
+                        <div class="xl:w-2/3 flex flex-col">
+                            <h2 class="font-headline font-black text-2xl text-white uppercase tracking-wider mb-2">
+                                {{ machine.name }}
+                            </h2>
+                            
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="bg-[#1a1a1a] border border-white/10 px-3 py-1 font-headline font-bold text-[10px] text-[#d1fc00] uppercase tracking-widest">
+                                    TYP: {{ machine.mechanicType }}
+                                </span>
+                                <span class="bg-[#1a1a1a] border border-white/10 px-3 py-1 font-headline font-bold text-[10px] text-white uppercase tracking-widest flex gap-1">
+                                    GŁÓWNE: 
+                                    {% for m in machine.primaryMuscles %}
+                                        <span class="text-[#767575]">{{ m.name }}{% if not loop.last %}, {% endif %}</span>
+                                    {% endfor %}
+                                </span>
+                            </div>
+
+                            <p class="font-body text-sm text-[#adaaaa] leading-relaxed mb-4">
+                                {{ machine.description }}
+                            </p>
+                            
+                            <div class="bg-[#1a1a1a] border-l-2 border-[#d1fc00] p-4 mb-6">
+                                <span class="font-headline font-bold text-[10px] text-[#d1fc00] uppercase tracking-widest block mb-1">WSKAZÓWKA (TIPS)</span>
+                                <p class="font-body text-xs text-[#767575]">{{ machine.tips }}</p>
+                            </div>
+
+                            <!-- SEKCJA 3: Akcje (Zarządzanie) -->
+                            <div class="mt-auto flex justify-end gap-4 border-t border-white/5 pt-4">
+                                <a href="{{ path('app_admin_machine_edit', {'id': machine.id}) }}" class="px-6 py-2 border border-white/10 text-white hover:bg-white/5 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors">
+    <span class="material-symbols-outlined text-sm">edit</span> EDYTUJ
+</a>
+                                <form id="delete-form-{{ machine.id }}" method="post" action="{{ path('app_admin_machine_delete', {'id': machine.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ machine.id) }}">
+    <button type="button" onclick="openDeleteModal('{{ machine.id }}', '{{ machine.name|escape('js') }}')" class="px-6 py-2 bg-[#ff7351]/10 border border-[#ff7351]/30 text-[#ff7351] hover:bg-[#ff7351] hover:text-[#111111] font-headline font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-colors cursor-pointer">
+        <span class="material-symbols-outlined text-sm">delete</span> USUŃ
+    </button>
+</form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-24 text-[#767575] font-headline font-bold tracking-widest uppercase">
+                    Brak sprzętu w bazie danych.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+<!-- CUSTOM DELETE MODAL -->
+    <div id="customDeleteModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
+        <div class="bg-[#111111] border-l-4 border-[#ff7351] p-8 max-w-md w-full mx-4 shadow-[0_0_40px_rgba(255,115,81,0.2)] relative">
+            <div class="flex items-start gap-4 mb-6">
+                <span class="material-symbols-outlined text-[#ff7351] text-4xl">warning</span>
+                <div>
+                    <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Usunięcie Sprzętu</h3>
+                    <p class="font-body text-[#767575] text-sm leading-relaxed">
+                        Czy na pewno chcesz usunąć maszynę <strong id="deleteMachineName" class="text-white uppercase tracking-widest"></strong> z bazy danych? Operacja usunie ją również ze wszystkich wygenerowanych planów treningowych.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 border-t border-white/5 pt-6 mt-2">
+                <button type="button" onclick="closeDeleteModal()" class="bg-[#131313] hover:bg-[#1a1a1a] text-white px-6 py-3 font-headline font-bold text-[10px] uppercase tracking-widest transition-colors border border-white/10">
+                    ANULUJ
+                </button>
+                <button type="button" onclick="confirmDelete()" class="bg-[#ff7351] hover:bg-[#ff8a6d] text-[#111111] px-6 py-3 font-headline font-black text-[10px] uppercase tracking-widest transition-colors shadow-lg flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">delete_forever</span> USUŃ BEZPOWROTNIE
+                </button>
+            </div>
+        </div>
+    </div>
+<script>
+        let currentDeleteFormId = null;
+
+        function openDeleteModal(machineId, machineName) {
+            currentDeleteFormId = 'delete-form-' + machineId;
+            document.getElementById('deleteMachineName').textContent = machineName;
+            
+            const modal = document.getElementById('customDeleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            currentDeleteFormId = null;
+            const modal = document.getElementById('customDeleteModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmDelete() {
+            if (currentDeleteFormId) {
+                document.getElementById(currentDeleteFormId).submit();
+            }
+        }
+    </script>
+{% endblock %}

@@ -16,6 +16,8 @@ class HistoryFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
+        return; 
+        
         // 1. Pobieramy użytkownika "Dzik"
         $user = $manager->getRepository(User::class)->findOneBy(['email' => 'test@pulsekinetic.com']);
 
@@ -107,6 +109,7 @@ class HistoryFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
+            MachineFixtures::class,
             AppFixtures::class,
         ];
     }

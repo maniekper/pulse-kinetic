@@ -9,11 +9,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\MachineRepository;
 
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_dashboard')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(EntityManagerInterface $em, MachineRepository $machineRepo): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -58,15 +59,28 @@ class DashboardController extends AbstractController
             $goal = $user->getCurrentGoal();
             $totalSeconds = 600; 
             
-            $maxDays = 0;
+            // 1. Zbieramy dni, w których fizycznie Mamy przypisane ćwiczenia
+            $activeDays = [];
             foreach ($plan->getWorkoutExercises() as $ex) {
-                if ($ex->getDayNumber() > $maxDays) {
-                    $maxDays = $ex->getDayNumber();
+                $day = $ex->getDayNumber();
+                if (!in_array($day, $activeDays)) {
+                    $activeDays[] = $day;
                 }
             }
-            
-            $nextDayNumber = $maxDays > 0 ? ($completedSessionsCount % $maxDays) + 1 : 1;
+            sort($activeDays);
 
+            // 2. Jeśli po wykluczeniach plan jest całkowicie pusty, kierujemy do generatora
+            if (empty($activeDays)) {
+                $this->addFlash('warning', 'Wszystkie ćwiczenia z tego planu zostały wykluczone lub usunięte. Wygeneruj nowy plan.');
+                return $this->redirectToRoute('app_generator_start');
+            }
+
+            // 3. Wyliczamy następny AKTYWNY dzień treningowy
+            $activeDaysCount = count($activeDays);
+            $activeDayIndex = $completedSessionsCount % $activeDaysCount;
+            $nextDayNumber = $activeDays[$activeDayIndex];
+
+            // 4. Obliczamy czas tylko dla przypisanych i przefiltrowanych ćwiczeń na ten dzień
             foreach ($plan->getWorkoutExercises() as $workoutExercise) {
                 if ($workoutExercise->getDayNumber() === $nextDayNumber) {
                     $machine = $workoutExercise->getMachine();
@@ -128,6 +142,8 @@ class DashboardController extends AbstractController
             'chartData' => $chartData,
             'maxChartValue' => $maxChartValue,
             'estimatedTimeMinutes' => $estimatedTimeMinutes,
+            'allMachines' => $machineRepo->findAll(),
+            'nextDayNumber' => $nextDayNumber ?? 1, // PRZEKAZUJEMY AKTYWNY DZIEŃ DO WIDOKU
         ]);
     }
 }

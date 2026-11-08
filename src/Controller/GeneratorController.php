@@ -22,7 +22,6 @@ class GeneratorController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // Pobieramy wszystkie cele z bazy, aby wyświetlić je w oknie wyboru
         $allGoals = $goalRepository->findAll();
 
         return $this->render('generator/step1_days.html.twig', [
@@ -44,7 +43,6 @@ class GeneratorController extends AbstractController
             $this->addFlash('success', 'Twój cel treningowy został pomyślnie zmieniony. Nowe plany będą dostosowane do: ' . $newGoal->getName());
         }
 
-        // Po zmianie celu odświeżamy stronę startową
         return $this->redirectToRoute('app_generator_start');
     }
 
@@ -105,7 +103,6 @@ class GeneratorController extends AbstractController
         $weeks = (int) $request->getSession()->get('gen_weeks', 4);
         $excludedMusclesIds = $request->request->all('excluded_muscles') ?? [];
 
-        // Pobieramy cel bezpośrednio z profilu zalogowanego użytkownika
         $user = $this->getUser();
         $userGoal = $user instanceof \App\Entity\User ? $user->getCurrentGoal() : null;
         $goalName = $userGoal ? $userGoal->getName() : 'Hipertrofia';
@@ -168,12 +165,26 @@ class GeneratorController extends AbstractController
             }
         }
 
+        // MAPA ANATOMICZNA - Tłumaczy ogólne nazwy dni na szczegółowe partie mięśniowe w bazie
+        $anatomyMap = [
+            'Klatka piersiowa' => ['Klatka piersiowa'],
+            'Plecy'            => ['Plecy', 'Najszerszy grzbietu', 'Czworoboczny grzbietu'],
+            'Nogi'             => ['Nogi', 'Czworogłowy uda', 'Dwugłowy uda', 'Pośladki', 'Łydki', 'Przywodziciele', 'Odwodziciele'],
+            'Barki'            => ['Barki'],
+            'Biceps'           => ['Biceps'],
+            'Triceps'          => ['Triceps'],
+            'Brzuch'           => ['Brzuch', 'Prosty brzucha', 'Skośne brzucha']
+        ];
+
         for ($sessionNum = 1; $sessionNum <= $totalSessions; $sessionNum++) {
             $blueprintIndex = ($sessionNum - 1) % count($activeBlueprint);
             $targetMuscles = $activeBlueprint[$blueprintIndex];
 
             $dailyExercises = [];
             foreach ($targetMuscles as $targetMuscle) {
+                // Pobieramy szczegółowe mięśnie pasujące do dzisiejszej grupy (np. dla 'Nogi' pobieramy Czworogłowy, Dwugłowy itd.)
+                $specificMusclesForTarget = $anatomyMap[$targetMuscle] ?? [$targetMuscle];
+                
                 $muscleSpecificMachines = [];
                 
                 foreach ($allMachines as $machine) {
@@ -183,7 +194,11 @@ class GeneratorController extends AbstractController
                     }
                     
                     $primaryNames = array_map(fn($m) => $m->getName(), $machine->getPrimaryMuscles()->toArray());
-                    if (in_array($targetMuscle, $primaryNames)) {
+                    
+                    // Sprawdzamy czy jakikolwiek główny mięsień maszyny znajduje się na liście dopuszczalnych mięśni dla tej grupy
+                    $hasMatchingMuscle = !empty(array_intersect($primaryNames, $specificMusclesForTarget));
+
+                    if ($hasMatchingMuscle) {
                         $muscleSpecificMachines[] = $machine;
                     }
                 }
@@ -193,7 +208,18 @@ class GeneratorController extends AbstractController
                 $dailyExercises = array_merge($dailyExercises, $selectedForThisMuscle);
             }
 
+            // ZABEZPIECZENIE: Śledzenie użytych maszyn w danym dniu
+            $usedMachineIdsInSession = []; 
+
             foreach ($dailyExercises as $machine) {
+                // Sprawdzamy czy ta konkretna maszyna nie została już dodana dzisiaj
+                if (in_array($machine->getId(), $usedMachineIdsInSession)) {
+                    continue;
+                }
+                
+                // Zapisujemy ID maszyny jako "zużyte"
+                $usedMachineIdsInSession[] = $machine->getId();
+
                 $exercise = new WorkoutExercise();
                 $exercise->setWorkoutPlan($plan);
                 $exercise->setMachine($machine);
@@ -201,10 +227,8 @@ class GeneratorController extends AbstractController
                 
                 $isCompound = ($machine->getMechanicType() === 'compound');
 
-                // Bezpieczna zamiana na małe litery z obsługą polskich znaków (UTF-8)
                 $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
 
-                // Szukamy rdzenia słowa, aby ominąć problemy z odmianą (Siły vs Siła)
                 if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
                     $exercise->setSets($isCompound ? 3 : 3);
                     $exercise->setReps($isCompound ? '10-12' : '12-15');
@@ -242,7 +266,7 @@ class GeneratorController extends AbstractController
             'plan' => $plan,
             'sessions' => $sessions,
             'daysPerWeek' => 4,
-            'allMachines' => $machineRepo->findAll() // NOWE: Przekazujemy maszyny do modalu
+            'allMachines' => $machineRepo->findAll()
         ]);
     }
 }
