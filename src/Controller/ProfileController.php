@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\GoalRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\WorkoutPlan; // Dodany niezbędny import
 
 class ProfileController extends AbstractController
 {
@@ -21,7 +22,6 @@ class ProfileController extends AbstractController
 
         /** @var \App\Entity\User $user */
 
-        // Obsługa zapisu z formularza
         if ($request->isMethod('POST')) {
             $user->setName($request->request->get('name'));
             $user->setGender($request->request->get('gender'));
@@ -32,29 +32,42 @@ class ProfileController extends AbstractController
             $goalId = $request->request->get('goal_id');
             if ($goalId) {
                 $newGoal = $goalRepository->find($goalId);
-                if ($newGoal && $newGoal !== $user->getCurrentGoal()) {
+                // BYŁO: if ($newGoal && $newGoal !== $user->getCurrentGoal()) {
+                
+                // ZMIEŃ NA:
+                if ($newGoal) {
                     $user->setCurrentGoal($newGoal);
                     
-                    // Usuwamy stary plan, żeby system wymusił wygenerowanie nowego na Dashboardzie
-                    $oldPlan = $entityManager->getRepository(\App\Entity\WorkoutPlan::class)->findOneBy(['user' => $user], ['id' => 'DESC']);
-                    if ($oldPlan) {
-                        $entityManager->remove($oldPlan);
-                        
-                        // Czyścimy też w tle aktywną (niezakończoną) sesję
-                        $activeSession = $entityManager->getRepository(\App\Entity\WorkoutSession::class)->findOneBy([
-                            'user' => $user,
-                            'endedAt' => null
-                        ]);
-                        if ($activeSession) {
-                            $entityManager->remove($activeSession);
+                    $goalName = $newGoal->getName();
+                    $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
+
+                    // BEZPIECZNA AKTUALIZACJA PLANU W LOCIE
+                    $plans = $entityManager->getRepository(WorkoutPlan::class)->findBy(['user' => $user]);
+
+                    foreach ($plans as $plan) {
+                        $plan->setName('Plan: ' . $goalName . ' (Zaktualizowano)');
+
+                        foreach ($plan->getWorkoutExercises() as $exercise) {
+                            $machine = $exercise->getMachine();
+                            $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
+
+                            if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
+                                $exercise->setSets($isCompound ? 3 : 3);
+                                $exercise->setReps($isCompound ? '10-12' : '12-15');
+                            } elseif (str_contains($lowerGoalName, 'sił')) {
+                                $exercise->setSets($isCompound ? 5 : 3);
+                                $exercise->setReps($isCompound ? '3-6' : '6-8');
+                            } else {
+                                $exercise->setSets($isCompound ? 4 : 3);
+                                $exercise->setReps($isCompound ? '8-10' : '10-12');
+                            }
                         }
                     }
-                    $this->addFlash('warning', 'Parametry zmienione. Przejdź na Dashboard, by wygenerować nowy protokół dla tego celu.');
                 }
             }
 
             $entityManager->flush();
-            $this->addFlash('success', 'Profil i parametry treningowe zostały zaktualizowane.');
+            $this->addFlash('success', 'Profil i parametry treningowe zostały natychmiast zaktualizowane.');
             
             return $this->redirectToRoute('app_profile');
         }
@@ -79,5 +92,4 @@ class ProfileController extends AbstractController
         }
         return $this->redirectToRoute('app_profile');
     }
-
 }

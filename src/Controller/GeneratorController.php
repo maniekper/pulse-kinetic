@@ -38,12 +38,44 @@ class GeneratorController extends AbstractController
         $user = $this->getUser();
         if ($newGoal && $user instanceof \App\Entity\User) {
             $user->setCurrentGoal($newGoal);
+            
+            $goalName = $newGoal->getName();
+            $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
+
+            // 1. BEZPIECZNE POBIERANIE PLANÓW: Szukamy bezpośrednio w tabeli WorkoutPlan po ID użytkownika
+            $plans = $entityManager->getRepository(WorkoutPlan::class)->findBy(['user' => $user]);
+
+            foreach ($plans as $plan) {
+                // 2. Aktualizujemy nazwę planu - dzięki temu od razu zobaczysz zmianę w Dashboardzie!
+                $plan->setName('Plan: ' . $goalName . ' (Zaktualizowano)');
+
+                // 3. Aktualizacja parametrów każdego ćwiczenia (serie i powtórzenia)
+                foreach ($plan->getWorkoutExercises() as $exercise) {
+                    $machine = $exercise->getMachine();
+                    $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
+
+                    if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
+                        $exercise->setSets($isCompound ? 3 : 3);
+                        $exercise->setReps($isCompound ? '10-12' : '12-15');
+                    } elseif (str_contains($lowerGoalName, 'sił')) {
+                        $exercise->setSets($isCompound ? 5 : 3);
+                        $exercise->setReps($isCompound ? '3-6' : '6-8');
+                    } else {
+                        $exercise->setSets($isCompound ? 4 : 3);
+                        $exercise->setReps($isCompound ? '8-10' : '10-12');
+                    }
+                }
+            }
+
+            // 4. Zapis do bazy danych
             $entityManager->flush();
             
-            $this->addFlash('success', 'Twój cel treningowy został pomyślnie zmieniony. Nowe plany będą dostosowane do: ' . $newGoal->getName());
+            $this->addFlash('success', 'Parametry planu zostały pomyślnie zaktualizowane dla nowego celu: ' . $goalName);
         }
 
-        return $this->redirectToRoute('app_generator_start');
+        // Powrót bezpośrednio na dashboard
+        $referer = $request->headers->get('referer');
+        return $referer ? $this->redirect($referer) : $this->redirectToRoute('app_generator_start');
     }
 
     #[Route('/generator/step1/save', name: 'app_generator_step1_save', methods: ['POST'])]
