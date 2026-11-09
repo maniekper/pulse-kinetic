@@ -82,6 +82,29 @@
 </div>
 
 <div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+   <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ -->
+<div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center hidden">
+    <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-12">ODPOCZYNEK</h2>
+    
+    <div class="relative flex items-center justify-center w-64 h-64 mb-12">
+        <svg class="w-full h-full -rotate-90">
+            <circle class="text-surface-container-highest" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-width="8"></circle>
+            <circle id="mobileRestTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-width="8" stroke-linecap="round"></circle>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span id="mobileRestTimerDisplay" class="font-headline text-7xl font-black text-on-surface">--:--</span>
+        </div>
+    </div>
+
+    <div class="flex gap-4 w-full px-8 max-w-sm relative z-50">
+        <button type="button" onclick="addRestTime(30)" class="cursor-pointer flex-1 bg-surface-container-highest text-on-surface py-5 font-headline font-bold text-sm uppercase tracking-widest border border-outline-variant/30 active:bg-outline-variant transition-colors">
+            +30s
+        </button>
+       <button type="button" onclick="document.getElementById('mobileRestOverlay').classList.add('hidden'); document.getElementById('mobileRestOverlay').classList.remove('flex'); skipRestTime();" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(209,252,0,0.2)] active:scale-95 transition-all">
+    POMIŃ
+</button>
+    </div>
+</div>
     <!-- TopAppBar -->
     <header class="fixed top-0 w-full border-none bg-[#0e0e0e] flex justify-between items-center px-6 h-16 z-50">
         <div class="flex items-center gap-4">
@@ -172,19 +195,22 @@
                                 </div>
                                 
                                 <!-- Zdjęcia Maszyny -->
-<!-- Zdjęcia Maszyny -->
-<div class="w-full mb-6 bg-surface-container-high overflow-hidden relative border border-outline-variant/20 hidden md:flex h-72 xl:h-96">
-    <div class="w-1/2 h-full border-r border-outline-variant/30 relative flex items-center justify-center bg-black/20">
-        <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-contain opacity-90 mix-blend-luminosity">
-        <div class="absolute top-3 left-3 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-1 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
-            <span class="text-primary-container mr-1">1</span> FAZA
+<!-- SEKCJA ZDJĘĆ FAZ - W PEŁNI RESPONSYWNA -->
+<div class="w-full xl:w-1/3 flex flex-col gap-2 shrink-0">
+    <div class="flex gap-2 h-40 md:h-48 bg-[#1a1a1a] border border-white/5 p-2 w-full">
+        
+        <!-- FAZA 1 -->
+        <div class="w-1/2 relative bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
+            <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-contain mix-blend-luminosity opacity-70 transition-all">
+            <span class="absolute top-2 left-2 bg-black/80 px-2 py-1 font-headline font-bold text-[9px] text-white tracking-widest">F1</span>
         </div>
-    </div>
-    <div class="w-1/2 h-full relative flex items-center justify-center bg-black/20">
-        <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-contain opacity-90 mix-blend-luminosity">
-        <div class="absolute top-3 right-3 bg-[#0e0e0e]/90 border border-outline-variant/30 text-on-surface px-2 py-1 font-headline font-bold text-[10px] uppercase tracking-wider backdrop-blur-md">
-            <span class="text-primary-container mr-1">2</span> FAZA
+        
+        <!-- FAZA 2 -->
+        <div class="w-1/2 relative bg-black/40 border border-white/5 flex items-center justify-center overflow-hidden">
+            <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-contain mix-blend-luminosity opacity-70 transition-all">
+            <span class="absolute top-2 left-2 bg-black/80 px-2 py-1 font-headline font-bold text-[9px] text-white tracking-widest">F2</span>
         </div>
+        
     </div>
 </div>
                                 
@@ -402,7 +428,7 @@
 
     // === NOWA DYNAMICZNA NAWIGACJA ===
     function navigateExercise(direction) {
-        skipRestTime(); // Zatrzymuje i chowa stoper przerwy
+        skipRestTime();
         const blocks = document.querySelectorAll('.exercise-block');
         let newIndex = currentExIndex + direction;
         if (newIndex >= 0 && newIndex < blocks.length) {
@@ -412,7 +438,7 @@
 
     // === ZAJĘTA MASZYNA - PRZESUŃ NA KONIEC ===
     function skipOccupiedMachine() {
-        skipRestTime(); // Zatrzymuje i chowa stoper przerwy
+        skipRestTime();
         const blocksContainer = document.getElementById('exercisesContainer');
         const queueContainer = document.getElementById('queueContainer');
         
@@ -457,14 +483,10 @@
     }
 
     function normalizeMuscleName(name) {
-        // 1. Ujednolicamy nazwę zachowując polskie znaki i zamieniając spację na myślnik
         let normalized = name.trim().toLowerCase().replace(/\s+/g, '-');
-        
-        // 2. Łatamy różnice w nazwach między bazą danych a plikiem SVG
         if (normalized === 'prosty-brzucha') return 'prosty-brzuch';
         if (normalized === 'skośne-brzucha') return 'skośne-brzuch';
-        if (normalized === 'przywodziciele') return 'przwodziciele'; // Naprawa literówki z SVG
-        
+        if (normalized === 'przywodziciele') return 'przwodziciele';
         return normalized;
     }
 
@@ -473,7 +495,6 @@
         if (index < 0 || index >= blocks.length) return;
         currentExIndex = index;
         
-        // POBIERANIE CZASU PRZERWY DLA DANEGO ĆWICZENIA
         const activeBlockRestTime = blocks[index].getAttribute('data-rest-time') || 120;
         const targetDataEl = document.getElementById('targetRestTimeData');
         if (targetDataEl) targetDataEl.setAttribute('data-time', activeBlockRestTime);
@@ -491,7 +512,6 @@
             if(label) label.innerText = `ĆWICZENIE ${i + 1} Z ${blocks.length}`;
         });
         
-        // Podświetlanie Kolejki w Sidebarze
         const queueItems = document.querySelectorAll('.queue-item');
         queueItems.forEach((item, i) => {
             const icon = item.querySelector('.queue-icon');
@@ -513,7 +533,6 @@
             }
         });
 
-        // Aktualizacja Mapy Anatomicznej
         const activeBlock = blocks[index];
         const rawPrimary = (activeBlock.getAttribute('data-primary-muscles') || '').split(',').filter(Boolean);
         const rawSecondary = (activeBlock.getAttribute('data-secondary-muscles') || '').split(',').filter(Boolean);
@@ -549,7 +568,6 @@
         input.value = (val % 1 === 0) ? val : val.toFixed(1);
     }
 
-    // === SYSTEM STATYSTYK ===
     let totalSets = document.querySelectorAll('.set-row').length;
     let completedSets = document.querySelectorAll('.set-row.bg-surface-container-low').length;
     
@@ -596,7 +614,6 @@
         }, 1000);
     }
 
-    // === STOPER PRZERW ===
     function showStartRestButton() {
         clearInterval(restInterval);
         let timerView = document.getElementById('timerView');
@@ -615,8 +632,6 @@
         let timeToSet = targetDataEl ? parseInt(targetDataEl.getAttribute('data-time')) : 120;
         if(isNaN(timeToSet)) timeToSet = 120;
 
-        if(currentRestSeconds > timeToSet) timeToSet = currentRestSeconds; 
-        
         startRestTimer(timeToSet);
     }
 
@@ -624,6 +639,12 @@
         clearInterval(restInterval);
         currentRestSeconds = duration;
         maxRestSeconds = duration > maxRestSeconds ? duration : maxRestSeconds;
+        
+        const mobileOverlay = document.getElementById('mobileRestOverlay');
+        if (window.innerWidth < 1024 && mobileOverlay) {
+            mobileOverlay.classList.remove('hidden');
+            mobileOverlay.classList.add('flex');
+        }
         
         const display = document.getElementById('restTimerDisplay');
         if(display) {
@@ -642,6 +663,11 @@
                 }
                 const circle = document.getElementById('restTimerCircle');
                 if(circle) circle.style.strokeDashoffset = 0;
+                
+                if (mobileOverlay) {
+                    mobileOverlay.classList.add('hidden');
+                    mobileOverlay.classList.remove('flex');
+                }
             } else {
                 currentRestSeconds--;
                 updateRestDisplay();
@@ -651,16 +677,24 @@
 
     function updateRestDisplay() {
         const display = document.getElementById('restTimerDisplay');
-        if(!display) return;
+        const mobileDisplay = document.getElementById('mobileRestTimerDisplay');
         
         let m = Math.floor(currentRestSeconds / 60);
         let s = currentRestSeconds % 60;
-        display.innerText = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        let formattedStr = (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        
+        if(display) display.innerText = formattedStr;
+        if(mobileDisplay) mobileDisplay.innerText = formattedStr;
         
         let fraction = currentRestSeconds / maxRestSeconds;
         if(fraction > 1) fraction = 1;
+        
         const circle = document.getElementById('restTimerCircle');
         if(circle) circle.style.strokeDashoffset = circumference * (1 - fraction);
+        
+        const mobileCircle = document.getElementById('mobileRestTimerCircle');
+        const mobileCircumference = 753.98;
+        if(mobileCircle) mobileCircle.style.strokeDashoffset = mobileCircumference * (1 - fraction);
     }
 
     function addRestTime(seconds) {
@@ -670,16 +704,31 @@
         const startBtn = document.getElementById('startRestBtn');
         if(startBtn && !startBtn.classList.contains('hidden')) {
             initiateRest();
-        } else if(restInterval) {
+        } else {
             startRestTimer(currentRestSeconds);
         }
     }
 
     function skipRestTime() {
+        const mobileOverlay = document.getElementById('mobileRestOverlay');
+        if (mobileOverlay) {
+            mobileOverlay.classList.remove('flex');
+            mobileOverlay.classList.add('hidden');
+        }
+
         clearInterval(restInterval);
         currentRestSeconds = 0;
-        const circle = document.getElementById('restTimerCircle');
-        if(circle) circle.style.strokeDashoffset = 0; // Reset obwodu wizualnie
+        
+        try {
+            const circle = document.getElementById('restTimerCircle');
+            if(circle) circle.style.strokeDashoffset = 0; 
+        } catch(e) {}
+
+        try {
+            const mobileCircle = document.getElementById('mobileRestTimerCircle');
+            if(mobileCircle) mobileCircle.style.strokeDashoffset = 0; 
+        } catch(e) {}
+        
         showStartRestButton();
     }
 
@@ -699,100 +748,6 @@
         });
     }
 
-   function saveSet(setId, btnElement) {
-        const weightInput = document.getElementById('weight-' + setId);
-        const repsInput = document.getElementById('reps-' + setId);
-        
-        if(!weightInput || !repsInput) return;
-        const weight = weightInput.value;
-        const reps = repsInput.value;
-
-        if(!weight || !reps) {
-            showCustomAlert('Wprowadź ciężar i ilość powtórzeń.');
-            return;
-        }
-
-        const originalBtnHtml = btnElement.innerHTML;
-        btnElement.innerHTML = '...';
-        btnElement.disabled = true;
-
-        fetch('/tracker/set/complete/' + setId, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ weight: weight, reps: reps })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                const row = document.getElementById('set-row-' + setId);
-                if(row) {
-                    const col2 = row.querySelector('div:nth-child(2)');
-                    const col3 = row.querySelector('div:nth-child(3)');
-                    const actionCont = row.querySelector('.set-action-container');
-                    
-                    if(col2) col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${weight}</div>`;
-                    if(col3) col3.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${reps}</div>`;
-                    if(actionCont) actionCont.innerHTML = '<span class="material-symbols-outlined text-primary-container">check_circle</span>';
-                    
-                    row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
-                    row.classList.add('opacity-50', 'bg-surface-container-low');
-                    
-                    let numberDiv = row.querySelector('.set-number');
-                    if(numberDiv) {
-                        numberDiv.classList.remove('text-primary-container');
-                        numberDiv.classList.add('text-on-surface');
-                    }
-                }
-
-                // === AUTOMATYCZNE PRZEPISANIE KG DO NASTĘPNEJ SERII ===
-                const currentRow = document.getElementById('set-row-' + setId);
-                if (currentRow) {
-                    const nextRow = currentRow.nextElementSibling;
-                    // Sprawdzamy czy kolejny element to wiersz serii w tym samym ćwiczeniu
-                    if (nextRow && nextRow.classList.contains('set-row')) {
-                        const nextSetId = nextRow.getAttribute('data-set-id');
-                        const nextWeightInput = document.getElementById('weight-' + nextSetId);
-                        // Jeśli pole w następnej serii jest puste lub wynosi 0, uzupełniamy je
-                        if (nextWeightInput && (!nextWeightInput.value || parseFloat(nextWeightInput.value) === 0)) {
-                            nextWeightInput.value = weight;
-                        }
-                    }
-                }
-                // ====================================================
-
-                completedSets++;
-                currentVolume += (parseFloat(weight) * parseInt(reps));
-                updateStats();
-                
-                // AUTOMATYCZNY START PRZERWY
-                initiateRest();
-                
-                // AUTO-PRZESKOK przez nawigację
-                const blocks = document.querySelectorAll('.exercise-block');
-                const currentBlock = blocks[currentExIndex];
-                if(currentBlock) {
-                    const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
-                    const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
-                    
-                    if(allSetsInBlock === completedSetsInBlock) {
-                        setTimeout(() => {
-                            navigateExercise(1);
-                        }, 1200); 
-                    }
-                }
-                
-            } else {
-                showCustomAlert('Wystąpił błąd zapisu serii w bazie danych.');
-                btnElement.innerHTML = originalBtnHtml;
-                btnElement.disabled = false;
-            }
-        })
-        .catch(() => {
-            showCustomAlert('Błąd połączenia z serwerem. Spróbuj ponownie.');
-            btnElement.innerHTML = originalBtnHtml;
-            btnElement.disabled = false;
-        });
-    }
     function saveSet(setId, btnElement) {
         const weightInput = document.getElementById('weight-' + setId);
         const repsInput = document.getElementById('reps-' + setId);
@@ -838,40 +793,41 @@
                     }
                 }
 
-                // === AUTOMATYCZNE PRZEPISANIE KG DO NASTĘPNEJ SERII ===
                 const currentRow = document.getElementById('set-row-' + setId);
                 if (currentRow) {
                     const nextRow = currentRow.nextElementSibling;
-                    // Sprawdzamy czy kolejny element to wiersz serii w tym samym ćwiczeniu
                     if (nextRow && nextRow.classList.contains('set-row')) {
                         const nextSetId = nextRow.getAttribute('data-set-id');
                         const nextWeightInput = document.getElementById('weight-' + nextSetId);
-                        // Jeśli pole w następnej serii jest puste lub wynosi 0, uzupełniamy je
                         if (nextWeightInput && (!nextWeightInput.value || parseFloat(nextWeightInput.value) === 0)) {
                             nextWeightInput.value = weight;
                         }
                     }
                 }
-                // ====================================================
 
                 completedSets++;
                 currentVolume += (parseFloat(weight) * parseInt(reps));
                 updateStats();
                 
-                // AUTOMATYCZNY START PRZERWY
-                initiateRest();
-                
-                // AUTO-PRZESKOK przez nawigację
-                const blocks = document.querySelectorAll('.exercise-block');
-                const currentBlock = blocks[currentExIndex];
-                if(currentBlock) {
-                    const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
-                    const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
+                if (completedSets >= totalSets) {
+                    setTimeout(() => {
+                        skipRestTime();
+                        submitWorkoutForm(); 
+                    }, 1000);
+                } else {
+                    initiateRest();
                     
-                    if(allSetsInBlock === completedSetsInBlock) {
-                        setTimeout(() => {
-                            navigateExercise(1);
-                        }, 1200); 
+                    const blocks = document.querySelectorAll('.exercise-block');
+                    const currentBlock = blocks[currentExIndex];
+                    if(currentBlock) {
+                        const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
+                        const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
+                        
+                        if(allSetsInBlock === completedSetsInBlock) {
+                            setTimeout(() => {
+                                navigateExercise(1);
+                            }, 1200); 
+                        }
                     }
                 }
                 
@@ -888,7 +844,6 @@
         });
     }
 
-    
     const globalBtn = document.getElementById('globalFinishSetBtn');
     if (globalBtn) {
         globalBtn.addEventListener('click', function() {
@@ -900,19 +855,9 @@
                 const btn = activeRow.querySelector('.save-set-btn');
                 if(btn) saveSet(activeRow.getAttribute('data-set-id'), btn);
             } else {
-                 showCustomAlert('Trening zakończony! Zakończ sesję głównym guzikiem po lewej.');
+                 showCustomAlert('Trening zakończony! Oczekiwanie na przekierowanie...');
             }
         });
-    }
-
-    function finishWorkout() {
-        if(confirm('Zakończyć sesję i zapisać tonaż do systemu?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ path("app_tracker_finish", {"id": session.id}) }}';
-            document.body.appendChild(form);
-            form.submit();
-        }
     }
 
     function showCustomAlert(message) {
@@ -927,8 +872,8 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+
     function finishWorkout() {
-        // Zamiast systemowego confirm(), pokazujemy nasz stylizowany modal
         const modal = document.getElementById('customConfirmModal');
         if (modal) {
             modal.classList.remove('hidden');
@@ -945,7 +890,6 @@
     }
 
     function submitWorkoutForm() {
-        // Ta funkcja jest wywoływana przez przycisk "ZAKOŃCZ" w modalu
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ path("app_tracker_finish", {"id": session.id}) }}';

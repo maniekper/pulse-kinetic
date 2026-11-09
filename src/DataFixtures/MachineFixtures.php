@@ -242,7 +242,7 @@ class MachineFixtures extends Fixture
     'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
     'image_prefix' => 'low_row'
 ],[
-    'name' => 'Wyciskanie na ławce poziomej na maszynie (Supine Bench Press)',
+    'name' => 'Wyciskanie na ławce poziomej (Supine Bench Press)',
     'description' => 'Połóż się płasko na ławce maszyny, opierając stopy stabilnie na podłodze. Chwyć rączki urządzenia na szerokość klatki piersiowej. Kontrolowanym, dynamicznym ruchem wypchnij ramiona maszyny w górę, prostując ręce, ale unikając blokowania łokci. Następnie powoli opuść ciężar do pozycji wyjściowej, aż poczujesz lekkie rozciąganie w klatce piersiowej.',
     'tips' => 'Przez cały czas trwania ćwiczenia dbaj o to, aby łopatki były ściągnięte, a pośladki i plecy mocno przylegały do ławki. Nie odrywaj stóp od podłoża.',
     'category' => 'Klatka piersiowa',
@@ -259,6 +259,60 @@ class MachineFixtures extends Fixture
     'primary' => 'Triceps',
     'secondary' => ['Przedramiona'],
     'image_prefix' => 'triceps_pressdown'
+],[
+    'name' => 'Wiosłowanie na maszynie w siadzie (Seated Row)',
+    'description' => 'Usiądź na siedzisku, opierając stopy na platformach, a klatkę piersiową mocno dociśnij do poduszki oporowej. Chwyć rączki maszyny przy wyprostowanych ramionach. Inicjując ruch z mięśni grzbietu, przyciągnij uchwyty w stronę tułowia, prowadząc łokcie blisko ciała i mocno ściągając łopatki. Następnie powoli, kontrolując ciężar, wróć do pozycji wyjściowej.',
+    'tips' => 'Przez całe ćwiczenie utrzymuj klatkę piersiową przyklejoną do poduszki oporowej – unikaj odchylania tułowia do tyłu podczas przyciągania ciężaru. Skup się na pracy łopatek, a nie tylko na zginaniu rąk.',
+    'category' => 'Plecy',
+    'mechanicType' => 'compound',
+    'primary' => 'Najszerszy grzbietu',
+    'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
+    'image_prefix' => 'seated_row'
+],[
+    'name' => 'Wyciskanie na maszynie w siadzie (Vertical Bench Press)',
+    'description' => 'Usiądź wygodnie na siedzisku maszyny, opierając plecy i głowę o oparcie. Stopy ustaw płasko na podłożu. Chwyć za rączki na wysokości klatki piersiowej. Kontrolowanym, dynamicznym ruchem wypchnij uchwyty do przodu, prostując ramiona (unikaj blokowania łokci). Następnie powolnym ruchem wróć do pozycji wyjściowej, aż poczujesz lekkie rozciąganie w klatce piersiowej.',
+    'tips' => 'Przez cały czas trwania ruchu trzymaj łopatki ściągnięte, a plecy dociśnięte do oparcia. Unikaj wysuwania barków do przodu w końcowej fazie ruchu.',
+    'category' => 'Klatka piersiowa',
+    'mechanicType' => 'compound',
+    'primary' => 'Klatka piersiowa',
+    'secondary' => ['Barki', 'Triceps'],
+    'image_prefix' => 'vertical_bench_press'
+],[
+    'name' => 'Ściąganie drążka wyciągu pionowego (Lat Pulldown)',
+    'description' => 'Usiądź na siedzisku maszyny i zablokuj uda pod wałkami oporowymi. Chwyć rączki urządzenia szerokim chwytem. Kontrolowanym, dynamicznym ruchem przyciągnij ramiona maszyny w dół, kierując uchwyty w stronę górnej części klatki piersiowej i mocno ściągając łopatki. Następnie powolnym, płynnym ruchem pozwól ramionom powrócić do pozycji wyjściowej, w pełni rozciągając mięśnie grzbietu.',
+    'tips' => 'Podczas ściągania ciężaru utrzymuj lekko odchyloną, ale stabilną sylwetkę i nie szarp tułowiem. Ruch powinien być zapoczątkowany przez opuszczenie łopatek, a nie tylko siłę ramion.',
+    'category' => 'Najszerszy grzbietu',
+    'mechanicType' => 'compound',
+    'primary' => 'Najszerszy grzbietu',
+    'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
+    'image_prefix' => 'lat_pulldown_machine'
+],[
+    'name' => 'Wyciskanie na ławce poziomej na maszynie (Supine Bench Press)',
+    'description' => 'Połóż się płasko na ławce maszyny, opierając stopy stabilnie na podłodze. Chwyć rączki urządzenia na szerokość klatki piersiowej. Kontrolowanym, dynamicznym ruchem wypchnij ramiona maszyny w górę, prostując ręce, ale unikając blokowania łokci. Następnie powoli opuść ciężar do pozycji wyjściowej, aż poczujesz lekkie rozciąganie w klatce piersiowej.',
+    'tips' => 'Przez cały czas trwania ćwiczenia dbaj o to, aby łopatki były ściągnięte, a pośladki i plecy mocno przylegały do ławki. Nie odrywaj stóp od podłoża.',
+    'category' => 'Klatka piersiowa',
+    'mechanicType' => 'compound',
+    'primary' => 'Klatka piersiowa',
+    'secondary' => ['Barki', 'Triceps'],
+    'image_prefix' => 'supine_bench_press_machine'
+],[
+    'name' => 'Skłony tułowia na ławce skośnej (Adjustable Ab Bench)',
+    'description' => 'Usiądź na ławce skośnej, zaprzyj stopy pod dolnymi wałkami, a łydki pod górnymi wałkami oporowymi. Skrzyżuj ręce na klatce piersiowej lub trzymaj dłonie przy skroniach. Z pozycji leżącej wykonaj skłon, unosząc tułów w górę poprzez spięcie mięśni brzucha, aż klatka piersiowa zbliży się do kolan. Powoli i pod pełną kontrolą opuść tułów z powrotem do pozycji wyjściowej.',
+    'tips' => 'Podczas wykonywania ruchu skup się na rolowaniu kręgosłupa (zaokrąglaniu pleców), a nie na unoszeniu całego, prostego tułowia z bioder. Unikaj ciągnięcia dłońmi za głowę/kark, aby zapobiec kontuzjom odcinka szyjnego.',
+    'category' => 'Brzuch',
+    'mechanicType' => 'isolation',
+    'primary' => 'Prosty brzucha',
+    'secondary' => ['Skośne brzucha'],
+    'image_prefix' => 'adjustable_ab_bench'
+],[
+    'name' => 'Wyciskanie sztangi nad głowę na ławce pionowej (Shoulder Bench)',
+    'description' => 'Usiądź na ławce, opierając plecy stabilnie o oparcie. Chwyć sztangę nachwytem, nieco szerzej niż szerokość barków, i zdejmij ją ze stojaków. Kontrolowanym ruchem opuść sztangę w pionowej linii, aż znajdzie się na wysokości obojczyków lub górnej części klatki piersiowej. Następnie dynamicznym, ale kontrolowanym ruchem wyciśnij sztangę w górę, prostując ramiona nad głową, pamiętając, aby nie blokować łokci.',
+    'tips' => 'Przez cały czas trwania ruchu utrzymuj napięty brzuch i dbaj o to, aby odcinek lędźwiowy nie wyginał się nadmiernie w łuk. Stopy powinny mocno i płasko spoczywać na podłożu, zapewniając stabilną podstawę do wyciskania.',
+    'category' => 'Barki',
+    'mechanicType' => 'compound',
+    'primary' => 'Barki',
+    'secondary' => ['Triceps', 'Kaptur'],
+    'image_prefix' => 'shoulder_bench'
 ],
         ];
 

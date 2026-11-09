@@ -54,16 +54,16 @@ class GeneratorController extends AbstractController
                     $machine = $exercise->getMachine();
                     $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                    if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
-                        $exercise->setSets($isCompound ? 3 : 3);
-                        $exercise->setReps($isCompound ? '10-12' : '12-15');
-                    } elseif (str_contains($lowerGoalName, 'sił')) {
-                        $exercise->setSets($isCompound ? 5 : 3);
-                        $exercise->setReps($isCompound ? '3-6' : '6-8');
-                    } else {
-                        $exercise->setSets($isCompound ? 4 : 3);
-                        $exercise->setReps($isCompound ? '8-10' : '10-12');
-                    }
+                    if (str_contains($lowerGoalName, 'sił')) {
+                    $exercise->setSets($isCompound ? 4 : 2);
+                    $exercise->setReps($isCompound ? '1-5' : '6-10');
+                } elseif (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
+                    $exercise->setSets($isCompound ? 3 : 2);
+                    $exercise->setReps($isCompound ? '4-8' : '8-12');
+                } else {
+                    $exercise->setSets($isCompound ? 4 : 3);
+                    $exercise->setReps($isCompound ? '6-10' : '8-15');
+                }
                 }
             }
 

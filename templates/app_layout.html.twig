@@ -3,10 +3,10 @@
 {% block body %}
 <div class="flex min-h-screen w-full bg-[#0a0a0a]">
 
-    <aside class="w-64 lg:w-72 border-r border-outline-variant/20 flex-col shrink-0 hidden md:flex sticky top-0 h-screen bg-[#0a0a0a]">
-        
+    <!-- SIDEBAR PC (Ukryty na smartfonach, widoczny na PC - klasa hidden md:flex) -->
+    <aside class="w-64 lg:w-72 border-r border-outline-variant/20 flex-col shrink-0 hidden md:flex sticky top-0 h-screen bg-[#0a0a0a] z-50">
         <div class="h-20 flex items-center px-8 border-b border-outline-variant/20 shrink-0">
-            <span class="font-headline text-xl font-black italic uppercase text-primary-container tracking-widest">
+            <span class="font-headline text-xl font-black italic uppercase tracking-widest text-[color:var(--theme-main)]">
                 PULSE KINETIC
             </span>
         </div>
@@ -15,52 +15,52 @@
             <div class="font-label text-[10px] text-outline uppercase tracking-widest mt-1">
                 WITAJ Z POWROTEM
             </div>
-            <div class="font-headline font-black text-primary-container uppercase tracking-tight text-lg">
+            <div class="font-headline font-black uppercase tracking-tight text-lg text-[color:var(--theme-main)]">
                 {{ app.user.name|default('USER')|upper }}
             </div>
         </div>
-
+        
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto hide-scrollbar">
             {% set sidebarPlan = plan|default(null) %}
             {% if not sidebarPlan and app.user and app.user.workoutPlans|length > 0 %}
                 {% set sidebarPlan = app.user.workoutPlans|last %}
             {% endif %}
             
-            <a href="{% if sidebarPlan %}{{ path('app_dashboard') }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
+            <a href="{% if sidebarPlan %}{{ path('app_dashboard') }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_dashboard' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
                 <span class="material-symbols-outlined text-xl">grid_view</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Dashboard</span>
             </a>
             
-            <a href="{% if sidebarPlan %}{{ path('app_generator_success', {'id': sidebarPlan.id}) }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_generator_success' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
+            <a href="{% if sidebarPlan %}{{ path('app_generator_success', {'id': sidebarPlan.id}) }}{% else %}#{% endif %}" class="flex items-center gap-4 px-4 py-3 transition-colors {% if not sidebarPlan %}opacity-30 pointer-events-none cursor-not-allowed{% else %}{{ app.request.attributes.get('_route') == 'app_generator_success' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}{% endif %}">
                 <span class="material-symbols-outlined text-xl">fitness_center</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Plan Treningowy</span>
             </a>
             
-            <a href="{{ path('app_achievements') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_achievements' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}">
+            <a href="{{ path('app_achievements') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_achievements' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
                 <span class="material-symbols-outlined text-xl">show_chart</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Osiągnięcia</span>
             </a>
             
-            <a href="{{ path('app_profile') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_profile' ? 'bg-surface-container-highest/50 text-primary-container border-l-2 border-primary-container' : 'text-on-surface-variant hover:text-on-surface' }}">
+            <a href="{{ path('app_profile') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_profile' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
                 <span class="material-symbols-outlined text-xl">person</span>
                 <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Profil</span>
             </a>
+            
             {% if is_granted('ROLE_ADMIN') %}
-    <a href="{{ path('app_admin_machine_index') }}" class="flex items-center gap-3 text-[#767575] hover:text-[#ff7351] hover:bg-[#1a1a1a] p-4 border-l-4 border-transparent hover:border-[#ff7351] transition-all mb-2 mt-4">
-        <span class="material-symbols-outlined text-xl">database</span>
-        <span class="font-headline font-bold text-xs uppercase tracking-widest">Baza Sprzętu</span>
-    </a>
-{% endif %}
+                <a href="{{ path('app_admin_machine_index') }}" class="flex items-center gap-3 text-[#767575] hover:text-error hover:bg-[#1a1a1a] p-4 border-l-4 border-transparent hover:border-error transition-all mb-2 mt-4">
+                    <span class="material-symbols-outlined text-xl">database</span>
+                    <span class="font-headline font-bold text-xs uppercase tracking-widest">Baza Sprzętu</span>
+                </a>
+            {% endif %}
         </nav>
 
         <div class="p-6 shrink-0 flex flex-col gap-4 border-t border-outline-variant/10 mt-auto">
             {% if sidebarPlan %}
-                <!-- Usunięto parametr 'day' -->
-                <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id}) }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors cursor-pointer block">
+                <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id}) }}" class="text-[color:var(--theme-text)] py-4 font-headline font-black text-xs uppercase tracking-widest text-center transition-colors cursor-pointer block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)]">
                     ROZPOCZNIJ TRENING
                 </a>
             {% else %}
-                <a href="{{ path('app_generator_start') }}" class="bg-primary-container text-on-primary-container py-4 font-headline font-black text-xs uppercase tracking-widest text-center hover:bg-primary-dim transition-colors shadow-[0_0_20px_rgba(209,252,0,0.3)] border border-[#d1fc00] cursor-pointer block">
+                <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 font-headline font-black text-xs uppercase tracking-widest text-center transition-colors cursor-pointer block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)]" style="box-shadow: 0 0 20px var(--theme-shadow);">
                     BUDUJ PLAN
                 </a>
             {% endif %}
@@ -72,9 +72,97 @@
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col min-w-0">
-        {% block app_content %}{% endblock %}
+    <!-- KONTENER GŁÓWNY -->
+    <div class="flex-1 flex flex-col min-w-0 relative">
+        
+        <!-- MOBILNY TOP BAR -->
+        <header class="flex md:hidden items-center justify-between px-6 h-16 border-b border-outline-variant/20 bg-[#0a0a0a] sticky top-0 z-50">
+            <span class="font-headline text-lg font-black italic uppercase tracking-widest text-[color:var(--theme-main)]">
+                PULSE KINETIC
+            </span>
+            <button onclick="toggleMobileMenu()" class="text-outline hover:text-[color:var(--theme-main)] transition-colors flex items-center justify-center p-2 -mr-2">
+                <span id="burgerIcon" class="material-symbols-outlined text-3xl">menu</span>
+            </button>
+        </header>
+
+        <!-- FULLSCREEN BURGER MENU (Poprawiona czytelność i przycisk startu) -->
+        <div id="mobileMenuOverlay" class="md:hidden fixed inset-0 top-16 z-40 bg-[#0a0a0a]/98 backdrop-blur-xl flex-col hidden transition-all h-[calc(100vh-4rem)] overflow-y-auto px-6 py-6">
+            
+            <!-- Górne menu nawigacyjne z poprawnymi ikonami -->
+            <nav class="flex flex-col gap-3 mb-8 ">
+                {% set sidebarPlan = plan|default(null) %}
+                {% if not sidebarPlan and app.user and app.user.workoutPlans|length > 0 %}
+                    {% set sidebarPlan = app.user.workoutPlans|last %}
+                {% endif %}
+
+                <a href="{% if sidebarPlan %}{{ path('app_dashboard') }}{% else %}#{% endif %}" class="flex items-center gap-4 px-5 py-4 bg-surface-container border border-outline-variant/10 rounded-xl transition-colors {% if app.request.get('_route') == 'app_dashboard' %}border-[color:var(--theme-main)] text-[color:var(--theme-main)]{% else %}text-on-surface hover:text-[color:var(--theme-main)]{% endif %}">
+                    <span class="material-symbols-outlined text-2xl text-[color:var(--theme-main)]">grid_view</span>
+                    <span class="font-headline font-bold text-sm uppercase tracking-wider">Dashboard</span>
+                </a>
+                
+                <a href="{% if sidebarPlan %}{{ path('app_generator_success', {'id': sidebarPlan.id}) }}{% else %}#{% endif %}" class="flex items-center gap-4 px-5 py-4 bg-surface-container border border-outline-variant/10 rounded-xl transition-colors {% if 'generator' in app.request.get('_route') %}border-[color:var(--theme-main)] text-[color:var(--theme-main)]{% else %}text-on-surface hover:text-[color:var(--theme-main)]{% endif %}">
+                    <span class="material-symbols-outlined text-2xl text-[color:var(--theme-main)]">fitness_center</span>
+                    <span class="font-headline font-bold text-sm uppercase tracking-wider">Plan Treningowy</span>
+                </a>
+
+                <a href="{{ path('app_profile') }}" class="flex items-center gap-4 px-5 py-4 bg-surface-container border border-outline-variant/10 rounded-xl transition-colors {% if app.request.get('_route') == 'app_profile' %}border-[color:var(--theme-main)] text-[color:var(--theme-main)]{% else %}text-on-surface hover:text-[color:var(--theme-main)]{% endif %}">
+                    <span class="material-symbols-outlined text-2xl text-[color:var(--theme-main)]">person</span>
+                    <span class="font-headline font-bold text-sm uppercase tracking-wider">Profil</span>
+                </a>
+                
+                {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_admin_machine_index') }}" class="flex items-center gap-4 px-5 py-4 bg-surface-container border border-outline-variant/10 rounded-xl transition-colors {% if 'admin' in app.request.get('_route') %}border-error text-error{% else %}text-on-surface hover:text-error{% endif %}">
+                    <span class="material-symbols-outlined text-2xl">database</span>
+                    <span class="font-headline font-bold text-sm uppercase tracking-wider">Baza Sprzętu</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- Specjalny przycisk startu i wylogowania w mobilnym menu -->
+            <div class="flex flex-col gap-3 mt-auto pb-8">
+                {% if sidebarPlan %}
+                    <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id}) }}" class="text-[color:var(--theme-text)] py-4 px-6 font-headline font-black text-xs uppercase tracking-widest text-center transition-all block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] shadow-lg rounded-xl">
+                        ROZPOCZNIJ TRENING
+                    </a>
+                {% else %}
+                    <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 px-6 font-headline font-black text-xs uppercase tracking-widest text-center transition-all block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] shadow-lg rounded-xl" style="box-shadow: 0 0 20px var(--theme-shadow);">
+                        BUDUJ PLAN
+                    </a>
+                {% endif %}
+
+                <a href="{{ path('app_logout') }}" class="flex items-center justify-center gap-2 py-4 px-6 bg-surface-container-highest border border-outline-variant/20 text-on-surface-variant hover:text-error transition-colors rounded-xl">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                    <span class="font-headline font-bold text-xs uppercase tracking-widest">Wyloguj</span>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- ZAWARTOŚĆ STRONY -->
+        <div class="flex-1 w-full z-10 relative">
+            {% block app_content %}{% endblock %}
+        </div>
+        
     </div>
 
 </div>
+
+<!-- SKRYPT DO OBSŁUGI BURGERA -->
+<script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenuOverlay');
+        const icon = document.getElementById('burgerIcon');
+        if (menu.classList.contains('hidden')) {
+            menu.classList.remove('hidden');
+            menu.classList.add('flex');
+            icon.innerText = 'close';
+            document.body.style.overflow = 'hidden'; 
+        } else {
+            menu.classList.add('hidden');
+            menu.classList.remove('flex');
+            icon.innerText = 'menu';
+            document.body.style.overflow = '';
+        }
+    }
+</script>
 {% endblock %}

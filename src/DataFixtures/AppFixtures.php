@@ -49,7 +49,7 @@ class AppFixtures extends Fixture
             ->setName('Dzik')
             ->setAge(43)
             ->setGender('Mężczyzna')
-            ->setWeight(104.0)
+            ->setWeight(95.0)
             ->setHeight(180.0)
             ->setCurrentGoal($goalStrength)
             ->setRoles(['ROLE_ADMIN', 'ROLE_USER']);

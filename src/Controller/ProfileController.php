@@ -51,15 +51,20 @@ class ProfileController extends AbstractController
                             $machine = $exercise->getMachine();
                             $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                            if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
-                                $exercise->setSets($isCompound ? 3 : 3);
-                                $exercise->setReps($isCompound ? '10-12' : '12-15');
-                            } elseif (str_contains($lowerGoalName, 'sił')) {
-                                $exercise->setSets($isCompound ? 5 : 3);
-                                $exercise->setReps($isCompound ? '3-6' : '6-8');
-                            } else {
+                            // MODUŁ SIŁY (Strength Engine)
+                            if (str_contains($lowerGoalName, 'sił')) {
+                                $exercise->setSets($isCompound ? 4 : 2);
+                                $exercise->setReps($isCompound ? '1-5' : '6-10');
+                            } 
+                            // MODUŁ REDUKCJI (Cutting Engine)
+                            elseif (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
+                                $exercise->setSets($isCompound ? 3 : 2);
+                                $exercise->setReps($isCompound ? '4-8' : '8-12');
+                            } 
+                            // MODUŁ MASY / HIPERTROFII (Hypertrophy Engine - Domyślny)
+                            else {
                                 $exercise->setSets($isCompound ? 4 : 3);
-                                $exercise->setReps($isCompound ? '8-10' : '10-12');
+                                $exercise->setReps($isCompound ? '6-10' : '8-15');
                             }
                         }
                     }
