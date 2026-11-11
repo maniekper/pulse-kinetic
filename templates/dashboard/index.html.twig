@@ -160,12 +160,18 @@
                 </div>
                 
                 <div>
-                    <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">WYBIERZ ZASTĘPSTWO (TA SAMA PARTIA):</div>
-                    <select id="newMachineSelect" name="new_machine_id" onchange="updateFormAction()" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold cursor-pointer">
-                    </select>
+                    <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-3">WYBIERZ ZASTĘPSTWO (Z TEJ SAMEJ PARTII):</div>
+                    
+                    <!-- Ukryty input przechowujący ID wybranej maszyny -->
+                    <input type="hidden" name="new_machine_id" id="selectedMachineId" required>
+
+                    <!-- Siatka alternatywnych maszyn z miniaturkami -->
+                    <div id="machineGrid" class="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-1 hide-scrollbar">
+                        <!-- Dynamicznie generowane przez JS -->
+                    </div>
                 </div>
 
-                <button type="submit" id="swapSubmitBtn" class="w-full bg-primary-container hover:bg-primary-dim py-4 flex items-center justify-center gap-3 transition-colors mt-4 cursor-pointer">
+                <button type="submit" id="swapSubmitBtn" class="w-full bg-primary-container hover:bg-primary-dim py-4 flex items-center justify-center gap-3 transition-colors mt-2 cursor-pointer opacity-30 pointer-events-none">
                     <span class="material-symbols-outlined text-on-primary-container">published_with_changes</span>
                     <span class="font-headline font-black text-xs text-on-primary-container uppercase tracking-widest">POTWIERDŹ ZMIANĘ</span>
                 </button>
@@ -180,6 +186,7 @@
                 {
                     id: {{ m.id }},
                     name: "{{ m.name|escape('js') }}",
+                    image: "{{ m.imageStart ? asset('images/machines/' ~ m.imageStart) : '' }}",
                     muscles: [
                         {% for mus in m.primaryMuscles %}
                             "{{ mus.name|escape('js') }}"{% if not loop.last %},{% endif %}
@@ -198,32 +205,62 @@
             modal.classList.add('flex');
             
             document.getElementById('currentMachineName').innerText = machineName;
+            document.getElementById('selectedMachineId').value = '';
             
-            const select = document.getElementById('newMachineSelect');
+            const grid = document.getElementById('machineGrid');
             const submitBtn = document.getElementById('swapSubmitBtn');
-            select.innerHTML = '';
+            grid.innerHTML = '';
+            
+            // Wyłączamy przycisk do momentu wyboru
+            submitBtn.classList.add('opacity-30', 'pointer-events-none');
             
             const compatibleMachines = machinesData.filter(m => 
                 m.muscles.includes(muscleName) && m.name !== machineName
             );
             
             if (compatibleMachines.length === 0) {
-                select.innerHTML = '<option value="">Brak alternatyw dla tej partii w bazie</option>';
-                select.disabled = true;
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-30', 'cursor-not-allowed');
+                grid.innerHTML = '<div class="col-span-2 text-[#767575] text-xs py-4 uppercase tracking-widest font-headline text-center">Brak alternatyw dla tej partii w bazie.</div>';
             } else {
-                select.disabled = false;
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-30', 'cursor-not-allowed');
                 compatibleMachines.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.id;
-                    opt.innerText = m.name;
-                    select.appendChild(opt);
+                    const card = document.createElement('div');
+                    card.className = "bg-[#161616] border border-white/10 p-3 flex flex-col gap-3 cursor-pointer hover:border-primary-container transition-all group select-none relative";
+                    card.setAttribute('data-id', m.id);
+                    
+                   const imgHtml = m.image 
+                        ? `<img src="${m.image}" class="w-full h-24 object-contain p-1 mix-blend-luminosity opacity-80 group-hover:opacity-100 transition-opacity">`
+                        : `<div class="w-full h-24 bg-[#1a1a1a] flex items-center justify-center text-outline"><span class="material-symbols-outlined">fitness_center</span></div>`;`<div class="w-full h-24 bg-[#1a1a1a] flex items-center justify-center text-outline"><span class="material-symbols-outlined">fitness_center</span></div>`;
+
+                    card.innerHTML = `
+                        <div class="w-full overflow-hidden bg-[#1a1a1a] border border-white/5 relative">
+                            ${imgHtml}
+                        </div>
+                        <span class="font-headline font-bold text-xs text-white uppercase tracking-tight text-center line-clamp-2">${m.name}</span>
+                    `;
+                    
+                    card.onclick = () => selectMachineCard(card, m.id);
+                    grid.appendChild(card);
                 });
             }
-            updateFormAction();
+        }
+
+        function selectMachineCard(cardElement, machineId) {
+            // Usuń zaznaczenie z innych
+            document.querySelectorAll('#machineGrid > div').forEach(c => {
+                c.classList.remove('border-primary-container', 'bg-primary-container/10');
+                c.classList.add('border-white/10', 'bg-[#161616]');
+            });
+            
+            // Zaznacz kliknięty kafelek
+            cardElement.classList.remove('border-white/10', 'bg-[#161616]');
+            cardElement.classList.add('border-primary-container', 'bg-primary-container/10');
+            
+            // Ustaw ID i aktywuj formularz
+            document.getElementById('selectedMachineId').value = machineId;
+            const form = document.getElementById('swapForm');
+            form.action = '/tracker/swap/' + currentExerciseId + '/' + machineId;
+            
+            const submitBtn = document.getElementById('swapSubmitBtn');
+            submitBtn.classList.remove('opacity-30', 'pointer-events-none');
         }
 
         function closeSwapModal() {
