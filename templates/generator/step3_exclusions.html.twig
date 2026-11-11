@@ -12,8 +12,8 @@
     <div class="fixed top-8 left-1/2 -translate-x-1/2 z-[99999] flex flex-col gap-4 w-full max-w-2xl px-4 pointer-events-none">
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="pointer-events-auto bg-[#1a1a1a] border-l-4 {% if label == 'danger' or label == 'error' %}border-[#ff7351]{% else %}border-[#d1fc00]{% endif %} p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-start gap-4">
-                    <span class="material-symbols-outlined {% if label == 'danger' or label == 'error' %}text-[#ff7351]{% else %}text-[#d1fc00]{% endif %} text-2xl">
+                <div class="pointer-events-auto bg-[#1a1a1a] border-l-4 {% if label == 'danger' or label == 'error' %}border-[#ff7351]{% else %}border-primary-container{% endif %} p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-start gap-4">
+                    <span class="material-symbols-outlined {% if label == 'danger' or label == 'error' %}text-[#ff7351]{% else %}text-primary-container{% endif %} text-2xl">
                         {% if label == 'danger' or label == 'error' %}warning{% else %}task_alt{% endif %}
                     </span>
                     <div class="flex-1 pt-1">
@@ -34,15 +34,15 @@
 
         <!-- Nagłówek -->
         <div class="mb-12 border-b border-white/5 pb-6">
-            <span class="font-headline font-black italic text-[#d1fc00] text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
+            <span class="font-headline font-black italic text-primary-container text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
             <h1 class="font-headline font-black text-4xl md:text-5xl text-white uppercase tracking-tighter italic">
                 KROK 03: <span class="text-[#ff7351]">KONTUZJE</span>
             </h1>
             <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">DODATKOWE PARAMETRY BEZPIECZEŃSTWA ORAZ WYKLUCZENIA PARTII (OPCJONALNE)</p>
         </div>
 
-        <div class="flex items-start gap-4 p-6 border-l-4 border-[#d1fc00] bg-[#1a1a1a] mb-10 shadow-md">
-            <span class="material-symbols-outlined text-[#d1fc00] text-2xl">health_and_safety</span>
+        <div class="flex items-start gap-4 p-6 border-l-4 border-primary-container bg-[#1a1a1a] mb-10 shadow-md">
+            <span class="material-symbols-outlined text-primary-container text-2xl">health_and_safety</span>
             <p class="font-body text-[#767575] text-[11px] leading-relaxed uppercase tracking-wider">
                 DOMYŚLNIE PROTOKÓŁ ZAKŁADA TRENING <strong class="text-white">CAŁEGO CIAŁA</strong>. JEŚLI MASZ KONTUZJĘ LUB Z INNEGO POWODU WYKLUCZASZ PARTIĘ, AKTYWUJ ZABEZPIECZENIE PONIŻEJ. SYSTEM WYPEŁNI LUKĘ INNYMI MASZYNAMI.
             </p>
@@ -63,7 +63,7 @@
                         <input type="checkbox" name="excluded_muscles[]" value="{{ muscle.id }}" class="sr-only peer">
                         
                         <!-- Customowy przełącznik (Toggle) -->
-                        <div class="w-14 h-6 bg-[#1a1a1a] border border-white/20 peer-checked:bg-[#ff7351]/20 peer-checked:border-[#ff7351] transition-all relative flex-shrink-0">
+                        <div class="w-14 h-6 bg-[#1a1a1a] border border-white/20 peer-checked:bg-[#ff7351]/20 peer-checked:border-[#ff7351] transition-colors relative flex-shrink-0">
                             <!-- Wewnętrzny przekaźnik -->
                             <div class="absolute top-[2px] left-[2px] w-[18px] h-[18px] bg-[#767575] peer-checked:bg-[#ff7351] peer-checked:translate-x-8 transition-transform duration-300 shadow-md"></div>
                         </div>

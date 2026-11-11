@@ -11,6 +11,8 @@ use App\Entity\WorkoutSession;
 use App\Entity\WorkoutSet;
 use App\Repository\WorkoutPlanRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\CardioSession;
+use App\Entity\Machine;
 
 class TrackerController extends AbstractController
 {
@@ -67,6 +69,7 @@ class TrackerController extends AbstractController
         // 3. Tworzymy nową sesję treningową
         $session = new WorkoutSession();
         $session->setUser($this->getUser());
+        $session->setWorkoutPlan($plan);
         $session->setStartedAt(new \DateTime());
         $entityManager->persist($session);
 
@@ -125,8 +128,10 @@ class TrackerController extends AbstractController
     }
 
    #[Route('/tracker/session/{id}', name: 'app_tracker_session')]
-    public function session(WorkoutSession $session): Response
+    public function session(WorkoutSession $session, EntityManagerInterface $em): Response
     {
+        $cardioMachines = $em->getRepository(Machine::class)->findBy(['mechanicType' => 'cardio']);
+
         if ($session->getUser() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
         }
@@ -162,6 +167,7 @@ class TrackerController extends AbstractController
             'session' => $session,
             'groupedSets' => $groupedSets,
             'restTimes' => $restTimes,
+            'cardioMachines' => $cardioMachines,
         ]);
     }
 
@@ -198,6 +204,44 @@ class TrackerController extends AbstractController
         $session->setTotalTonnage($totalTonnage);
 
         $em->flush();
+
+
+        // ------------------------------------------------------------------
+        // WERYFIKACJA STAGNACJI I KOŃCA MEZOCYKLU (ZASADA STAŁOŚCI)
+        // ------------------------------------------------------------------
+        $plan = $session->getWorkoutPlan();
+        
+        if ($plan) {
+            $uniqueDaysCount = count($em->getRepository(\App\Entity\WorkoutExercise::class)->createQueryBuilder('e')
+                ->select('e.dayNumber')
+                ->where('e.workoutPlan = :plan')
+                ->setParameter('plan', $plan)
+                ->groupBy('e.dayNumber')
+                ->getQuery()
+                ->getResult());
+
+            $completedSessionsCount = (int) $em->createQuery(
+                'SELECT COUNT(s.id) FROM App\Entity\WorkoutSession s WHERE s.workoutPlan = :plan AND s.endedAt IS NOT NULL'
+            )
+            ->setParameter('plan', $plan)
+            ->getSingleScalarResult();
+
+            $weeks = 4; 
+            if (preg_match('/\/ (\d+) tyg/', $plan->getName(), $matches)) {
+                $weeks = (int) $matches[1];
+            }
+            
+            $totalPlannedSessions = $uniqueDaysCount * $weeks;
+
+            if ($completedSessionsCount >= $totalPlannedSessions) {
+                // Koniec Mezocyklu!
+                $plan->setName($plan->getName() . ' [ZAKOŃCZONY]');
+                $em->flush();
+                
+                $this->addFlash('success', 'GRATULACJE! Ukończyłeś ' . $totalPlannedSessions . ' treningów i zamknąłeś ten mezocykl! Organizm zaadaptował się do starych bodźców. Pora wygenerować nowy protokół.');
+                return $this->redirectToRoute('app_generator_start');
+            }
+        }
 
         $this->addFlash('success', 'Trening ukończony! Zarejestrowano tonaż: ' . number_format($totalTonnage, 0, ',', ' ') . ' kg.');
         return $this->redirectToRoute('app_dashboard');
@@ -238,4 +282,41 @@ class TrackerController extends AbstractController
 
         return $this->redirectToRoute('app_generator_success', ['id' => $exercise->getWorkoutPlan()->getId()]);
     }
+
+    #[Route('/tracker/session/{id}/add-cardio', name: 'app_tracker_add_cardio', methods: ['POST'])]
+public function addCardio(WorkoutSession $session, Request $request, EntityManagerInterface $em): Response
+{
+    if ($session->getUser() !== $this->getUser()) {
+        throw $this->createAccessDeniedException('Odmowa dostępu.');
+    }
+
+    $machineId = $request->request->get('machine_id');
+    $machine = $em->getRepository(Machine::class)->find($machineId);
+
+    if ($machine) {
+        $cardio = new CardioSession();
+        $cardio->setWorkoutSession($session);
+        $cardio->setMachine($machine);
+        $cardio->setDurationMinutes((int) $request->request->get('duration'));
+        
+        // Pobieranie Prędkości
+        $speed = $request->request->get('speed');
+        if ($speed !== null && $speed !== '') {
+            $cardio->setSpeed((float) $speed);
+        }
+        
+        // Pobieranie Pochylenia
+        $incline = $request->request->get('incline');
+        if ($incline !== null && $incline !== '') {
+            $cardio->setIncline((float) $incline);
+        }
+        
+        $em->persist($cardio);
+        $em->flush();
+        
+        $this->addFlash('success', 'Zarejestrowano parametry Cardio na maszynie: ' . $machine->getName());
+    }
+
+    return $this->redirectToRoute('app_tracker_session', ['id' => $session->getId()]);
+}
 }

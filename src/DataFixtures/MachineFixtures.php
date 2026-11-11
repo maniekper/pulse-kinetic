@@ -313,6 +313,48 @@ class MachineFixtures extends Fixture
     'primary' => 'Barki',
     'secondary' => ['Triceps', 'Kaptur'],
     'image_prefix' => 'shoulder_bench'
+],[
+    'name' => 'Krzyżowanie linek wyciągu dolnego',
+    'description' => 'Stań na środku bramy. Chwyć lewą ręką prawy uchwyt wyciągu dolnego, a prawą lewy. Utrzymując lekkie ugięcie w łokciach, unoś ramiona płynnym ruchem na boki, aż znajdą się na wysokości barków.',
+    'tips' => 'Unikaj kołysania tułowiem i nie unoś barków do uszu. Pełna kontrola w fazie opuszczania ciężaru maksymalnie angażuje mięśnie.',
+    'category' => 'Barki',
+    'mechanicType' => 'isolation',
+    'primary' => 'Barki',
+    'secondary' => ['Kaptur', 'Przedramiona'],
+    'image_prefix' => 'cable_cross_lateral_raise'
+],
+
+
+// --- MASZYNY CARDIO ---
+[
+    'name' => 'Bieżnia Elektryczna',
+    'description' => 'Trening biegowy na bieżni elektrycznej. Świetny sposób na poprawę wydolności tlenowej i spalanie kalorii. Utrzymuj wyprostowaną sylwetkę i patrz przed siebie.',
+    'tips' => 'Zacznij od kilkuminutowego marszu, by rozgrzać stawy. Jeśli czujesz zmęczenie, zmniejsz prędkość lub zwiększ kąt nachylenia zamiast trzymać się poręczy.',
+    'category' => 'Cardio',
+    'mechanicType' => 'cardio',
+    'primary' => 'Łydki',
+    'secondary' => ['Czworogłowy uda', 'Dwugłowy uda', 'Pośladki'],
+    'image_prefix' => 'treadmill'
+],
+[
+    'name' => 'Rowerek Stacjonarny',
+    'description' => 'Trening wydolnościowy na rowerze stacjonarnym. Niskie obciążenie dla stawów kolanowych. Dostosuj wysokość siodełka tak, aby przy maksymalnym wyproście noga była lekko ugięta w kolanie.',
+    'tips' => 'Staraj się pedałować okrężnie, "ciągnąc" pedały w górę (jeśli masz noski lub system SPD), a nie tylko wciskając je w dół.',
+    'category' => 'Cardio',
+    'mechanicType' => 'cardio',
+    'primary' => 'Czworogłowy uda',
+    'secondary' => ['Łydki', 'Pośladki'],
+    'image_prefix' => 'stationary_bike'
+],
+[
+    'name' => 'Orbitrek (Elliptical)',
+    'description' => 'Trening cross-trainer angażujący całe ciało w ruchu eliptycznym. Płynny ruch chroni stawy, jednocześnie budując kondycję i angażując ramiona oraz plecy do pracy.',
+    'tips' => 'Utrzymuj stabilny tułów. Aktywnie używaj ramion do popychania i ciągnięcia uchwytów, aby zmaksymalizować spalanie kalorii.',
+    'category' => 'Cardio',
+    'mechanicType' => 'cardio',
+    'primary' => 'Pośladki',
+    'secondary' => ['Czworogłowy uda', 'Plecy', 'Barki'],
+    'image_prefix' => 'elliptical'
 ],
         ];
 

@@ -30,9 +30,6 @@
         @apply font-headline font-black text-base md:text-xl leading-none;
         color: var(--theme-main);
     }
-    .kinetic-ex-value {
-        @apply font-headline font-black text-base md:text-xl text-[#d1fc00] leading-none;
-    }
     .kinetic-ex-label {
         @apply font-label text-[10px] md:text-xs text-[#767575] uppercase tracking-widest;
     }

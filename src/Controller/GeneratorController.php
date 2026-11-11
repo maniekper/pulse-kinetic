@@ -40,40 +40,29 @@ class GeneratorController extends AbstractController
             $user->setCurrentGoal($newGoal);
             
             $goalName = $newGoal->getName();
-            $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
 
-            // 1. BEZPIECZNE POBIERANIE PLANÓW: Szukamy bezpośrednio w tabeli WorkoutPlan po ID użytkownika
             $plans = $entityManager->getRepository(WorkoutPlan::class)->findBy(['user' => $user]);
 
             foreach ($plans as $plan) {
-                // 2. Aktualizujemy nazwę planu - dzięki temu od razu zobaczysz zmianę w Dashboardzie!
                 $plan->setName('Plan: ' . $goalName . ' (Zaktualizowano)');
 
-                // 3. Aktualizacja parametrów każdego ćwiczenia (serie i powtórzenia)
                 foreach ($plan->getWorkoutExercises() as $exercise) {
                     $machine = $exercise->getMachine();
                     $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                    if (str_contains($lowerGoalName, 'sił')) {
-                    $exercise->setSets($isCompound ? 4 : 2);
-                    $exercise->setReps($isCompound ? '1-5' : '6-10');
-                } elseif (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
-                    $exercise->setSets($isCompound ? 3 : 2);
-                    $exercise->setReps($isCompound ? '4-8' : '8-12');
-                } else {
+                    // Dynamiczne powtórzenia prosto z encji Goal
+                    $minReps = $isCompound ? $newGoal->getBaseCompoundRepsMin() : $newGoal->getBaseIsolationRepsMin();
+                    $maxReps = $isCompound ? $newGoal->getBaseCompoundRepsMax() : $newGoal->getBaseIsolationRepsMax();
+
                     $exercise->setSets($isCompound ? 4 : 3);
-                    $exercise->setReps($isCompound ? '6-10' : '8-15');
-                }
+                    $exercise->setReps($minReps . '-' . $maxReps);
                 }
             }
 
-            // 4. Zapis do bazy danych
             $entityManager->flush();
-            
-            $this->addFlash('success', 'Parametry planu zostały pomyślnie zaktualizowane dla nowego celu: ' . $goalName);
+            $this->addFlash('success', 'Parametry planu zostały pomyślnie zaktualizowane dla nowego celu.');
         }
 
-        // Powrót bezpośrednio na dashboard
         $referer = $request->headers->get('referer');
         return $referer ? $this->redirect($referer) : $this->redirectToRoute('app_generator_start');
     }
@@ -84,7 +73,7 @@ class GeneratorController extends AbstractController
         $days = (int) $request->request->get('days');
         
         if ($days === 2) {
-            $this->addFlash('info', 'Trening 2 razy w tygodniu jest świetny na start! Wygenerujemy dla Ciebie plan rozłożony na 2 tygodnie.');
+            $this->addFlash('info', 'Trening 2 razy w tygodniu jest świetny na start!');
         }
 
         $request->getSession()->set('gen_days', $days);
@@ -96,12 +85,33 @@ class GeneratorController extends AbstractController
     {
         if (!$request->getSession()->has('gen_days')) return $this->redirectToRoute('app_generator_start');
         
-        $daysPerWeek = $request->getSession()->get('gen_days');
-        $minWeeks = ($daysPerWeek <= 3) ? 2 : 1;
+        $daysPerWeek = (int) $request->getSession()->get('gen_days');
+        
+        // NOWA LOGIKA: Adaptacja układu nerwowego (Mezocykl)
+        if ($daysPerWeek == 2) {
+            $minWeeks = 8;
+            $maxWeeks = 12;
+            $desc = "Bodźce są rzadsze, więc organizm potrzebuje więcej czasu, aby w pełni opanować ruchy i się do nich zaadaptować. Możesz znacznie dłużej dokładać ciężar bez ryzyka przetrenowania.";
+        } elseif ($daysPerWeek == 3) {
+            $minWeeks = 6;
+            $maxWeeks = 10;
+            $desc = "Złoty środek. Układ nerwowy i mięśnie dostają regularny bodziec, co przyspiesza adaptację, ale wciąż pozwala na stosunkowo długi okres stałego progresu siłowego.";
+        } elseif ($daysPerWeek == 4) {
+            $minWeeks = 4;
+            $maxWeeks = 8;
+            $desc = "Szybsze nabudowywanie zmęczenia i szybsza adaptacja. Przy takiej częstotliwości mięśnie szybciej przestają reagować na ten sam bodziec i wymagają rotacji ćwiczeń.";
+        } else {
+            $minWeeks = 4;
+            $maxWeeks = 6;
+            $desc = "Bardzo wysoka częstotliwość. Potencjał do progresywnego przeładowania wyczerpuje się najszybciej ze względu na olbrzymią kumulację mikrouszkodzeń i zmęczenia (fatigue).";
+        }
 
         return $this->render('generator/step2_duration.html.twig', [
             'minWeeks' => $minWeeks,
-            'maxWeeks' => 8
+            'maxWeeks' => $maxWeeks,
+            'defaultWeeks' => (int) round(($minWeeks + $maxWeeks) / 2),
+            'daysPerWeek' => $daysPerWeek,
+            'mesocycleDesc' => $desc
         ]);
     }
 
@@ -137,7 +147,7 @@ class GeneratorController extends AbstractController
 
         $user = $this->getUser();
         $userGoal = $user instanceof \App\Entity\User ? $user->getCurrentGoal() : null;
-        $goalName = $userGoal ? $userGoal->getName() : 'Hipertrofia';
+        $goalName = $userGoal ? $userGoal->getName() : 'Trening';
 
         $allMuscles = $muscleRepository->findAll();
         $activeMuscleNames = [];
@@ -152,61 +162,79 @@ class GeneratorController extends AbstractController
             return $this->redirectToRoute('app_generator_exclusions');
         }
 
-        if ($daysPerWeek <= 3) {
-            $masterBlueprint = [
-                ['Nogi', 'Plecy', 'Klatka piersiowa', 'Barki', 'Biceps', 'Triceps'] 
-            ];
-            $exercisesPerMuscle = 1; 
+        $gender = strtolower($user instanceof \App\Entity\User ? ($user->getGender() ?? '') : '');
+        $isFemale = in_array($gender, ['kobieta', 'female']);
+
+        // SPERSONALIZOWANY BLUEPRINT TRENINGOWY (GÓRA/DÓŁ DLA 2 DNI)
+        if ($daysPerWeek == 2) {
+            if ($isFemale) {
+                $masterBlueprint = [
+                    ['Nogi', 'Pośladki', 'Łydki', 'Brzuch'], // Dół
+                    ['Plecy', 'Barki', 'Klatka piersiowa', 'Biceps', 'Triceps'] // Góra
+                ];
+                $exercisesPerMuscle = 2; 
+            } else {
+                $masterBlueprint = [
+                    ['Klatka piersiowa', 'Plecy', 'Barki', 'Biceps', 'Triceps'], // Góra
+                    ['Nogi', 'Łydki', 'Brzuch'] // Dół
+                ];
+                $exercisesPerMuscle = 2; 
+            }
+        } elseif ($daysPerWeek == 3) {
+            if ($isFemale) {
+                $masterBlueprint = [['Nogi', 'Pośladki', 'Plecy', 'Klatka piersiowa', 'Barki']];
+                $exercisesPerMuscle = 1;
+            } else {
+                $masterBlueprint = [['Nogi', 'Plecy', 'Klatka piersiowa', 'Barki', 'Biceps', 'Triceps']];
+                $exercisesPerMuscle = 1; 
+            }
         } elseif ($daysPerWeek == 4) {
-            $masterBlueprint = [
-                ['Klatka piersiowa', 'Biceps'],
-                ['Plecy', 'Triceps'],
-                ['Nogi'],
-                ['Barki', 'Brzuch']
-            ];
-            $exercisesPerMuscle = 3; 
+            if ($isFemale) {
+                $masterBlueprint = [
+                    ['Nogi', 'Pośladki', 'Brzuch'],           
+                    ['Plecy', 'Barki', 'Biceps'],             
+                    ['Nogi', 'Pośladki', 'Łydki'],            
+                    ['Klatka piersiowa', 'Triceps', 'Brzuch'] 
+                ];
+                $exercisesPerMuscle = 2; 
+            } else {
+                $masterBlueprint = [
+                    ['Klatka piersiowa', 'Biceps'],
+                    ['Plecy', 'Triceps'],
+                    ['Nogi'],
+                    ['Barki', 'Brzuch']
+                ];
+                $exercisesPerMuscle = 3; 
+            }
         } else {
-            $masterBlueprint = [
-                ['Klatka piersiowa', 'Barki', 'Triceps'], 
-                ['Plecy', 'Biceps'], 
-                ['Nogi', 'Brzuch'] 
-            ];
+            $masterBlueprint = [['Klatka piersiowa', 'Barki', 'Triceps'], ['Plecy', 'Biceps'], ['Nogi', 'Brzuch']];
             $exercisesPerMuscle = 2;
         }
 
-        $activeBlueprint = [];
-        foreach ($masterBlueprint as $dayMuscles) {
-            $validMusclesForDay = array_intersect($dayMuscles, $activeMuscleNames);
-            if (!empty($validMusclesForDay)) {
-                $activeBlueprint[] = array_values($validMusclesForDay);
-            }
-        }
-
-        $totalSessions = $daysPerWeek * $weeks;
-        $plan = new WorkoutPlan();
-        $plan->setName('Plan: ' . $goalName . ' (' . $daysPerWeek . ' dni/tyg)');
-        $plan->setUser($this->getUser());
-        $entityManager->persist($plan);
-
-        $allMachines = $machineRepository->findAll();
-
-        $bannedMachinesIds = [];
-        if ($user instanceof \App\Entity\User) {
-            foreach ($user->getBannedMachines() as $bMachine) {
-                $bannedMachinesIds[] = $bMachine->getId();
-            }
-        }
-
-        // MAPA ANATOMICZNA - Tłumaczy ogólne nazwy dni na szczegółowe partie mięśniowe w bazie
         $anatomyMap = [
             'Klatka piersiowa' => ['Klatka piersiowa'],
             'Plecy'            => ['Plecy', 'Najszerszy grzbietu', 'Czworoboczny grzbietu'],
-            'Nogi'             => ['Nogi', 'Czworogłowy uda', 'Dwugłowy uda', 'Pośladki', 'Łydki', 'Przywodziciele', 'Odwodziciele'],
+            'Nogi'             => ['Nogi', 'Czworogłowy uda', 'Dwugłowy uda', 'Przywodziciele'],
+            'Pośladki'         => ['Pośladki', 'Odwodziciele'], 
             'Barki'            => ['Barki'],
             'Biceps'           => ['Biceps'],
             'Triceps'          => ['Triceps'],
-            'Brzuch'           => ['Brzuch', 'Prosty brzucha', 'Skośne brzucha']
+            'Brzuch'           => ['Brzuch', 'Prosty brzucha', 'Skośne brzucha'],
+            'Łydki'            => ['Łydki'] 
         ];
+
+        $totalSessions = $daysPerWeek;
+        $activeBlueprint = $masterBlueprint;
+        $allMachines = $machineRepository->findAll();
+        $bannedMachinesIds = $excludedMusclesIds;
+
+        $plan = new WorkoutPlan();
+        $plan->setUser($user);
+        
+        $planSuffix = ($daysPerWeek == 2) ? ' (Split: Góra/Dół)' : ' (' . $daysPerWeek . ' dni / ' . $weeks . ' tyg.)';
+        $plan->setName($goalName . $planSuffix);
+        
+        $entityManager->persist($plan);
 
         for ($sessionNum = 1; $sessionNum <= $totalSessions; $sessionNum++) {
             $blueprintIndex = ($sessionNum - 1) % count($activeBlueprint);
@@ -214,42 +242,40 @@ class GeneratorController extends AbstractController
 
             $dailyExercises = [];
             foreach ($targetMuscles as $targetMuscle) {
-                // Pobieramy szczegółowe mięśnie pasujące do dzisiejszej grupy (np. dla 'Nogi' pobieramy Czworogłowy, Dwugłowy itd.)
                 $specificMusclesForTarget = $anatomyMap[$targetMuscle] ?? [$targetMuscle];
-                
                 $muscleSpecificMachines = [];
                 
                 foreach ($allMachines as $machine) {
-                    // Omijamy zablokowany sprzęt
-                    if (in_array($machine->getId(), $bannedMachinesIds)) {
+                    if (in_array($machine->getId(), $bannedMachinesIds)) continue;
+                    
+                    $machineNameLower = strtolower($machine->getName());
+                    $mechType = strtolower($machine->getMechanicType() ?? '');
+                    
+                    if ($mechType === 'cardio' || 
+                        str_contains($machineNameLower, 'rower') || 
+                        str_contains($machineNameLower, 'bieżnia') || 
+                        str_contains($machineNameLower, 'orbitrek')) {
                         continue;
                     }
                     
                     $primaryNames = array_map(fn($m) => $m->getName(), $machine->getPrimaryMuscles()->toArray());
-                    
-                    // Sprawdzamy czy jakikolwiek główny mięsień maszyny znajduje się na liście dopuszczalnych mięśni dla tej grupy
-                    $hasMatchingMuscle = !empty(array_intersect($primaryNames, $specificMusclesForTarget));
-
-                    if ($hasMatchingMuscle) {
+                    if (!empty(array_intersect($primaryNames, $specificMusclesForTarget))) {
                         $muscleSpecificMachines[] = $machine;
                     }
                 }
                 
                 shuffle($muscleSpecificMachines);
-                $selectedForThisMuscle = array_slice($muscleSpecificMachines, 0, $exercisesPerMuscle);
-                $dailyExercises = array_merge($dailyExercises, $selectedForThisMuscle);
+                $dailyExercises = array_merge($dailyExercises, array_slice($muscleSpecificMachines, 0, $exercisesPerMuscle));
             }
 
-            // ZABEZPIECZENIE: Śledzenie użytych maszyn w danym dniu
             $usedMachineIdsInSession = []; 
+            $exerciseCount = 0;
 
             foreach ($dailyExercises as $machine) {
-                // Sprawdzamy czy ta konkretna maszyna nie została już dodana dzisiaj
-                if (in_array($machine->getId(), $usedMachineIdsInSession)) {
-                    continue;
-                }
+                if (in_array($machine->getId(), $usedMachineIdsInSession)) continue;
                 
-                // Zapisujemy ID maszyny jako "zużyte"
+                if ($exerciseCount >= 6) break;
+
                 $usedMachineIdsInSession[] = $machine->getId();
 
                 $exercise = new WorkoutExercise();
@@ -259,20 +285,19 @@ class GeneratorController extends AbstractController
                 
                 $isCompound = ($machine->getMechanicType() === 'compound');
 
-                $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
-
-                if (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
-                    $exercise->setSets($isCompound ? 3 : 3);
-                    $exercise->setReps($isCompound ? '10-12' : '12-15');
-                } elseif (str_contains($lowerGoalName, 'sił')) {
-                    $exercise->setSets($isCompound ? 5 : 3);
-                    $exercise->setReps($isCompound ? '3-6' : '6-8');
-                } else {
+                if ($userGoal) {
+                    $minReps = $isCompound ? $userGoal->getBaseCompoundRepsMin() : $userGoal->getBaseIsolationRepsMin();
+                    $maxReps = $isCompound ? $userGoal->getBaseCompoundRepsMax() : $userGoal->getBaseIsolationRepsMax();
+                    
                     $exercise->setSets($isCompound ? 4 : 3);
-                    $exercise->setReps($isCompound ? '8-10' : '10-12');
+                    $exercise->setReps($minReps . '-' . $maxReps);
+                } else {
+                    $exercise->setSets(3);
+                    $exercise->setReps('8-12');
                 }
                 
                 $entityManager->persist($exercise);
+                $exerciseCount++;
             }
         }
 
@@ -281,9 +306,7 @@ class GeneratorController extends AbstractController
         $request->getSession()->remove('gen_weeks');
 
         return $this->redirectToRoute('app_generator_success', ['id' => $plan->getId()]);
-    }
-
-    #[Route('/generator/success/{id}', name: 'app_generator_success')]
+    }#[Route('/generator/success/{id}', name: 'app_generator_success')]
     public function success(WorkoutPlan $plan, Request $request, \App\Repository\MachineRepository $machineRepo): Response
     {
         if ($plan->getUser() !== $this->getUser()) throw $this->createAccessDeniedException();
@@ -297,7 +320,7 @@ class GeneratorController extends AbstractController
         return $this->render('generator/success.html.twig', [
             'plan' => $plan,
             'sessions' => $sessions,
-            'daysPerWeek' => 4,
+            'daysPerWeek' => count($sessions),
             'allMachines' => $machineRepo->findAll()
         ]);
     }

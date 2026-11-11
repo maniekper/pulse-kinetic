@@ -43,7 +43,9 @@ class AppFixtures extends Fixture
             ->setRestBetweenMachinesSeconds(90);
         $manager->persist($goalReduction);
 
-        // --- 2. KONTO UŻYTKOWNIKA ---
+        // --- 2. KONTA UŻYTKOWNIKÓW ---
+        
+        // Użytkownik 1: Dzik (Admin)
         $user = new User();
         $user->setEmail('test@pulsekinetic.com')
             ->setName('Dzik')
@@ -57,6 +59,21 @@ class AppFixtures extends Fixture
         $password = $this->hasher->hashPassword($user, 'trening123');
         $user->setPassword($password);
         $manager->persist($user);
+
+        // Użytkownik 2: Joa (Zwykły użytkownik, Kobieta)
+        $joa = new User();
+        $joa->setEmail('joa@pulsekinetic.com')
+            ->setName('Joa')
+            ->setAge(35)
+            ->setGender('Kobieta')
+            ->setWeight(60.0)
+            ->setHeight(165.0)
+            ->setCurrentGoal($goalReduction)
+            ->setRoles(['ROLE_USER']);
+        
+        $passwordJoa = $this->hasher->hashPassword($joa, 'trening123');
+        $joa->setPassword($passwordJoa);
+        $manager->persist($joa);
 
         // --- 3. MIĘŚNIE ---
         $musclesData = ['Klatka piersiowa', 'Plecy', 'Nogi', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];

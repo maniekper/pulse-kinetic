@@ -10,7 +10,7 @@
         <header class="kinetic-main-header">
             <div class="kinetic-main-header-stripe"></div>
             <div>
-                <h1 class="kinetic-main-header-title">PROFIL <span class="text-[#d1fc00]">OPERATORA</span></h1>
+                <h1 class="kinetic-main-header-title">PROFIL <span class="text-primary-container">OPERATORA</span></h1>
                 <p class="kinetic-main-header-subtitle">KONFIGURACJA PARAMETRÓW I PROTOKOŁU</p>
             </div>
             <div class="hidden md:block">
@@ -41,16 +41,16 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WIEK (LATA)</label>
-                            <input type="number" name="age" value="{{ app.user.age }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">WIEK (LATA)</label>
+                            <input type="number" name="age" value="{{ app.user.age }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-primary-container font-black tracking-tighter">
                         </div>
                         <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WAGA (KG)</label>
-                            <input type="number" step="0.1" name="weight" value="{{ app.user.weight }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter text-[#d1fc00]">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">WAGA (KG)</label>
+                            <input type="number" step="0.1" name="weight" value="{{ app.user.weight }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-primary-container font-black tracking-tighter text-primary-container">
                         </div>
                         <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">WZROST (CM)</label>
-                            <input type="number" step="1" name="height" value="{{ app.user.height }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-[#d1fc00] font-black tracking-tighter">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">WZROST (CM)</label>
+                            <input type="number" step="1" name="height" value="{{ app.user.height }}" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-lg text-white focus:outline-none focus:border-primary-container font-black tracking-tighter">
                         </div>
                     </div>
 
@@ -71,24 +71,24 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">IMIĘ / PSEUDONIM</label>
-                            <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] font-bold">
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">IMIĘ / PSEUDONIM</label>
+                            <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold">
                         </div>
                         
                         <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">PŁEĆ BAZOWA</label>
+                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">PŁEĆ BAZOWA</label>
                             
                             <!-- CUSTOMOWY DROPDOWN: PŁEĆ -->
                             <div class="relative" id="genderSelectContainer">
                                 <input type="hidden" name="gender" id="genderInput" value="{{ app.user.gender|default('') }}">
                                 
-                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-[#d1fc00] cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
+                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
                                     <span id="genderSelectedText">{{ app.user.gender ? app.user.gender : 'Wybierz...' }}</span>
                                     <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
                                 </button>
 
-<div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Mężczyzna</div>
-                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">Kobieta</div>
+<div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Mężczyzna</div>
+                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Kobieta</div>
                                 </div>
                             </div>
                         </div>
@@ -110,20 +110,20 @@
                     </p>
                     
                     <div class="space-y-2 group mb-auto">
-                        <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-[#d1fc00] transition-colors font-headline block">GŁÓWNY CEL OPERACYJNY</label>
+                        <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">GŁÓWNY CEL OPERACYJNY</label>
                         
                         <!-- CUSTOMOWY DROPDOWN: CEL OPERACYJNY -->
                         <div class="relative" id="goalSelectContainer">
                             <input type="hidden" name="goal_id" id="goalInput" value="{{ app.user.currentGoal ? app.user.currentGoal.id : (goals|first).id|default('') }}">
                             
-                            <button type="button" onclick="toggleDropdown('goalDropdown', 'goalArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-4 font-headline text-sm text-[#d1fc00] focus:outline-none focus:border-[#d1fc00] cursor-pointer font-black uppercase tracking-widest flex justify-between items-center text-left relative z-20">
+                            <button type="button" onclick="toggleDropdown('goalDropdown', 'goalArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-4 font-headline text-sm text-primary-container focus:outline-none focus:border-primary-container cursor-pointer font-black uppercase tracking-widest flex justify-between items-center text-left relative z-20">
                                 <span id="goalSelectedText">{{ app.user.currentGoal ? app.user.currentGoal.name : 'WYBIERZ CEL' }}</span>
                                 <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="goalArrow">expand_more</span>
                             </button>
 
                             <div id="goalDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50 flex-col">
                                 {% for goal in goals %}
-                                    <div onclick="selectOption('goalInput', '{{ goal.id }}', 'goalSelectedText', '{{ goal.name }}', 'goalDropdown', 'goalArrow')" class="px-4 py-4 font-headline text-sm font-black text-white uppercase tracking-widest cursor-pointer hover:bg-[#d1fc00] hover:text-[#111111] transition-colors border-l-4 border-transparent hover:border-[#111111]">
+                                    <div onclick="selectOption('goalInput', '{{ goal.id }}', 'goalSelectedText', '{{ goal.name }}', 'goalDropdown', 'goalArrow')" class="px-4 py-4 font-headline text-sm font-black text-white uppercase tracking-widest cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">
                                         {{ goal.name }}
                                     </div>
                                 {% endfor %}
@@ -131,7 +131,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-12 w-full bg-[#d1fc00] hover:bg-[#c7ef00] py-5 px-6 flex items-center justify-between group transition-all duration-300 active:scale-[0.98]">
+                    <button type="submit" class="mt-12 w-full bg-primary-container hover:bg-primary-dim py-5 px-6 flex items-center justify-between group transition-all duration-300 active:scale-[0.98]">
                         <span class="font-headline font-black text-sm text-[#111111] uppercase tracking-widest">AKTUALIZUJ PARAMETRY</span>
                         <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">save</span>
                     </button>

@@ -51,21 +51,12 @@ class ProfileController extends AbstractController
                             $machine = $exercise->getMachine();
                             $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                            // MODUŁ SIŁY (Strength Engine)
-                            if (str_contains($lowerGoalName, 'sił')) {
-                                $exercise->setSets($isCompound ? 4 : 2);
-                                $exercise->setReps($isCompound ? '1-5' : '6-10');
-                            } 
-                            // MODUŁ REDUKCJI (Cutting Engine)
-                            elseif (str_contains($lowerGoalName, 'redukcj') || str_contains($lowerGoalName, 'rzeźb')) {
-                                $exercise->setSets($isCompound ? 3 : 2);
-                                $exercise->setReps($isCompound ? '4-8' : '8-12');
-                            } 
-                            // MODUŁ MASY / HIPERTROFII (Hypertrophy Engine - Domyślny)
-                            else {
-                                $exercise->setSets($isCompound ? 4 : 3);
-                                $exercise->setReps($isCompound ? '6-10' : '8-15');
-                            }
+                        // Pobieramy dane z wybranego właśnie nowego celu
+                        $minReps = $isCompound ? $newGoal->getBaseCompoundRepsMin() : $newGoal->getBaseIsolationRepsMin();
+                        $maxReps = $isCompound ? $newGoal->getBaseCompoundRepsMax() : $newGoal->getBaseIsolationRepsMax();
+
+                        $exercise->setSets($isCompound ? 4 : 3);
+                        $exercise->setReps($minReps . '-' . $maxReps);
                         }
                     }
                 }

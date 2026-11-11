@@ -28,18 +28,40 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_generator_start'); 
         }
 
-        // --- ZLICZAMY TYLKO FIZYCZNIE ZAKOŃCZONE SESJE ---
+        
+        // --- ZLICZAMY TYLKO FIZYCZNIE ZAKOŃCZONE SESJE DLA BIEŻĄCEGO PLANU ---
+        $completedSessionsCount = 0;
+        $totalSessionsInCycle = 0;
+        
+        if ($plan) {
+            $completedSessionsCount = (int) $em->createQuery(
+                'SELECT COUNT(s.id) FROM App\Entity\WorkoutSession s WHERE s.workoutPlan = :plan AND s.endedAt IS NOT NULL'
+            )
+            ->setParameter('plan', $plan)
+            ->getSingleScalarResult();
+            
+            $uniqueDaysCount = count($em->getRepository(\App\Entity\WorkoutExercise::class)->createQueryBuilder('e')
+                ->select('e.dayNumber')
+                ->where('e.workoutPlan = :plan')
+                ->setParameter('plan', $plan)
+                ->groupBy('e.dayNumber')
+                ->getQuery()
+                ->getResult());
+                
+            $weeks = 4;
+            if (preg_match('/\/ (\d+) tyg/', $plan->getName(), $matches)) {
+                $weeks = (int) $matches[1];
+            }
+            $totalSessionsInCycle = $uniqueDaysCount * $weeks;
+        }
+
         $sessions = $em->getRepository(WorkoutSession::class)->findBy(['user' => $user]);
         $totalTonnage = 0;
-        $completedSessionsCount = 0;
-        
         foreach ($sessions as $session) {
             if ($session->getEndedAt() !== null) {
-                $completedSessionsCount++;
                 $totalTonnage += $session->getTotalTonnage();
             }
         }
-
         $qb = $em->createQueryBuilder();
         $maxLifts = $qb->select('m.name as machineName, MAX(ws.weight) as maxWeight')
             ->from(WorkoutSet::class, 'ws')
@@ -138,12 +160,13 @@ class DashboardController extends AbstractController
             'plan' => $plan,
             'totalTonnage' => $totalTonnage,
             'completedSessionsCount' => $completedSessionsCount,
+            'totalSessionsInCycle' => $totalSessionsInCycle,
             'maxLifts' => $maxLifts,
             'chartData' => $chartData,
             'maxChartValue' => $maxChartValue,
             'estimatedTimeMinutes' => $estimatedTimeMinutes,
             'allMachines' => $machineRepo->findAll(),
-            'nextDayNumber' => $nextDayNumber ?? 1, // PRZEKAZUJEMY AKTYWNY DZIEŃ DO WIDOKU
+            'nextDayNumber' => $nextDayNumber ?? 1,
         ]);
     }
 }

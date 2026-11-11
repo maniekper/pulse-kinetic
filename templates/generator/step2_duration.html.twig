@@ -1,71 +1,75 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Krok 02 - Długość Cyklu | PULSE KINETIC{% endblock %}
+{% block title %}Krok 02 - Mezocykl | PULSE KINETIC{% endblock %}
 
 {% block body %}
 <div class="min-h-screen bg-[#0e0e0e] flex flex-col items-center justify-center p-6 relative">
     
-    <!-- Tło -->
     <div class="fixed inset-0 z-0 bg-gradient-to-b from-[#0e0e0e]/80 to-[#0e0e0e]/95 pointer-events-none"></div>
 
-    <!-- Główny Kontener -->
     <main class="relative z-10 w-full max-w-4xl bg-[#111111]/95 backdrop-blur-xl border-l border-t border-white/5 shadow-2xl p-8 md:p-12">
         
-        <div class="absolute top-0 right-0 w-16 h-16 bg-[#d1fc00]/10 -mr-8 -mt-8 rotate-45 pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-16 h-16 bg-primary-container/10 -mr-8 -mt-8 rotate-45 pointer-events-none"></div>
 
         <!-- Nagłówek -->
-        <div class="mb-12 border-b border-white/5 pb-6">
-            <span class="font-headline font-black italic text-[#d1fc00] text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
+        <div class="mb-10 border-b border-white/5 pb-6">
+            <span class="font-headline font-black italic text-primary-container text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
             <h1 class="font-headline font-black text-4xl md:text-5xl text-white uppercase tracking-tighter italic">
-                KROK 02: <span class="text-[#d1fc00]">DŁUGOŚĆ CYKLU</span>
+                KROK 02: <span class="text-primary-container">MEZOCYKL</span>
             </h1>
-            <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">PROGRAMOWANIE CZASU TRWANIA BLOKU TRENINGOWEGO</p>
+            <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">DŁUGOŚĆ TRWANIA PLANU OPARTA O CZĘSTOTLIWOŚĆ ({{ daysPerWeek }} DNI W TYGODNIU)</p>
+        </div>
+
+        <!-- Wskazówka Trenerska - Mechanizm Adaptacji -->
+        <div class="bg-[#1a1a1a] border-l-4 border-primary-container p-6 mb-10 shadow-md">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-primary-container">psychology</span>
+                <span class="font-headline font-black text-sm text-white uppercase tracking-widest">MECHANIZM ADAPTACJI UKŁADU NERWOWEGO</span>
+            </div>
+            <p class="font-body text-[#767575] text-xs leading-relaxed uppercase tracking-wider">
+                {{ mesocycleDesc }}
+            </p>
         </div>
 
         <form action="{{ path('app_generator_step2_save') }}" method="POST" class="space-y-12">
             
-            <!-- Panel Kontrolny Wartości -->
-            <div class="bg-[#141414] border border-white/10 p-8 md:p-16 relative flex flex-col items-center justify-center group transition-colors hover:border-[#d1fc00]/30">
-                <div class="absolute top-0 left-0 p-4 font-headline font-bold text-[10px] text-[#767575] uppercase tracking-widest">
-                    PARAMETR: T-WEEKS
-                </div>
+            <!-- Główny Suwak -->
+            <div class="bg-[#141414] border border-white/10 p-8 md:p-12 flex flex-col items-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 blur-3xl rounded-full"></div>
                 
-                <div class="flex items-center justify-center gap-6 md:gap-12 w-full">
-                    <!-- Przycisk Minus -->
-                    <button type="button" onclick="changeWeeks(-1)" class="w-16 h-16 md:w-20 md:h-20 bg-[#1a1a1a] border border-white/5 flex items-center justify-center text-[#767575] hover:text-[#d1fc00] hover:border-[#d1fc00]/50 transition-all active:scale-95 cursor-pointer">
-                        <span class="material-symbols-outlined text-3xl md:text-4xl">remove</span>
-                    </button>
+                <span class="font-headline font-bold text-xs text-[#767575] uppercase tracking-widest mb-8">WYBIERZ CZAS PRZYDATNOŚCI PLANU</span>
+                
+                <div class="flex items-end justify-center gap-2 mb-8">
+                    <span id="weeksDisplay" class="font-headline font-black text-7xl text-white tracking-tighter leading-none">{{ defaultWeeks }}</span>
+                    <span class="font-headline font-bold text-xl text-primary-container uppercase tracking-widest pb-1">TYGODNI</span>
+                </div>
 
-                    <!-- Główny Wyświetlacz -->
-                    <div class="text-center w-32 md:w-48">
-                        <span id="weeksDisplay" class="font-headline font-black text-7xl md:text-9xl text-white tracking-tighter leading-none block transition-all">04</span>
-                        <span class="font-label font-bold text-[10px] md:text-xs text-[#767575] uppercase tracking-[0.3em] mt-2 block">TYGODNIE</span>
+                <div class="w-full max-w-lg relative">
+                    <input type="range" name="weeks" id="weeksSlider" min="{{ minWeeks }}" max="{{ maxWeeks }}" value="{{ defaultWeeks }}" 
+                           class="w-full h-2 bg-surface-container-highest appearance-none cursor-pointer accent-primary-container hover:accent-primary-dim transition-all">
+                    
+                    <div class="flex justify-between w-full mt-4 font-headline font-bold text-[10px] text-outline tracking-widest">
+                        <span>MIN: {{ minWeeks }} TYG</span>
+                        <span>MAX: {{ maxWeeks }} TYG</span>
                     </div>
-
-                    <!-- Przycisk Plus -->
-                    <button type="button" onclick="changeWeeks(1)" class="w-16 h-16 md:w-20 md:h-20 bg-[#1a1a1a] border border-white/5 flex items-center justify-center text-[#767575] hover:text-[#d1fc00] hover:border-[#d1fc00]/50 transition-all active:scale-95 cursor-pointer">
-                        <span class="material-symbols-outlined text-3xl md:text-4xl">add</span>
-                    </button>
-                </div>
-                
-                <!-- Ukryty input wysyłający dane do formularza -->
-                <input type="hidden" name="weeks" id="weeksInput" value="{{ minWeeks >= 4 ? minWeeks : 4 }}">
-
-                <!-- Pasek postępu (wizualizacja długości) -->
-                <div class="w-full max-w-md h-1 bg-[#1a1a1a] mt-12 relative overflow-hidden">
-                    <div id="weeksProgressBar" class="absolute top-0 left-0 h-full bg-[#d1fc00] transition-all duration-300 w-1/2"></div>
                 </div>
             </div>
 
-            <!-- Informacja systemowa -->
-            {% if minWeeks > 1 %}
-                <div class="flex items-start gap-4 p-4 border-l-2 border-[#ff7351] bg-[#1a1a1a]/50">
-                    <span class="material-symbols-outlined text-[#ff7351] text-lg">info</span>
-                    <p class="font-body text-[#767575] text-[11px] leading-relaxed uppercase tracking-wider">
-                        Ze względu na wybraną częstotliwość, system wymaga zaplanowania co najmniej <strong class="text-white">{{ minWeeks }}</strong> tygodni, aby poprawnie rozłożyć objętość.
-                    </p>
+            <!-- Złota Zasada Trenera - Zablokowanie planu -->
+            <div class="flex flex-col gap-4 p-6 border border-primary-container/30 bg-primary-container/5">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary-container text-2xl animate-pulse">lock</span>
+                    <strong class="text-primary-container font-headline tracking-widest uppercase">Zablokowanie Ćwiczeń (Zasada Stałości)</strong>
                 </div>
-            {% endif %}
+                <p class="font-body text-[#adaaaa] text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider">
+                    Zatwierdzając ten czas, <strong class="text-white">blokujesz wylosowane maszyny na cały ten okres</strong>. 
+                    Nie będziesz ich zmieniać co tydzień. To celowy zabieg - budowanie siły i sylwetki wymaga powtarzalności. 
+                    Twoim jedynym zadaniem na ten mezocykl jest bicie własnych rekordów (progresywne przeładowanie) na dokładnie tych samych stanowiskach.
+                </p>
+                <p class="font-body text-primary-container font-bold text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider border-t border-primary-container/20 pt-3 mt-1">
+                    Gdy ukończysz wszystkie zaplanowane treningi w ostatnim tygodniu cyklu, system automatycznie pogratuluje Ci sukcesu, zarchiwizuje ten plan i poprosi o wygenerowanie zupełnie nowego, aby zapobiec stagnacji.
+                </p>
+            </div>
 
             <!-- Nawigacja -->
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/5">
@@ -73,9 +77,9 @@
                     <span class="material-symbols-outlined text-lg">arrow_back</span> KROK 01
                 </a>
                 
-                <button type="submit" class="w-full md:w-auto bg-[#d1fc00] hover:bg-[#c7ef00] py-4 px-10 flex items-center justify-center gap-3 transition-colors group">
-                    <span class="font-headline font-black text-sm text-[#111111] uppercase tracking-widest">AKTYWUJ KROK 03</span>
-                    <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">arrow_forward</span>
+                <button type="submit" class="w-full md:w-auto bg-primary-container hover:bg-primary-dim py-4 px-10 flex items-center justify-center gap-3 transition-colors group cursor-pointer shadow-[0_0_20px_var(--theme-shadow)]">
+                    <span class="font-headline font-black text-sm text-on-primary-container uppercase tracking-widest">ZATWIERDŹ CZAS</span>
+                    <span class="material-symbols-outlined text-on-primary-container font-black transition-transform duration-300 group-hover:translate-x-2">arrow_forward</span>
                 </button>
             </div>
         </form>
@@ -83,38 +87,11 @@
 </div>
 
 <script>
-    const minWeeks = {{ minWeeks }};
-    const maxWeeks = {{ maxWeeks }};
-    const inputElement = document.getElementById('weeksInput');
-    const displayElement = document.getElementById('weeksDisplay');
-    const progressElement = document.getElementById('weeksProgressBar');
+    const slider = document.getElementById('weeksSlider');
+    const display = document.getElementById('weeksDisplay');
 
-    function updateDisplay(value) {
-        // Formatowanie z zerem na przedzie (np. 04)
-        displayElement.innerText = value < 10 ? '0' + value : value;
-        
-        // Aktualizacja paska postępu
-        const percentage = ((value - 1) / (maxWeeks - 1)) * 100;
-        progressElement.style.width = percentage + '%';
-        
-        // Wizualny "błysk" przy zmianie
-        displayElement.classList.add('text-[#d1fc00]');
-        setTimeout(() => {
-            displayElement.classList.remove('text-[#d1fc00]');
-        }, 150);
-    }
-
-    function changeWeeks(delta) {
-        let currentValue = parseInt(inputElement.value);
-        let newValue = currentValue + delta;
-
-        if (newValue >= minWeeks && newValue <= maxWeeks) {
-            inputElement.value = newValue;
-            updateDisplay(newValue);
-        }
-    }
-
-    // Inicjalizacja przy ładowaniu
-    updateDisplay(parseInt(inputElement.value));
+    slider.addEventListener('input', function() {
+        display.innerText = this.value;
+    });
 </script>
 {% endblock %}

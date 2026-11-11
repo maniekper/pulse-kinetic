@@ -31,15 +31,24 @@ class WorkoutSession
     #[ORM\ManyToOne(inversedBy: 'workoutSessions')]
     private ?Routine $routine = null;
 
+    // --- NOWE POLE DODANE DLA MEZOCYKLU ---
+    #[ORM\ManyToOne(targetEntity: WorkoutPlan::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?WorkoutPlan $workoutPlan = null;
+
+    #[ORM\OneToMany(mappedBy: 'workoutSession', targetEntity: CardioSession::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $cardioSessions;
+
     /**
      * @var Collection<int, WorkoutSet>
      */
     #[ORM\OneToMany(mappedBy: 'workoutSession', targetEntity: WorkoutSet::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
-private Collection $workoutSets;
+    private Collection $workoutSets;
 
     public function __construct()
     {
         $this->workoutSets = new ArrayCollection();
+        $this->cardioSessions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -104,6 +113,33 @@ private Collection $workoutSets;
     {
         $this->routine = $routine;
 
+        return $this;
+    }
+
+    // --- GETTERY I SETTERY DLA NOWEGO POLA ---
+    public function getWorkoutPlan(): ?WorkoutPlan
+    {
+        return $this->workoutPlan;
+    }
+
+    public function setWorkoutPlan(?WorkoutPlan $workoutPlan): static
+    {
+        $this->workoutPlan = $workoutPlan;
+
+        return $this;
+    }
+
+    public function getCardioSessions(): Collection
+    {
+        return $this->cardioSessions;
+    }
+
+    public function addCardioSession(CardioSession $cardioSession): static
+    {
+        if (!$this->cardioSessions->contains($cardioSession)) {
+            $this->cardioSessions->add($cardioSession);
+            $cardioSession->setWorkoutSession($this);
+        }
         return $this;
     }
 

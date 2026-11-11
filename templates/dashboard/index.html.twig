@@ -10,7 +10,7 @@
         <header class="kinetic-main-header">
             <div class="kinetic-main-header-stripe"></div>
             <div>
-                <h1 class="kinetic-main-header-title">DASHBOARD <span class="text-[#d1fc00]">GŁÓWNY</span></h1>
+                <h1 class="kinetic-main-header-title">DASHBOARD <span class="text-primary-container">GŁÓWNY</span></h1>
                 <p class="kinetic-main-header-subtitle">CENTRUM DOWODZENIA I ANALITYKI</p>
             </div>
             <div class="hidden md:block">
@@ -20,8 +20,30 @@
 
         <div class="relative z-10">
             
-            <div class="font-label text-[10px] text-outline tracking-[0.2em] uppercase mb-8 text-[#767575]">
-FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong> &bull; SESSION {{ nextDayNumber }}            </div>
+            <!-- POTĘŻNY PASEK POSTĘPU MEZOCYKLU -->
+            <div class="flex flex-col gap-4 font-label uppercase mb-12 border-b border-white/5 pb-10">
+                <div class="flex items-center gap-2 text-[10px] text-outline tracking-[0.2em]">
+                    <span class="text-[#767575]">FOCUS:</span> 
+                    <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong> 
+                    <span class="text-[#767575]">&bull; SESSION {{ nextDayNumber }}</span>
+                </div>
+                
+                {% if plan and totalSessionsInCycle > 0 %}
+                <div class="w-full max-w-2xl flex flex-col gap-3 mt-4">
+                    <div class="flex justify-between items-end mb-1">
+                        <span class="font-headline text-xs md:text-sm text-[#767575] font-black tracking-widest uppercase">PROGRES MEZOCYKLU</span>
+                        <div class="font-headline text-3xl md:text-4xl text-primary-container font-black tracking-tighter leading-none">
+                            {{ completedSessionsCount }} <span class="text-sm md:text-lg text-[#767575] tracking-widest font-bold">/ {{ totalSessionsInCycle }} SESJI</span>
+                        </div>
+                    </div>
+                    <div class="h-3 md:h-4 bg-[#111111] border border-white/10 w-full relative overflow-hidden shadow-inner">
+                        {% set cycleProgress = (completedSessionsCount / totalSessionsInCycle) * 100 %}
+                        <div class="h-full bg-primary-container absolute top-0 left-0 transition-all duration-1000 ease-out" style="width: {{ cycleProgress }}%; box-shadow: 0 0 20px var(--theme-main);"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <!-- KONIEC PASKA -->
 
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-10">
                 
@@ -30,13 +52,12 @@ FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong>
                     
                     <div class="kinetic-section-title-wrap">
                         <h2 class="kinetic-section-title">ZAPLANOWANY BLOK NA DZIŚ</h2>
-                        <span class="font-headline font-bold text-[10px] text-[#d1fc00] tracking-widest ml-auto">0% COMPLETE</span>
+                        <span class="font-headline font-bold text-[10px] text-primary-container tracking-widest ml-auto">0% COMPLETE</span>
                     </div>
 
                     {% if plan %}
                         <div class="flex flex-col gap-2">
 {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}                            
-                            <!-- Zdjeliśmy ucinaie do 4, by wyświetlić wszystkie maszyny -->
                             {% for exercise in todaysExercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': exercise,
@@ -50,7 +71,7 @@ FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                             <div class="kinetic-panel relative">
-                                <span class="material-symbols-outlined absolute top-6 right-6 text-[#d1fc00]">schedule</span>
+                                <span class="material-symbols-outlined absolute top-6 right-6 text-primary-container">schedule</span>
                                 <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-2">SZACOWANY CZAS TRENINGU</div>
                                 <div class="font-headline font-black text-3xl text-white tracking-tighter leading-none">{{ estimatedTimeMinutes > 0 ? estimatedTimeMinutes : '--' }} MINUT</div>
                                 <div class="font-label text-[9px] text-[#767575] uppercase mt-2 tracking-widest">ZAWIERA 10 MIN ROZGRZEWKI</div>
@@ -76,10 +97,10 @@ FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong>
 
                     <div class="kinetic-panel relative flex flex-col justify-center min-h-[160px]">
                         <div class="flex items-baseline gap-2">
-                            <span class="font-headline font-black text-6xl text-[#d1fc00] tracking-tighter leading-none">{{ (totalTonnage / 1000)|number_format(1, '.', '') }}</span>
+                            <span class="font-headline font-black text-6xl text-primary-container tracking-tighter leading-none">{{ (totalTonnage / 1000)|number_format(1, '.', '') }}</span>
                             <span class="font-headline font-bold text-lg text-[#767575] uppercase">TON</span>
                         </div>
-                        <div class="flex items-center gap-2 mt-4 text-[#d1fc00] font-headline font-bold text-[10px] uppercase tracking-widest">
+                        <div class="flex items-center gap-2 mt-4 text-primary-container font-headline font-bold text-[10px] uppercase tracking-widest">
                             <span class="material-symbols-outlined text-sm">trending_up</span>
                             Wydajność operacyjna w normie
                         </div>
@@ -89,7 +110,7 @@ FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong>
                         <div class="flex items-end justify-between h-20 gap-2 mb-2">
                             {% for data in chartData %}
                                 {% set heightPercentage = (data.tonnage / (maxChartValue > 0 ? maxChartValue : 1)) * 100 %}
-                                <div class="w-full {% if data.tonnage > 0 %}bg-[#d1fc00] shadow-[0_0_15px_rgba(209,252,0,0.3)]{% else %}bg-white/5{% endif %} rounded-t-[1px] transition-all duration-1000" 
+                                <div class="w-full {% if data.tonnage > 0 %}bg-primary-container shadow-[0_0_15px_var(--theme-shadow)]{% else %}bg-white/5{% endif %} rounded-t-[1px] transition-all duration-1000" 
                                      style="height: {{ heightPercentage > 5 ? heightPercentage : 5 }}%;"
                                      title="{{ data.tonnage }} KG">
                                 </div>
@@ -110,7 +131,7 @@ FOCUS: <strong class="text-white">{{ plan ? plan.name : 'BRAK PLANU' }}</strong>
                                     <span class="font-headline font-black text-lg text-white">{{ lift.maxWeight }} KG</span>
                                 </div>
                                 {% if loop.last %}
-                                    <span class="font-label text-[9px] text-[#d1fc00] uppercase tracking-widest font-black">ALL TIME HIGH</span>
+                                    <span class="font-label text-[9px] text-primary-container uppercase tracking-widest font-black">ALL TIME HIGH</span>
                                 {% endif %}
                             </div>
                         {% else %}

@@ -22,6 +22,9 @@ class WorkoutPlan
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+private ?string $targetGender = null;
+
     /**
      * @var Collection<int, WorkoutExercise>
      */
@@ -61,6 +64,18 @@ class WorkoutPlan
 
         return $this;
     }
+
+    public function getTargetGender(): ?string
+{
+    return $this->targetGender;
+}
+
+public function setTargetGender(?string $targetGender): static
+{
+    $this->targetGender = $targetGender;
+
+    return $this;
+}
 
     /**
      * @return Collection<int, WorkoutExercise>
