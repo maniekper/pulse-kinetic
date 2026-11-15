@@ -60,7 +60,7 @@
                         ROZPOCZNIJ TRENING
                     </a>
                 {% else %}
-                    <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 font-headline font-black text-xs uppercase tracking-widest text-center transition-colors cursor-pointer block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)]" style="box-shadow: 0 0 20px var(--theme-shadow);">
+                    <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 font-headline font-black text-xs uppercase tracking-widest text-center transition-colors cursor-pointer block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] theme-glow">
                         BUDUJ PLAN
                     </a>
                 {% endif %}
@@ -85,10 +85,9 @@
                 </button>
             </header>
 
-            <!-- FULLSCREEN BURGER MENU (Poprawiona czytelność i przycisk startu) -->
+            <!-- FULLSCREEN BURGER MENU -->
             <div id="mobileMenuOverlay" class="md:hidden fixed inset-0 top-16 z-40 bg-[#0a0a0a]/98 backdrop-blur-xl flex-col hidden transition-all h-[calc(100vh-4rem)] overflow-y-auto px-6 py-6">
             
-                <!-- Górne menu nawigacyjne z poprawnymi ikonami -->
                 <nav class="flex flex-col gap-3 mb-8 ">
                     {% set sidebarPlan = plan|default(null) %}
                     {% if not sidebarPlan and app.user and app.user.workoutPlans|length > 0 %}
@@ -118,14 +117,13 @@
                     {% endif %}
                 </nav>
 
-                <!-- Specjalny przycisk startu i wylogowania w mobilnym menu -->
                 <div class="flex flex-col gap-3 mt-auto pb-8">
                     {% if sidebarPlan %}
                         <a href="{{ path('app_tracker_start', {'plan_id': sidebarPlan.id}) }}" class="text-[color:var(--theme-text)] py-4 px-6 font-headline font-black text-xs uppercase tracking-widest text-center transition-all block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] shadow-lg rounded-xl">
                             ROZPOCZNIJ TRENING
                         </a>
                     {% else %}
-                        <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 px-6 font-headline font-black text-xs uppercase tracking-widest text-center transition-all block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] shadow-lg rounded-xl" style="box-shadow: 0 0 20px var(--theme-shadow);">
+                        <a href="{{ path('app_generator_start') }}" class="text-[color:var(--theme-text)] py-4 px-6 font-headline font-black text-xs uppercase tracking-widest text-center transition-all block bg-[color:var(--theme-main)] hover:bg-[color:var(--theme-dim)] shadow-lg rounded-xl theme-glow">
                             BUDUJ PLAN
                         </a>
                     {% endif %}
@@ -146,7 +144,7 @@
         </div>
 
     </div>
-    <!-- SKRYPT DO OBSŁUGI BURGERA -->
+    
     <script>
         function toggleMobileMenu() {
             const menu = document.getElementById("mobileMenuOverlay");

@@ -38,7 +38,7 @@ class GeneratorController extends AbstractController
         $user = $this->getUser();
         if ($newGoal && $user instanceof \App\Entity\User) {
             $user->setCurrentGoal($newGoal);
-            
+
             $goalName = $newGoal->getName();
 
             $plans = $entityManager->getRepository(WorkoutPlan::class)->findBy(['user' => $user]);
@@ -71,7 +71,7 @@ class GeneratorController extends AbstractController
     public function saveDays(Request $request): Response
     {
         $days = (int) $request->request->get('days');
-        
+
         if ($days === 2) {
             $this->addFlash('info', 'Trening 2 razy w tygodniu jest świetny na start!');
         }
@@ -84,9 +84,9 @@ class GeneratorController extends AbstractController
     public function duration(Request $request): Response
     {
         if (!$request->getSession()->has('gen_days')) return $this->redirectToRoute('app_generator_start');
-        
+
         $daysPerWeek = (int) $request->getSession()->get('gen_days');
-        
+
         // NOWA LOGIKA: Adaptacja układu nerwowego (Mezocykl)
         if ($daysPerWeek == 2) {
             $minWeeks = 8;
@@ -136,8 +136,8 @@ class GeneratorController extends AbstractController
 
     #[Route('/generator/build', name: 'app_generator_build', methods: ['POST'])]
     public function buildPlan(
-        Request $request, 
-        MuscleRepository $muscleRepository, 
+        Request $request,
+        MuscleRepository $muscleRepository,
         MachineRepository $machineRepository,
         EntityManagerInterface $entityManager
     ): Response {
@@ -172,13 +172,13 @@ class GeneratorController extends AbstractController
                     ['Nogi', 'Pośladki', 'Łydki', 'Brzuch'], // Dół
                     ['Plecy', 'Barki', 'Klatka piersiowa', 'Biceps', 'Triceps'] // Góra
                 ];
-                $exercisesPerMuscle = 2; 
+                $exercisesPerMuscle = 2;
             } else {
                 $masterBlueprint = [
                     ['Klatka piersiowa', 'Plecy', 'Barki', 'Biceps', 'Triceps'], // Góra
                     ['Nogi', 'Łydki', 'Brzuch'] // Dół
                 ];
-                $exercisesPerMuscle = 2; 
+                $exercisesPerMuscle = 2;
             }
         } elseif ($daysPerWeek == 3) {
             if ($isFemale) {
@@ -186,17 +186,17 @@ class GeneratorController extends AbstractController
                 $exercisesPerMuscle = 1;
             } else {
                 $masterBlueprint = [['Nogi', 'Plecy', 'Klatka piersiowa', 'Barki', 'Biceps', 'Triceps']];
-                $exercisesPerMuscle = 1; 
+                $exercisesPerMuscle = 1;
             }
         } elseif ($daysPerWeek == 4) {
             if ($isFemale) {
                 $masterBlueprint = [
-                    ['Nogi', 'Pośladki', 'Brzuch'],           
-                    ['Plecy', 'Barki', 'Biceps'],             
-                    ['Nogi', 'Pośladki', 'Łydki'],            
-                    ['Klatka piersiowa', 'Triceps', 'Brzuch'] 
+                    ['Nogi', 'Pośladki', 'Brzuch'],
+                    ['Plecy', 'Barki', 'Biceps'],
+                    ['Nogi', 'Pośladki', 'Łydki'],
+                    ['Klatka piersiowa', 'Triceps', 'Brzuch']
                 ];
-                $exercisesPerMuscle = 2; 
+                $exercisesPerMuscle = 2;
             } else {
                 $masterBlueprint = [
                     ['Klatka piersiowa', 'Biceps'],
@@ -204,7 +204,7 @@ class GeneratorController extends AbstractController
                     ['Nogi'],
                     ['Barki', 'Brzuch']
                 ];
-                $exercisesPerMuscle = 3; 
+                $exercisesPerMuscle = 3;
             }
         } else {
             $masterBlueprint = [['Klatka piersiowa', 'Barki', 'Triceps'], ['Plecy', 'Biceps'], ['Nogi', 'Brzuch']];
@@ -215,12 +215,12 @@ class GeneratorController extends AbstractController
             'Klatka piersiowa' => ['Klatka piersiowa'],
             'Plecy'            => ['Plecy', 'Najszerszy grzbietu', 'Czworoboczny grzbietu'],
             'Nogi'             => ['Nogi', 'Czworogłowy uda', 'Dwugłowy uda', 'Przywodziciele'],
-            'Pośladki'         => ['Pośladki', 'Odwodziciele'], 
+            'Pośladki'         => ['Pośladki', 'Odwodziciele'],
             'Barki'            => ['Barki'],
             'Biceps'           => ['Biceps'],
             'Triceps'          => ['Triceps'],
             'Brzuch'           => ['Brzuch', 'Prosty brzucha', 'Skośne brzucha'],
-            'Łydki'            => ['Łydki'] 
+            'Łydki'            => ['Łydki']
         ];
 
         $totalSessions = $daysPerWeek;
@@ -230,10 +230,10 @@ class GeneratorController extends AbstractController
 
         $plan = new WorkoutPlan();
         $plan->setUser($user);
-        
+
         $planSuffix = ($daysPerWeek == 2) ? ' (Split: Góra/Dół)' : ' (' . $daysPerWeek . ' dni / ' . $weeks . ' tyg.)';
         $plan->setName($goalName . $planSuffix);
-        
+
         $entityManager->persist($plan);
 
         for ($sessionNum = 1; $sessionNum <= $totalSessions; $sessionNum++) {
@@ -244,36 +244,38 @@ class GeneratorController extends AbstractController
             foreach ($targetMuscles as $targetMuscle) {
                 $specificMusclesForTarget = $anatomyMap[$targetMuscle] ?? [$targetMuscle];
                 $muscleSpecificMachines = [];
-                
+
                 foreach ($allMachines as $machine) {
                     if (in_array($machine->getId(), $bannedMachinesIds)) continue;
-                    
+
                     $machineNameLower = strtolower($machine->getName());
                     $mechType = strtolower($machine->getMechanicType() ?? '');
-                    
-                    if ($mechType === 'cardio' || 
-                        str_contains($machineNameLower, 'rower') || 
-                        str_contains($machineNameLower, 'bieżnia') || 
-                        str_contains($machineNameLower, 'orbitrek')) {
+
+                    if (
+                        $mechType === 'cardio' ||
+                        str_contains($machineNameLower, 'rower') ||
+                        str_contains($machineNameLower, 'bieżnia') ||
+                        str_contains($machineNameLower, 'orbitrek')
+                    ) {
                         continue;
                     }
-                    
+
                     $primaryNames = array_map(fn($m) => $m->getName(), $machine->getPrimaryMuscles()->toArray());
                     if (!empty(array_intersect($primaryNames, $specificMusclesForTarget))) {
                         $muscleSpecificMachines[] = $machine;
                     }
                 }
-                
+
                 shuffle($muscleSpecificMachines);
                 $dailyExercises = array_merge($dailyExercises, array_slice($muscleSpecificMachines, 0, $exercisesPerMuscle));
             }
 
-            $usedMachineIdsInSession = []; 
+            $usedMachineIdsInSession = [];
             $exerciseCount = 0;
 
             foreach ($dailyExercises as $machine) {
                 if (in_array($machine->getId(), $usedMachineIdsInSession)) continue;
-                
+
                 if ($exerciseCount >= 6) break;
 
                 $usedMachineIdsInSession[] = $machine->getId();
@@ -282,20 +284,20 @@ class GeneratorController extends AbstractController
                 $exercise->setWorkoutPlan($plan);
                 $exercise->setMachine($machine);
                 $exercise->setDayNumber($sessionNum);
-                
+
                 $isCompound = ($machine->getMechanicType() === 'compound');
 
                 if ($userGoal) {
                     $minReps = $isCompound ? $userGoal->getBaseCompoundRepsMin() : $userGoal->getBaseIsolationRepsMin();
                     $maxReps = $isCompound ? $userGoal->getBaseCompoundRepsMax() : $userGoal->getBaseIsolationRepsMax();
-                    
+
                     $exercise->setSets($isCompound ? 4 : 3);
                     $exercise->setReps($minReps . '-' . $maxReps);
                 } else {
                     $exercise->setSets(3);
                     $exercise->setReps('8-12');
                 }
-                
+
                 $entityManager->persist($exercise);
                 $exerciseCount++;
             }
@@ -306,7 +308,8 @@ class GeneratorController extends AbstractController
         $request->getSession()->remove('gen_weeks');
 
         return $this->redirectToRoute('app_generator_success', ['id' => $plan->getId()]);
-    }#[Route('/generator/success/{id}', name: 'app_generator_success')]
+    }
+    #[Route('/generator/success/{id}', name: 'app_generator_success')]
     public function success(WorkoutPlan $plan, Request $request, \App\Repository\MachineRepository $machineRepo): Response
     {
         if ($plan->getUser() !== $this->getUser()) throw $this->createAccessDeniedException();

@@ -152,6 +152,7 @@
             </div>
         </div>
     </main>
+
     <!-- MODAL ZMIANY MASZYNY DLA DASHBOARDU -->
     <div id="swapModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[999] hidden items-center justify-center p-4">
         <div class="bg-[#111111] border border-primary-container shadow-[0_0_40px_var(--theme-shadow)] w-full max-w-lg flex flex-col relative">
@@ -235,9 +236,9 @@
                     card.className = "bg-[#161616] border border-white/10 p-3 flex flex-col gap-3 cursor-pointer hover:border-primary-container transition-all group select-none relative";
                     card.setAttribute('data-id', m.id);
                     
-                   const imgHtml = m.image 
+                    const imgHtml = m.image 
                         ? `<img src="${m.image}" class="w-full h-24 object-contain p-1 mix-blend-luminosity opacity-80 group-hover:opacity-100 transition-opacity">`
-                        : `<div class="w-full h-24 bg-[#1a1a1a] flex items-center justify-center text-outline"><span class="material-symbols-outlined">fitness_center</span></div>`;`<div class="w-full h-24 bg-[#1a1a1a] flex items-center justify-center text-outline"><span class="material-symbols-outlined">fitness_center</span></div>`;
+                        : `<div class="w-full h-24 bg-[#1a1a1a] flex items-center justify-center text-outline"><span class="material-symbols-outlined">fitness_center</span></div>`;
 
                     card.innerHTML = `
                         <div class="w-full overflow-hidden bg-[#1a1a1a] border border-white/5 relative">
@@ -276,14 +277,6 @@
             const modal = document.getElementById('swapModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-        }
-
-        function updateFormAction() {
-            const select = document.getElementById('newMachineSelect');
-            const form = document.getElementById('swapForm');
-            if (select.value && currentExerciseId) {
-                form.action = '/tracker/swap/' + currentExerciseId + '/' + select.value;
-            }
         }
     </script>
 {% endblock %}

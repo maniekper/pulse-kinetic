@@ -1,51 +1,38 @@
 <!DOCTYPE html>
 <html lang="pl" class="dark">
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>
             {% block title %}
                 Pulse Kinetic
             {% endblock %}
         </title>
 
-        <!-- Kinetic Precision Typography & Icons -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Manrope:wght@300;400;500;600;700;800&display=swap"
-            rel="stylesheet"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-            rel="stylesheet"
-        />
+        <!-- Preconnect dla optymalizacji czcionek -->
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 
         {% block stylesheets %}
-            {# Ładujemy tylko i wyłącznie nasz skompilowany plik z Tailwinda #}
             {{ encore_entry_link_tags('app') }}
         {% endblock %}
+
         {% set isFemale = app.user and (app.user.gender|lower) == 'kobieta' %}
         <style>
-            :root { --theme-main: {{ isFemale ? '#f000ff' : '#d1fc00' }};
-            --theme-dim: {{ isFemale ? '#c200cc' : '#c7ef00' }}; --theme-text: {{ isFemale
-                ? '#ffffff'
-                : '#111111' }}; --theme-shadow: {{ isFemale
-                ? 'rgba(240, 0, 255, 0.3)'
-                : 'rgba(209, 252, 0, 0.3)' }}; }
+            :root { 
+                --theme-main: {{ isFemale ? '#f000ff' : '#d1fc00' }};
+                --theme-dim: {{ isFemale ? '#c200cc' : '#c7ef00' }}; 
+                --theme-text: {{ isFemale ? '#ffffff' : '#111111' }}; 
+                --theme-shadow: {{ isFemale ? 'rgba(240, 0, 255, 0.3)' : 'rgba(209, 252, 0, 0.3)' }}; 
+            }
         </style>
     </head>
 
-    <body
-        class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col antialiased"
-    >
+    <body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col antialiased">
         <!-- Powiadomienia Flash (Kinetic System) -->
-        <div
-            class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-sm px-4 md:px-0 pointer-events-none"
-        >
+        <div class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-full max-w-sm px-4 md:px-0 pointer-events-none">
             {% for label, messages in app.flashes %}
                 {% for message in messages %}
-                    {# Logika kolorów w zależności od statusu (success, error, warning) #}
                     {% set borderColor = label == 'success'
                         ? 'border-primary-container'
                         : label == 'danger' or label == 'error'
@@ -65,29 +52,16 @@
                             : 'info'
                     %}
 
-                    <div
-                        class="pointer-events-auto bg-surface-container-highest border-l-4 {{
-                        borderColor
-                        }} p-4 shadow-[0_15px_40px_rgba(0,0,0,0.9)] flex items-start justify-between gap-4"
-                    >
+                    <div class="pointer-events-auto bg-surface-container-highest border-l-4 {{ borderColor }} p-4 shadow-[0_15px_40px_rgba(0,0,0,0.9)] flex items-start justify-between gap-4">
                         <div class="flex items-start gap-3">
-                            <span
-                                class="material-symbols-outlined {{
-                                textColor
-                                }}"
-                            >
+                            <span class="material-symbols-outlined {{ textColor }}">
                                 {{ icon }}
                             </span>
-                            <div
-                                class="text-sm font-bold tracking-wide text-on-surface pt-0.5"
-                            >
+                            <div class="text-sm font-bold tracking-wide text-on-surface pt-0.5">
                                 {{ message }}
                             </div>
                         </div>
-                        <button
-                            onclick="this.parentElement.remove()"
-                            class="text-outline hover:text-primary-container transition-colors"
-                        >
+                        <button onclick="this.parentElement.remove()" class="text-outline hover:text-primary-container transition-colors">
                             <span class="material-symbols-outlined text-sm">
                                 close
                             </span>
@@ -100,7 +74,6 @@
         <!-- Główna zawartość poszczególnych podstron -->
         <main class="flex-grow w-full">
             {% block body %}
-
             {% endblock %}
         </main>
 
