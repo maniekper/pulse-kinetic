@@ -1,64 +1,64 @@
-<div class="bg-[#111111] border border-white/10 p-5 flex flex-col gap-4 shadow-lg relative group hover:border-primary-container/40 transition-colors">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="bg-[#111111] border border-white/10 p-5 md:p-6 flex flex-col shadow-lg relative group hover:border-primary-container/40 transition-colors">
+    <div class="flex flex-row w-full gap-6">
         
-        <!-- UKŁAD 3-KOLUMNOWY -->
-        <div class="flex items-stretch gap-6 w-full">
-            
-            <!-- 1. KOLUMNA: Numer porządkowy -->
-            <div class="shrink-0 flex items-center">
-                <span class="font-headline font-black text-xl text-primary-container">
-                    {{ index > 9 ? index : '0' ~ index }}
-                </span>
+        <!-- LEWA POŁOWA (50%): Numer na górze, kwadratowa grafika pod spodem -->
+        <div class="w-1/2 flex flex-col">
+            <div class="font-headline font-black text-3xl md:text-4xl text-primary-container leading-none mb-3">
+                {{ index > 9 ? index : '0' ~ index }}
             </div>
-            
-            <!-- 2. KOLUMNA: Miniaturka grafiki wypełniająca wysokość od góry do dołu -->
-            <div class="self-stretch w-24 bg-[#1a1a1a] border border-white/10 overflow-hidden shrink-0 relative flex items-center justify-center shadow-md p-1">
+            <!-- Duża, kwadratowa miniatura -->
+            <div class="w-full aspect-square bg-[#1a1a1a] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-md p-2">
                 {% if exercise.machine.imageStart %}
                     <img src="{{ asset('images/machines/' ~ exercise.machine.imageStart) }}" class="w-full h-full object-contain mix-blend-luminosity opacity-90">
                 {% else %}
-                    <span class="material-symbols-outlined text-outline">fitness_center</span>
+                    <span class="material-symbols-outlined text-outline text-4xl">fitness_center</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PRAWA POŁOWA (50%): Zrównana z obrazkiem (pt-11) -->
+        <div class="w-1/2 flex flex-col justify-between pt-10 md:pt-11">
+            
+            <!-- GÓRA: Nazwa maszyny i partie mięśniowe -->
+            <div>
+                <h3 class="font-headline font-black text-base md:text-xl text-white uppercase tracking-tight leading-snug mb-2">
+                    {{ exercise.machine.name }}
+                </h3>
+                {% if exercise.machine.primaryMuscles|length > 0 %}
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for m in exercise.machine.primaryMuscles %}
+                            <span class="font-label text-[9px] text-primary-container bg-primary-container/10 px-2 py-1 uppercase tracking-widest border border-primary-container/20">
+                                {{ m.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
                 {% endif %}
             </div>
 
-            <!-- 3. KOLUMNA: Zawiera nazwę u góry oraz serie/powtórzenia pod spodem -->
-            <div class="flex flex-col justify-between w-full py-0.5">
-                
-                <!-- Nazwa maszyny i partie mięśniowe (U góry w 3 kolumnie) -->
-                <div class="flex flex-col justify-center">
-                    <h3 class="font-headline font-black text-base md:text-lg text-white uppercase tracking-tight leading-snug">
-                        {{ exercise.machine.name }}
-                    </h3>
-                    {% if exercise.machine.primaryMuscles|length > 0 %}
-                        <div class="flex flex-wrap gap-1.5 mt-1">
-                            {% for m in exercise.machine.primaryMuscles %}
-                                <span class="font-label text-[8px] text-primary-container bg-primary-container/10 px-2 py-0.5 uppercase tracking-widest border border-primary-container/20">{{ m.name }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Serie, powtórzenia i przyciski akcji (Pod spodem w 3 kolumnie) -->
-                <div class="flex flex-wrap items-center gap-4 md:gap-6 pt-2">
-                    <div class="bg-[#161616] border border-white/5 px-4 py-2 text-center min-w-[90px]">
-                        <span class="block font-headline font-black text-base text-white leading-none">{{ exercise.sets }}</span>
-                        <span class="font-label text-[8px] text-[#767575] uppercase tracking-widest mt-1 block">SERIE</span>
+            <!-- DÓŁ: Serie, powtórzenia (JEDNO POD DRUGIM) i Przyciski -->
+            <div class="flex flex-col gap-3 mt-4">
+                <!-- Statystyki w układzie pionowym -->
+                <div class="flex flex-col gap-2">
+                    <div class="bg-[#161616] border border-white/5 p-2 md:p-3 text-center flex flex-col justify-center">
+                        <span class="font-headline font-black text-xl md:text-2xl text-white leading-none">{{ exercise.sets }}</span>
+                        <span class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">SERIE</span>
                     </div>
                     
-                    <div class="bg-[#161616] border border-white/5 px-4 py-2 text-center min-w-[110px]">
-                        <span class="block font-headline font-black text-base text-primary-container leading-none">{{ exercise.reps }}</span>
-                        <span class="font-label text-[8px] text-[#767575] uppercase tracking-widest mt-1 block">POWTÓRZEŃ</span>
-                    </div>
-
-                    <div class="flex items-center gap-2 ml-auto">
-                        <button type="button" onclick="openSwapModal({{ exercise.id }}, '{{ exercise.machine.name|escape('js') }}', '{% if exercise.machine.primaryMuscles|length > 0 %}{{ exercise.machine.primaryMuscles.first.name|escape('js') }}{% endif %}')" class="w-10 h-10 bg-[#1a1a1a] border border-white/10 text-[#767575] hover:text-primary-container hover:border-primary-container/50 transition-colors flex items-center justify-center cursor-pointer shadow" title="Wymień sprzęt">
-                            <span class="material-symbols-outlined text-base">published_with_changes</span>
-                        </button>
-                        <div class="w-10 h-10 bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-[#767575] shadow">
-                            <span class="material-symbols-outlined text-base">check</span>
-                        </div>
+                    <div class="bg-[#161616] border border-white/5 p-2 md:p-3 text-center flex flex-col justify-center">
+                        <span class="font-headline font-black text-xl md:text-2xl text-primary-container leading-none">{{ exercise.reps }}</span>
+                        <span class="font-label text-[9px] text-[#767575] uppercase tracking-widest mt-1">POWTÓRZEŃ</span>
                     </div>
                 </div>
 
+                <!-- Przyciski akcji -->
+                <div class="flex justify-end gap-2 mt-1">
+                    <button type="button" onclick="openSwapModal({{ exercise.id }}, '{{ exercise.machine.name|escape('js') }}', '{% if exercise.machine.primaryMuscles|length > 0 %}{{ exercise.machine.primaryMuscles.first.name|escape('js') }}{% endif %}')" class="w-12 h-12 bg-[#1a1a1a] border border-white/10 text-[#767575] hover:text-primary-container hover:border-primary-container/50 transition-colors flex items-center justify-center cursor-pointer shadow" title="Wymień sprzęt">
+                        <span class="material-symbols-outlined text-lg">published_with_changes</span>
+                    </button>
+                    <div class="w-12 h-12 bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-[#767575] shadow">
+                        <span class="material-symbols-outlined text-lg">check</span>
+                    </div>
+                </div>
             </div>
 
         </div>
