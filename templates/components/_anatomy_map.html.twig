@@ -1,3 +1,25 @@
+<style>
+    /* Domyślny kolor całego ciała (zmieniamy z czarnego/bardzo ciemnego na czytelny szary) */
+    .muscle-group {
+        fill: #444444 !important; /* Jaśniejszy szary kolor sylwetki */
+        stroke: #222222 !important;
+        stroke-width: 1px;
+        transition: fill 0.3s ease;
+    }
+
+    /* Aktywny główny mięsień (neonowy akcent) */
+    .muscle-active-primary {
+        fill: var(--theme-main) !important;
+        stroke: var(--theme-main) !important;
+        filter: drop-shadow(0 0 8px var(--theme-shadow));
+    }
+
+    /* Aktywny pomocniczy mięsień */
+    .muscle-active-secondary {
+        fill: var(--theme-shadow) !important;
+        stroke: var(--theme-main) !important;
+    }
+</style>
 <svg viewBox="0 0 200 265" class="w-40 md:w-52 h-auto drop-shadow-lg mx-auto transition-all" xmlns="http://www.w3.org/2000/svg">
     
     <!-- 1. BAZA SYLWETKI -->
