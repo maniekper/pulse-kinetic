@@ -37,6 +37,20 @@ class Machine
     #[ORM\Column(length: 255)]
     private ?string $mechanicType = null;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $incrementStep = null;
+
+    public function getIncrementStep(): ?float
+    {
+        return $this->incrementStep;
+    }
+
+    public function setIncrementStep(?float $incrementStep): static
+    {
+        $this->incrementStep = $incrementStep;
+        return $this;
+    }
+
     /**
      * @var Collection<int, Muscle>
      */

@@ -33,7 +33,7 @@
             
             <!-- Lewa Kolumna (2 sekcje) -->
             <div class="xl:col-span-2 space-y-8">
-                 <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
                     <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
                         <span class="material-symbols-outlined text-[#767575]">monitor_weight</span>
                     </div>
@@ -87,7 +87,7 @@
                                     <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
                                 </button>
 
-<div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Mężczyzna</div>
+                                <div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Mężczyzna</div>
                                     <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Kobieta</div>
                                 </div>
                             </div>
@@ -136,9 +136,9 @@
                         <span class="material-symbols-outlined text-[#111111] font-black transition-transform duration-300 group-hover:translate-x-1.5">save</span>
                     </button>
                 </div>
-                </div>
+            </div>
         </form>
-                <!-- SEKCJA: WYKLUCZONY SPRZĘT (Teraz jest bezpiecznie na zewnątrz) -->
+        <!-- SEKCJA: WYKLUCZONY SPRZĘT (Teraz jest bezpiecznie na zewnątrz) -->
         <div class="relative z-10 mt-8">
             <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative flex flex-col">
                 <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
@@ -179,61 +179,63 @@
         function toggleDropdown(menuId, arrowId) {
             const menu = document.getElementById(menuId);
             const arrow = document.getElementById(arrowId);
-            
+
             // Zamknij inne otwarte dropdowny
-            document.querySelectorAll('[id$="Dropdown"]').forEach(el => {
-                if (el.id !== menuId && !el.classList.contains('hidden')) {
-                    el.classList.add('hidden');
-                    el.classList.remove('flex');
-                    const otherArrow = document.getElementById(el.id.replace('Dropdown', 'Arrow'));
-                    if(otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+            document.querySelectorAll('[id$="Dropdown"]').forEach((el) => {
+                if (el.id !== menuId && !el.classList.contains("hidden")) {
+                    el.classList.add("hidden");
+                    el.classList.remove("flex");
+                    const otherArrow = document.getElementById(
+                        el.id.replace("Dropdown", "Arrow"),
+                    );
+                    if (otherArrow) otherArrow.style.transform = "rotate(0deg)";
                 }
             });
 
-            if (menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-                menu.classList.add('flex');
-                arrow.style.transform = 'rotate(180deg)';
+            if (menu.classList.contains("hidden")) {
+                menu.classList.remove("hidden");
+                menu.classList.add("flex");
+                arrow.style.transform = "rotate(180deg)";
             } else {
-                menu.classList.add('hidden');
-                menu.classList.remove('flex');
-                arrow.style.transform = 'rotate(0deg)';
+                menu.classList.add("hidden");
+                menu.classList.remove("flex");
+                arrow.style.transform = "rotate(0deg)";
             }
         }
 
         function selectOption(inputId, value, textId, text, menuId, arrowId) {
             document.getElementById(inputId).value = value;
             document.getElementById(textId).innerText = text;
-            
+
             const menu = document.getElementById(menuId);
             const arrow = document.getElementById(arrowId);
-            menu.classList.add('hidden');
-            menu.classList.remove('flex');
-            arrow.style.transform = 'rotate(0deg)';
+            menu.classList.add("hidden");
+            menu.classList.remove("flex");
+            arrow.style.transform = "rotate(0deg)";
         }
 
         // Zamykanie przy kliknięciu na zewnątrz
-        document.addEventListener('click', function(event) {
-            const genderContainer = document.getElementById('genderSelectContainer');
-            const goalContainer = document.getElementById('goalSelectContainer');
-            
+        document.addEventListener("click", function (event) {
+            const genderContainer = document.getElementById("genderSelectContainer");
+            const goalContainer = document.getElementById("goalSelectContainer");
+
             if (genderContainer && !genderContainer.contains(event.target)) {
-                const menu = document.getElementById('genderDropdown');
-                const arrow = document.getElementById('genderArrow');
-                if (menu && !menu.classList.contains('hidden')) {
-                    menu.classList.add('hidden');
-                    menu.classList.remove('flex');
-                    arrow.style.transform = 'rotate(0deg)';
+                const menu = document.getElementById("genderDropdown");
+                const arrow = document.getElementById("genderArrow");
+                if (menu && !menu.classList.contains("hidden")) {
+                    menu.classList.add("hidden");
+                    menu.classList.remove("flex");
+                    arrow.style.transform = "rotate(0deg)";
                 }
             }
-            
+
             if (goalContainer && !goalContainer.contains(event.target)) {
-                const menu = document.getElementById('goalDropdown');
-                const arrow = document.getElementById('goalArrow');
-                if (menu && !menu.classList.contains('hidden')) {
-                    menu.classList.add('hidden');
-                    menu.classList.remove('flex');
-                    arrow.style.transform = 'rotate(0deg)';
+                const menu = document.getElementById("goalDropdown");
+                const arrow = document.getElementById("goalArrow");
+                if (menu && !menu.classList.contains("hidden")) {
+                    menu.classList.add("hidden");
+                    menu.classList.remove("flex");
+                    arrow.style.transform = "rotate(0deg)";
                 }
             }
         });

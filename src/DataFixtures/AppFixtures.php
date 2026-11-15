@@ -75,8 +75,44 @@ class AppFixtures extends Fixture
         $joa->setPassword($passwordJoa);
         $manager->persist($joa);
 
+        // Użytkownik 3: Bober (Zwykły użytkownik)
+        $bober = new User();
+        $bober->setEmail('bober@pulsekinetic.com')
+            ->setName('Bober')
+            ->setAge(30)
+            ->setGender('Mężczyzna')
+            ->setWeight(80.0)
+            ->setHeight(178.0)
+            ->setCurrentGoal($goalHypertrophy)
+            ->setRoles(['ROLE_USER']);
+        
+        $passwordBober = $this->hasher->hashPassword($bober, 'bober123');
+        $bober->setPassword($passwordBober);
+        $manager->persist($bober);
+
         // --- 3. MIĘŚNIE ---
-        $musclesData = ['Klatka piersiowa', 'Plecy', 'Nogi', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];
+        $musclesData = [
+            'Klatka piersiowa',
+            'Plecy',
+            'Nogi',
+            'Barki',
+            'Biceps',
+            'Triceps',
+            'Brzuch',
+            'Przedramiona',
+            'Kaptur',
+            'Najszerszy grzbietu',
+            'Czworoboczny grzbietu',
+            'Prosty brzucha',
+            'Skośne brzucha',
+            'Pośladki',
+            'Przywodziciele',
+            'Odwodziciele',
+            'Czworogłowy uda',
+            'Dwugłowy uda',
+            'Łydki'
+        ];
+        
         $muscleEntities = [];
         
         foreach ($musclesData as $name) {

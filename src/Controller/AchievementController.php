@@ -25,8 +25,8 @@ class AchievementController extends AbstractController
              FROM App\Entity\WorkoutSession s 
              WHERE s.user = :user AND s.endedAt IS NOT NULL'
         )
-        ->setParameter('user', $user)
-        ->getSingleResult();
+            ->setParameter('user', $user)
+            ->getSingleResult();
 
         $totalSessions = (int) $stats['totalSessions'];
         $lifetimeTonnage = (float) $stats['lifetimeTonnage'];
@@ -40,7 +40,7 @@ class AchievementController extends AbstractController
 
         // 3. Aktywny plan (potrzebny, aby górny pasek/sidebar wiedział, co wyświetlać)
         $plan = $em->getRepository(WorkoutPlan::class)->findOneBy(
-            ['user' => $user], 
+            ['user' => $user],
             ['id' => 'DESC']
         );
 

@@ -36,6 +36,9 @@ class WorkoutSet
     #[ORM\JoinColumn(nullable: false)]
     private ?Machine $machine = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $rir = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,6 +124,18 @@ class WorkoutSet
     public function setMachine(?Machine $machine): static
     {
         $this->machine = $machine;
+
+        return $this;
+    }
+
+    public function getRir(): ?int
+    {
+        return $this->rir;
+    }
+
+    public function setRir(?int $rir): static
+    {
+        $this->rir = $rir;
 
         return $this;
     }

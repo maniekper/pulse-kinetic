@@ -3,95 +3,102 @@
 {% block title %}Krok 02 - Mezocykl | PULSE KINETIC{% endblock %}
 
 {% block body %}
-<div class="min-h-screen bg-[#0e0e0e] flex flex-col items-center justify-center p-6 relative">
+    <div class="min-h-screen bg-[#0e0e0e] flex flex-col items-center justify-center p-6 relative">
     
-    <div class="fixed inset-0 z-0 bg-gradient-to-b from-[#0e0e0e]/80 to-[#0e0e0e]/95 pointer-events-none"></div>
+        <div class="fixed inset-0 z-0 bg-gradient-to-b from-[#0e0e0e]/80 to-[#0e0e0e]/95 pointer-events-none"></div>
 
-    <main class="relative z-10 w-full max-w-4xl bg-[#111111]/95 backdrop-blur-xl border-l border-t border-white/5 shadow-2xl p-8 md:p-12">
+        <main class="relative z-10 w-full max-w-4xl bg-[#111111]/95 backdrop-blur-xl border-l border-t border-white/5 shadow-2xl p-8 md:p-12">
         
-        <div class="absolute top-0 right-0 w-16 h-16 bg-primary-container/10 -mr-8 -mt-8 rotate-45 pointer-events-none"></div>
+            <div class="absolute top-0 right-0 w-16 h-16 bg-primary-container/10 -mr-8 -mt-8 rotate-45 pointer-events-none"></div>
 
-        <!-- Nagłówek -->
-        <div class="mb-10 border-b border-white/5 pb-6">
-            <span class="font-headline font-black italic text-primary-container text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
-            <h1 class="font-headline font-black text-4xl md:text-5xl text-white uppercase tracking-tighter italic">
-                KROK 02: <span class="text-primary-container">MEZOCYKL</span>
-            </h1>
-            <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">DŁUGOŚĆ TRWANIA PLANU OPARTA O CZĘSTOTLIWOŚĆ ({{ daysPerWeek }} DNI W TYGODNIU)</p>
-        </div>
-
-        <!-- Wskazówka Trenerska - Mechanizm Adaptacji -->
-        <div class="bg-[#1a1a1a] border-l-4 border-primary-container p-6 mb-10 shadow-md">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="material-symbols-outlined text-primary-container">psychology</span>
-                <span class="font-headline font-black text-sm text-white uppercase tracking-widest">MECHANIZM ADAPTACJI UKŁADU NERWOWEGO</span>
+            <!-- Nagłówek -->
+            <div class="mb-10 border-b border-white/5 pb-6">
+                <span class="font-headline font-black italic text-primary-container text-xl tracking-tighter block mb-2">GENERATOR PROTOKOŁU</span>
+                <h1 class="font-headline font-black text-4xl md:text-5xl text-white uppercase tracking-tighter italic">
+                    KROK 02: <span class="text-primary-container">MEZOCYKL</span>
+                </h1>
+                <p class="font-label text-[10px] text-[#767575] uppercase tracking-[0.2em] mt-2">DŁUGOŚĆ TRWANIA PLANU OPARTA O CZĘSTOTLIWOŚĆ ({{ daysPerWeek }} DNI W TYGODNIU)</p>
             </div>
-            <p class="font-body text-[#767575] text-xs leading-relaxed uppercase tracking-wider">
-                {{ mesocycleDesc }}
-            </p>
-        </div>
 
-        <form action="{{ path('app_generator_step2_save') }}" method="POST" class="space-y-12">
-            
-            <!-- Główny Suwak -->
-            <div class="bg-[#141414] border border-white/10 p-8 md:p-12 flex flex-col items-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 blur-3xl rounded-full"></div>
-                
-                <span class="font-headline font-bold text-xs text-[#767575] uppercase tracking-widest mb-8">WYBIERZ CZAS PRZYDATNOŚCI PLANU</span>
-                
-                <div class="flex items-end justify-center gap-2 mb-8">
-                    <span id="weeksDisplay" class="font-headline font-black text-7xl text-white tracking-tighter leading-none">{{ defaultWeeks }}</span>
-                    <span class="font-headline font-bold text-xl text-primary-container uppercase tracking-widest pb-1">TYGODNI</span>
+            <!-- Wskazówka Trenerska - Mechanizm Adaptacji -->
+            <div class="bg-[#1a1a1a] border-l-4 border-primary-container p-6 mb-10 shadow-md">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="material-symbols-outlined text-primary-container">psychology</span>
+                    <span class="font-headline font-black text-sm text-white uppercase tracking-widest">MECHANIZM ADAPTACJI UKŁADU NERWOWEGO</span>
                 </div>
+                <p class="font-body text-[#767575] text-xs leading-relaxed uppercase tracking-wider">
+                    {{ mesocycleDesc }}
+                </p>
+            </div>
 
-                <div class="w-full max-w-lg relative">
-                    <input type="range" name="weeks" id="weeksSlider" min="{{ minWeeks }}" max="{{ maxWeeks }}" value="{{ defaultWeeks }}" 
-                           class="w-full h-2 bg-surface-container-highest appearance-none cursor-pointer accent-primary-container hover:accent-primary-dim transition-all">
+            <form action="{{ path('app_generator_step2_save') }}" method="POST" class="space-y-12">
+            
+                <!-- Główny Suwak -->
+                <div class="bg-[#141414] border border-white/10 p-8 md:p-12 flex flex-col items-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 blur-3xl rounded-full"></div>
+                
+                    <span class="font-headline font-bold text-xs text-[#767575] uppercase tracking-widest mb-8">WYBIERZ CZAS PRZYDATNOŚCI PLANU</span>
+                
+                    <div class="flex items-end justify-center gap-2 mb-8">
+                        <span id="weeksDisplay" class="font-headline font-black text-7xl text-white tracking-tighter leading-none">{{ defaultWeeks }}</span>
+                        <span class="font-headline font-bold text-xl text-primary-container uppercase tracking-widest pb-1">TYGODNI</span>
+                    </div>
+
+                    <div class="w-full max-w-lg relative">
+                        <input
+                            type="range"
+                            name="weeks"
+                            id="weeksSlider"
+                            min="{{ minWeeks }}"
+                            max="{{ maxWeeks }}"
+                            value="{{ defaultWeeks }}"
+                            class="w-full h-2 bg-surface-container-highest appearance-none cursor-pointer accent-primary-container hover:accent-primary-dim transition-all"
+                        >
                     
-                    <div class="flex justify-between w-full mt-4 font-headline font-bold text-[10px] text-outline tracking-widest">
-                        <span>MIN: {{ minWeeks }} TYG</span>
-                        <span>MAX: {{ maxWeeks }} TYG</span>
+                        <div class="flex justify-between w-full mt-4 font-headline font-bold text-[10px] text-outline tracking-widest">
+                            <span>MIN: {{ minWeeks }} TYG</span>
+                            <span>MAX: {{ maxWeeks }} TYG</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Złota Zasada Trenera - Zablokowanie planu -->
-            <div class="flex flex-col gap-4 p-6 border border-primary-container/30 bg-primary-container/5">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-primary-container text-2xl animate-pulse">lock</span>
-                    <strong class="text-primary-container font-headline tracking-widest uppercase">Zablokowanie Ćwiczeń (Zasada Stałości)</strong>
+                <!-- Złota Zasada Trenera - Zablokowanie planu -->
+                <div class="flex flex-col gap-4 p-6 border border-primary-container/30 bg-primary-container/5">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary-container text-2xl animate-pulse">lock</span>
+                        <strong class="text-primary-container font-headline tracking-widest uppercase">Zablokowanie Ćwiczeń (Zasada Stałości)</strong>
+                    </div>
+                    <p class="font-body text-[#adaaaa] text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider">
+                        Zatwierdzając ten czas, <strong class="text-white">blokujesz wylosowane maszyny na cały ten okres</strong>. 
+                        Nie będziesz ich zmieniać co tydzień. To celowy zabieg - budowanie siły i sylwetki wymaga powtarzalności. 
+                        Twoim jedynym zadaniem na ten mezocykl jest bicie własnych rekordów (progresywne przeładowanie) na dokładnie tych samych stanowiskach.
+                    </p>
+                    <p class="font-body text-primary-container font-bold text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider border-t border-primary-container/20 pt-3 mt-1">
+                        Gdy ukończysz wszystkie zaplanowane treningi w ostatnim tygodniu cyklu, system automatycznie pogratuluje Ci sukcesu, zarchiwizuje ten plan i poprosi o wygenerowanie zupełnie nowego, aby zapobiec stagnacji.
+                    </p>
                 </div>
-                <p class="font-body text-[#adaaaa] text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider">
-                    Zatwierdzając ten czas, <strong class="text-white">blokujesz wylosowane maszyny na cały ten okres</strong>. 
-                    Nie będziesz ich zmieniać co tydzień. To celowy zabieg - budowanie siły i sylwetki wymaga powtarzalności. 
-                    Twoim jedynym zadaniem na ten mezocykl jest bicie własnych rekordów (progresywne przeładowanie) na dokładnie tych samych stanowiskach.
-                </p>
-                <p class="font-body text-primary-container font-bold text-[10px] md:text-[11px] leading-relaxed uppercase tracking-wider border-t border-primary-container/20 pt-3 mt-1">
-                    Gdy ukończysz wszystkie zaplanowane treningi w ostatnim tygodniu cyklu, system automatycznie pogratuluje Ci sukcesu, zarchiwizuje ten plan i poprosi o wygenerowanie zupełnie nowego, aby zapobiec stagnacji.
-                </p>
-            </div>
 
-            <!-- Nawigacja -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/5">
-                <a href="{{ path('app_generator_start') }}" class="w-full md:w-auto px-8 py-4 border border-white/10 text-[#767575] hover:text-white hover:bg-white/5 font-headline font-bold text-xs uppercase tracking-widest transition-colors flex justify-center items-center gap-3">
-                    <span class="material-symbols-outlined text-lg">arrow_back</span> KROK 01
-                </a>
+                <!-- Nawigacja -->
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/5">
+                    <a href="{{ path('app_generator_start') }}" class="w-full md:w-auto px-8 py-4 border border-white/10 text-[#767575] hover:text-white hover:bg-white/5 font-headline font-bold text-xs uppercase tracking-widest transition-colors flex justify-center items-center gap-3">
+                        <span class="material-symbols-outlined text-lg">arrow_back</span> KROK 01
+                    </a>
                 
-                <button type="submit" class="w-full md:w-auto bg-primary-container hover:bg-primary-dim py-4 px-10 flex items-center justify-center gap-3 transition-colors group cursor-pointer shadow-[0_0_20px_var(--theme-shadow)]">
-                    <span class="font-headline font-black text-sm text-on-primary-container uppercase tracking-widest">ZATWIERDŹ CZAS</span>
-                    <span class="material-symbols-outlined text-on-primary-container font-black transition-transform duration-300 group-hover:translate-x-2">arrow_forward</span>
-                </button>
-            </div>
-        </form>
-    </main>
-</div>
+                    <button type="submit" class="w-full md:w-auto bg-primary-container hover:bg-primary-dim py-4 px-10 flex items-center justify-center gap-3 transition-colors group cursor-pointer shadow-[0_0_20px_var(--theme-shadow)]">
+                        <span class="font-headline font-black text-sm text-on-primary-container uppercase tracking-widest">ZATWIERDŹ CZAS</span>
+                        <span class="material-symbols-outlined text-on-primary-container font-black transition-transform duration-300 group-hover:translate-x-2">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
 
-<script>
-    const slider = document.getElementById('weeksSlider');
-    const display = document.getElementById('weeksDisplay');
+    <script>
+        const slider = document.getElementById("weeksSlider");
+        const display = document.getElementById("weeksDisplay");
 
-    slider.addEventListener('input', function() {
-        display.innerText = this.value;
-    });
-</script>
+        slider.addEventListener("input", function () {
+            display.innerText = this.value;
+        });
+    </script>
 {% endblock %}

@@ -29,18 +29,18 @@
                 </div>
                 
                 {% if plan and totalSessionsInCycle > 0 %}
-                <div class="w-full max-w-2xl flex flex-col gap-3 mt-4">
-                    <div class="flex justify-between items-end mb-1">
-                        <span class="font-headline text-xs md:text-sm text-[#767575] font-black tracking-widest uppercase">PROGRES MEZOCYKLU</span>
-                        <div class="font-headline text-3xl md:text-4xl text-primary-container font-black tracking-tighter leading-none">
-                            {{ completedSessionsCount }} <span class="text-sm md:text-lg text-[#767575] tracking-widest font-bold">/ {{ totalSessionsInCycle }} SESJI</span>
+                    <div class="w-full max-w-2xl flex flex-col gap-3 mt-4">
+                        <div class="flex justify-between items-end mb-1">
+                            <span class="font-headline text-xs md:text-sm text-[#767575] font-black tracking-widest uppercase">PROGRES MEZOCYKLU</span>
+                            <div class="font-headline text-3xl md:text-4xl text-primary-container font-black tracking-tighter leading-none">
+                                {{ completedSessionsCount }} <span class="text-sm md:text-lg text-[#767575] tracking-widest font-bold">/ {{ totalSessionsInCycle }} SESJI</span>
+                            </div>
+                        </div>
+                        <div class="h-3 md:h-4 bg-[#111111] border border-white/10 w-full relative overflow-hidden shadow-inner">
+                            {% set cycleProgress = (completedSessionsCount / totalSessionsInCycle) * 100 %}
+                            <div class="h-full bg-primary-container absolute top-0 left-0 transition-all duration-1000 ease-out" style="width: {{ cycleProgress }}%; box-shadow: 0 0 20px var(--theme-main);"></div>
                         </div>
                     </div>
-                    <div class="h-3 md:h-4 bg-[#111111] border border-white/10 w-full relative overflow-hidden shadow-inner">
-                        {% set cycleProgress = (completedSessionsCount / totalSessionsInCycle) * 100 %}
-                        <div class="h-full bg-primary-container absolute top-0 left-0 transition-all duration-1000 ease-out" style="width: {{ cycleProgress }}%; box-shadow: 0 0 20px var(--theme-main);"></div>
-                    </div>
-                </div>
                 {% endif %}
             </div>
             <!-- KONIEC PASKA -->
@@ -57,7 +57,7 @@
 
                     {% if plan %}
                         <div class="flex flex-col gap-2">
-{% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}                            
+                            {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}                            
                             {% for exercise in todaysExercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': exercise,
@@ -110,9 +110,11 @@
                         <div class="flex items-end justify-between h-20 gap-2 mb-2">
                             {% for data in chartData %}
                                 {% set heightPercentage = (data.tonnage / (maxChartValue > 0 ? maxChartValue : 1)) * 100 %}
-                                <div class="w-full {% if data.tonnage > 0 %}bg-primary-container shadow-[0_0_15px_var(--theme-shadow)]{% else %}bg-white/5{% endif %} rounded-t-[1px] transition-all duration-1000" 
-                                     style="height: {{ heightPercentage > 5 ? heightPercentage : 5 }}%;"
-                                     title="{{ data.tonnage }} KG">
+                                <div
+                                    class="w-full {% if data.tonnage > 0 %}bg-primary-container shadow-[0_0_15px_var(--theme-shadow)]{% else %}bg-white/5{% endif %} rounded-t-[1px] transition-all duration-1000"
+                                    style="height: {{ heightPercentage > 5 ? heightPercentage : 5 }}%;"
+                                    title="{{ data.tonnage }} KG"
+                                >
                                 </div>
                             {% endfor %}
                         </div>

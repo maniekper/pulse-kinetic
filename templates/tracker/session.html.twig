@@ -6,13 +6,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
-        .kinetic-stripe::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: var(--theme-main); }
-        .sheared-progress { clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%); }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { background-color: #0e0e0e !important; }
-        
+        .kinetic-stripe::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: var(--theme-main);
+        }
+        .sheared-progress {
+            clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+                "FILL" 0,
+                "wght" 400,
+                "GRAD" 0,
+                "opsz" 24;
+            vertical-align: middle;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            background-color: #0e0e0e !important;
+        }
+
         /* Usuwamy natywne strzałki w przeglądarce dla inputów liczbowych */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
@@ -24,7 +48,11 @@
         }
 
         /* Style dla mapy anatomicznej i animacji */
-        .muscle-group { transition: fill 0.4s ease, stroke 0.4s ease; }
+        .muscle-group {
+            transition:
+                fill 0.4s ease,
+                stroke 0.4s ease;
+        }
         .muscle-active-primary {
             fill: var(--theme-main) !important;
             stroke: var(--theme-main) !important;
@@ -34,446 +62,508 @@
             fill: var(--theme-shadow) !important;
             stroke: var(--theme-main) !important;
         }
-        .exercise-block { transition: opacity 0.3s ease; }
+        .exercise-block {
+            transition: opacity 0.3s ease;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-<!-- GIGANTYCZNY EKRAN STARTOWY (OVERLAY) -->
-<div id="readyOverlay" class="fixed inset-0 z-[99999] bg-[#0a0a0a]/95 backdrop-blur-xl flex flex-col items-center justify-center transition-all duration-700">
-    <h1 class="font-headline font-black text-4xl md:text-6xl text-white uppercase italic mb-16 tracking-tighter text-center leading-tight">
-        JESTEŚ GOTOWY?<br><span class="text-primary-container">ZACZYNAMY!</span>
-    </h1>
-    <button type="button" onclick="startWorkoutSession()" class="w-48 h-48 md:w-64 md:h-64 rounded-full bg-primary-container text-[#111111] font-headline font-black text-5xl md:text-7xl flex items-center justify-center hover:scale-110 hover:bg-primary-dim transition-all shadow-[0_0_100px_rgba(209,252,0,0.4)] cursor-pointer tracking-tighter">
-        GO
-    </button>
-</div>
-
-<div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
-   <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ -->
-<div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center hidden">
-    <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-12">ODPOCZYNEK</h2>
+    <!-- GIGANTYCZNY EKRAN STARTOWY (OVERLAY) -->
+    <div id="readyOverlay" class="fixed inset-0 z-[99999] bg-[#0a0a0a]/95 backdrop-blur-xl flex flex-col items-center justify-center transition-all duration-700 p-6">
     
-    <div class="relative flex items-center justify-center w-64 h-64 mb-12">
-        <svg class="w-full h-full -rotate-90">
-            <circle class="text-surface-container-highest" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-width="8"></circle>
-            <circle id="mobileRestTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-width="8" stroke-linecap="round"></circle>
-        </svg>
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span id="mobileRestTimerDisplay" class="font-headline text-7xl font-black text-on-surface">--:--</span>
-        </div>
-    </div>
+        <h1 class="font-headline font-black text-4xl md:text-6xl text-white uppercase italic mb-8 tracking-tighter text-center leading-tight">
+            JESTEŚ GOTOWY?<br><span class="text-primary-container">ZACZYNAMY!</span>
+        </h1>
 
-    <div class="flex gap-4 w-full px-8 max-w-sm relative z-50">
-        <button type="button" onclick="addRestTime(30)" class="cursor-pointer flex-1 bg-surface-container-highest text-on-surface py-5 font-headline font-bold text-sm uppercase tracking-widest border border-outline-variant/30 active:bg-outline-variant transition-colors">
-            +30s
-        </button>
-       <button type="button" onclick="document.getElementById('mobileRestOverlay').classList.add('hidden'); document.getElementById('mobileRestOverlay').classList.remove('flex'); skipRestTime();" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(209,252,0,0.2)] active:scale-95 transition-all">
-    POMIŃ
-</button>
-    </div>
-</div>
-    <!-- TopAppBar -->
-    <header class="fixed top-0 w-full border-none bg-[#0e0e0e] flex justify-between items-center px-6 h-16 z-50">
-        <div class="flex items-center gap-4">
-            <span class="text-xl font-black text-primary-container tracking-widest font-headline uppercase italic">PULSE KINETIC</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary-container">timer</span>
-                <span class="font-headline font-bold text-primary-container tracking-tighter text-lg" id="globalWorkoutTimer">00:00</span>
+        <!-- Wskazówki dobierania ciężaru (Kinetic Coach) -->
+        {% set currentGoalName = app.user.currentGoal ? app.user.currentGoal.name|lower : '' %}
+    
+        <div class="max-w-2xl w-full bg-[#131313] border-l-4 border-primary-container p-6 mb-12 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary-container/5 rounded-full blur-3xl"></div>
+            <div class="flex items-center gap-3 mb-4 relative z-10 border-b border-outline-variant/20 pb-3">
+                <span class="material-symbols-outlined text-primary-container text-2xl">psychology</span>
+                <h2 class="font-headline font-black text-sm text-outline uppercase tracking-widest">Twoje założenia (Dobór Ciężaru)</h2>
             </div>
+        
+            <ul class="space-y-4 font-body text-sm text-on-surface-variant relative z-10">
+                {% if 'sił' in currentGoalName %}
+                    <li class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-error text-xl shrink-0 mt-0.5">fitness_center</span>
+                        <div>
+                            <strong class="text-white uppercase font-headline tracking-wide">Cel: Siła (1-5 powt.)</strong><br>
+                            Ciężar musi być ekstremalnie wymagający. Ostatnie powtórzenie wykonujesz z maksymalnym wysiłkiem.
+                            <br><span class="text-error font-bold">Zapas sił: 0 powtórzeń (tzw. RIR 0).</span> Kończysz serię, gdy nie masz już siły na podniesienie sztangi ani jeden raz więcej.
+                        </div>
+                    </li>
+                {% elseif 'redukcj' in currentGoalName or 'rzeźb' in currentGoalName %}
+                    <li class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-tertiary-container text-xl shrink-0 mt-0.5">fitness_center</span>
+                        <div>
+                            <strong class="text-white uppercase font-headline tracking-wide">Cel: Rzeźba / Wytrzymałość (12-20 powt.)</strong><br>
+                            Umiarkowany ciężar, liczy się ciągła praca i mocne pieczenie mięśnia. Nie trenujesz do całkowitego upadku siłowego.
+                            <br><span class="text-tertiary-container font-bold">Zapas sił: 2-3 powtórzenia (tzw. RIR 2-3).</span> Przerywasz serię, czując, że z dużym wysiłkiem dałbyś radę zrobić jeszcze 2 lub 3 powtórzenia.
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="flex items-start gap-3">
+                        <span class="material-symbols-outlined text-primary-container text-xl shrink-0 mt-0.5">fitness_center</span>
+                        <div>
+                            <strong class="text-white uppercase font-headline tracking-wide">Cel: Masa / Hipertrofia (6-12 powt.)</strong><br>
+                            Ciężar musi być wymagający, ale powinieneś zachować dobrą technikę i pełną kontrolę nad sztangą.
+                            <br><span class="text-primary-container font-bold">Zapas sił: 1-2 powtórzenia (tzw. RIR 1-2).</span> Przerywasz serię w momencie, gdy wiesz, że wykrzesałbyś z siebie jeszcze najwyżej 1 lub 2 powtórzenia.
+                        </div>
+                    </li>
+                {% endif %}
+            </ul>
         </div>
-    </header>
 
-    <!-- Własny Modal Błędu (Stylizowany) -->
-    <div id="customAlertModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
-        <div class="bg-surface-container border-l-4 border-error-container p-8 max-w-md w-full mx-4 shadow-2xl relative">
-            <div class="flex items-start gap-4 mb-6">
-                <span class="material-symbols-outlined text-error-container text-4xl">warning</span>
-                <div>
-                    <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Błąd Walidacji</h3>
-                    <p id="customAlertMessage" class="font-body text-on-surface-variant text-sm"></p>
+        <button type="button" onclick="startWorkoutSession()" class="w-32 h-32 md:w-48 md:h-48 rounded-full bg-primary-container text-[#111111] font-headline font-black text-4xl md:text-6xl flex items-center justify-center hover:scale-110 hover:bg-primary-dim transition-all shadow-[0_0_80px_rgba(209,252,0,0.3)] cursor-pointer tracking-tighter shrink-0">
+            GO
+        </button>
+    </div>
+
+    <div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
+        <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ -->
+        <div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center hidden">
+            <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-12">ODPOCZYNEK</h2>
+    
+            <div class="relative flex items-center justify-center w-64 h-64 mb-12">
+                <svg class="w-full h-full -rotate-90">
+                    <circle class="text-surface-container-highest" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-width="8"></circle>
+                    <circle id="mobileRestTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-width="8" stroke-linecap="round"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="mobileRestTimerDisplay" class="font-headline text-7xl font-black text-on-surface">--:--</span>
                 </div>
             </div>
-            <div class="flex justify-end">
-                <button type="button" onclick="closeCustomAlert()" class="bg-[#131313] hover:bg-error-container text-white px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest transition-colors border border-outline-variant/30">
-                    ROZUMIEM
+
+            <div class="flex gap-4 w-full px-8 max-w-sm relative z-50">
+                <button type="button" onclick="addRestTime(30)" class="cursor-pointer flex-1 bg-surface-container-highest text-on-surface py-5 font-headline font-bold text-sm uppercase tracking-widest border border-outline-variant/30 active:bg-outline-variant transition-colors">
+                    +30s
+                </button>
+                <button type="button" onclick="document.getElementById('mobileRestOverlay').classList.add('hidden'); document.getElementById('mobileRestOverlay').classList.remove('flex'); skipRestTime();" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(209,252,0,0.2)] active:scale-95 transition-all">
+                    POMIŃ
                 </button>
             </div>
         </div>
-    </div>
-
-    <main class="pt-24 pb-48 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Header Section -->
-        <div class="lg:col-span-12 mb-4">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <span class="font-label text-xs font-bold text-outline uppercase tracking-[0.2em] mb-1 block">Session Active</span>
-                    <h1 class="font-headline text-3xl md:text-5xl font-extrabold uppercase tracking-tighter text-on-surface italic">
-                        TRENING W TOKU: <span class="text-primary-container">{{ app.user.currentGoal ? app.user.currentGoal.name : 'TRENING' }}</span>
-                    </h1>
+        <!-- TopAppBar -->
+        <header class="fixed top-0 w-full border-none bg-[#0e0e0e] flex justify-between items-center px-6 h-16 z-50">
+            <div class="flex items-center gap-4">
+                <span class="text-xl font-black text-primary-container tracking-widest font-headline uppercase italic">PULSE KINETIC</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary-container">timer</span>
+                    <span class="font-headline font-bold text-primary-container tracking-tighter text-lg" id="globalWorkoutTimer">00:00</span>
                 </div>
-                <div class="w-full md:w-72">
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase">Progress</span>
-                        <span class="font-headline font-bold text-primary-container" id="workoutProgressText">0%</span>
+            </div>
+        </header>
+
+        <!-- Własny Modal Błędu (Stylizowany) -->
+        <div id="customAlertModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
+            <div class="bg-surface-container border-l-4 border-error-container p-8 max-w-md w-full mx-4 shadow-2xl relative">
+                <div class="flex items-start gap-4 mb-6">
+                    <span class="material-symbols-outlined text-error-container text-4xl">warning</span>
+                    <div>
+                        <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Błąd Walidacji</h3>
+                        <p id="customAlertMessage" class="font-body text-on-surface-variant text-sm"></p>
                     </div>
-                    <div class="h-2 bg-surface-container-highest w-full sheared-progress">
-                        <div class="h-full bg-primary-container w-0" id="workoutProgressBar" style="transition: width 0.3s ease;"></div>
-                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" onclick="closeCustomAlert()" class="bg-[#131313] hover:bg-error-container text-white px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest transition-colors border border-outline-variant/30">
+                        ROZUMIEM
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Main Execution Area (KONTENER NA ĆWICZENIA) -->
-        <div class="lg:col-span-8 relative" id="exercisesContainer">
-            {% for machineName, sets in groupedSets %}
-                
-                {% set primaryMuscleNames = [] %}
-                {% for m in sets[0].machine.primaryMuscles %}
-                    {% set primaryMuscleNames = primaryMuscleNames|merge([m.name]) %}
-                {% endfor %}
-                {% set secondaryMuscleNames = [] %}
-                {% for m in sets[0].machine.secondaryMuscles %}
-                    {% set secondaryMuscleNames = secondaryMuscleNames|merge([m.name]) %}
-                {% endfor %}
-
-                <!-- BLOK ĆWICZENIA -->
-                <section class="bg-surface-container p-6 relative exercise-block" 
-                         data-machine-id="{{ sets[0].machine.id }}"
-                         data-primary-muscles="{{ primaryMuscleNames|join(',') }}"
-                         data-secondary-muscles="{{ secondaryMuscleNames|join(',') }}"
-                         data-rest-time="{{ restTimes[machineName] }}"
-                         style="display: none;">
-                    
-                    <div class="flex flex-col gap-6">
-                        <div class="flex flex-col gap-6 items-start">
-                            <div class="flex-1 flex flex-col w-full">
-                                
-                                <!-- NAGŁÓWEK Z PRZYCISKIEM POMINIĘCIA -->
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-outline-variant/20 pb-4">
-                                    <h2 class="font-headline text-3xl md:text-4xl font-black uppercase leading-none tracking-tighter italic m-0">
-                                        <span class="ex-number text-primary-container">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</span>. {{ machineName }}
-                                    </h2>
-                                    <button type="button" onclick="skipOccupiedMachine()" class="shrink-0 bg-[#131313] border border-outline-variant/30 text-[#767575] hover:text-primary-container hover:border-primary-container/50 px-4 py-2 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer shadow-lg">
-                                        <span class="material-symbols-outlined text-sm">skip_next</span>
-                                        NASTĘPNE ĆWICZENIE
-                                    </button>
-                                </div>
-                                
-                                <!-- Zdjęcia Maszyny -->
-<!-- SEKCJA ZDJĘĆ FAZ - W PEŁNI RESPONSYWNA -->
-<div class="w-full flex flex-col gap-4 shrink-0 mb-8 max-w-4xl mx-auto">
-    <div class="grid grid-cols-2 gap-6">
-        
-        <!-- FAZA 1 -->
-        <div class="relative bg-[#1a1a1a] border border-white/10 flex items-center justify-center overflow-hidden aspect-[4/5] shadow-xl">
-            <span class="absolute top-4 left-4 bg-black px-3 py-1.5 font-headline font-black text-[12px] text-white tracking-widest uppercase z-10 border border-white/20">F1</span>
-            <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-cover mix-blend-luminosity opacity-90">
-        </div>
-        
-        <!-- FAZA 2 -->
-        <div class="relative bg-[#1a1a1a] border border-white/10 flex items-center justify-center overflow-hidden aspect-[4/5] shadow-xl">
-            <span class="absolute top-4 left-4 bg-black px-3 py-1.5 font-headline font-black text-[12px] text-white tracking-widest uppercase z-10 border border-white/20">F2</span>
-            <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-cover mix-blend-luminosity opacity-90">
-        </div>
-        
-    </div>
-</div>
-                                
-                                <p class="text-on-surface-variant font-body text-sm max-w-2xl mb-8 leading-relaxed">
-                                    {{ sets[0].machine.description }}
-                                </p>
-
-                                <!-- Nagłówki tabeli -->
-                                <div class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-4 border-b border-outline-variant/20">
-                                    <div class="col-span-2 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase">Set</div>
-                                    <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">KG</div>
-                                    <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">REPS</div>
-                                    <div class="col-span-2 text-right"></div>
-                                </div>
-
-                                <!-- Serie (Wiersze) -->
-                                {% for set in sets %}
-                                    <div id="set-row-{{ set.id }}" class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-3 items-center set-row relative {% if set.isCompleted %}opacity-50 bg-surface-container-low{% else %}kinetic-stripe bg-surface-container-high{% endif %}" data-set-id="{{ set.id }}">
-                                        <div class="col-span-2 font-headline font-bold text-xl md:text-2xl set-number {% if set.isCompleted %}text-on-surface{% else %}text-primary-container{% endif %}">
-                                            {{ set.setNumber > 9 ? set.setNumber : '0' ~ set.setNumber }}
-                                        </div>
-                                        
-                                        <!-- CIĘŻAR (KG) -->
-                                        <div class="col-span-4 px-1 md:px-2">
-                                            {% if set.isCompleted %}
-                                                <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">{{ set.weight }}</div>
-                                            {% else %}
-                                                <div class="flex items-stretch h-11 border border-outline-variant/30 bg-[#131313]">
-                                                    <button type="button" onclick="adjustValue('weight-{{ set.id }}', -2.5)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
-                                                    <input type="number" step="2.5" id="weight-{{ set.id }}" class="w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0" value="{{ set.weight > 0 ? set.weight : '' }}">
-                                                    <button type="button" onclick="adjustValue('weight-{{ set.id }}', 2.5)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <!-- POWTÓRZENIA (REPS) -->
-                                        <div class="col-span-4 px-1 md:px-2">
-                                            {% if set.isCompleted %}
-                                                <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">{{ set.reps }}</div>
-                                            {% else %}
-                                                <div class="flex items-stretch h-11 border border-outline-variant/30 bg-[#131313]">
-                                                    <button type="button" onclick="adjustValue('reps-{{ set.id }}', -1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
-                                                    <input type="number" step="1" id="reps-{{ set.id }}" class="w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0" value="{{ set.reps > 0 ? set.reps : '' }}">
-                                                    <button type="button" onclick="adjustValue('reps-{{ set.id }}', 1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="col-span-2 text-right pe-2 set-action-container">
-                                            {% if set.isCompleted %}
-                                                <span class="material-symbols-outlined text-primary-container">check_circle</span>
-                                            {% else %}
-                                                <button class="material-symbols-outlined text-outline hover:text-primary-container transition-colors save-set-btn cursor-pointer text-3xl" onclick="saveSet({{ set.id }}, this)">check</button>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                {% endfor %}
-<!-- MODUŁ CARDIO (Opcjonalny Finisher) -->
-<div class="mt-8 mb-8 bg-surface-container border border-outline-variant/30 p-6 relative">
-    <div class="flex items-center gap-3 mb-6 border-b border-outline-variant/20 pb-4">
-        <span class="material-symbols-outlined text-primary-container text-3xl">directions_run</span>
-        <h3 class="font-headline text-2xl font-black text-on-surface uppercase tracking-tighter italic">Opcjonalne Cardio</h3>
-    </div>
-    
-    <!-- WIRTUALNY TRENER -->
-    {% set goalName = app.user.currentGoal ? app.user.currentGoal.name|lower : '' %}
-    
-    <div class="bg-[#131313] p-4 border-l-2 border-primary-container mb-6">
-        <h4 class="font-headline font-bold text-outline text-[10px] uppercase tracking-widest mb-2">Wskazówka Trenerska</h4>
-        
-        {% if 'redukcj' in goalName or 'rzeźb' in goalName %}
-            <p class="font-body text-sm text-on-surface-variant leading-relaxed">
-                <span class="text-primary-container font-bold">Cel: Redukcja.</span> Trening siłowy uszczuplił zapasy Twojego glikogenu. Celuj w <strong class="text-on-surface">25 - 45 minut</strong> na wybranej maszynie o stałym, umiarkowanym tempie, aby zmaksymalizować spalanie tkanki tłuszczowej.
-            </p>
-        {% elseif 'sił' in goalName %}
-            <p class="font-body text-sm text-on-surface-variant leading-relaxed">
-                <span class="text-primary-container font-bold">Cel: Budowa Siły.</span> Zrób maksymalnie <strong class="text-on-surface">5 - 10 minut</strong> lekkiego schłodzenia (cool-down). Zbyt długa sesja zmęczy układ nerwowy i opóźni regenerację.
-            </p>
-        {% else %}
-            <p class="font-body text-sm text-on-surface-variant leading-relaxed">
-                <span class="text-primary-container font-bold">Cel: Hipertrofia.</span> Zrób <strong class="text-on-surface">15 - 20 minut</strong> o umiarkowanej intensywności. Poprawisz przepływ krwi i ułatwisz dostarczanie składników odżywczych do mięśni.
-            </p>
-        {% endif %}
-    </div>
-
-    <!-- FORMULARZ -->
-<form action="{{ path('app_tracker_add_cardio', {'id': session.id}) }}" method="POST">
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-[#131313] p-4 border border-outline-variant/30">
-        
-        <!-- MASZYNA -->
-        <div class="md:col-span-3">
-            <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block">Maszyna</label>
-            <select name="machine_id" required class="w-full bg-surface-container-highest border-none text-on-surface font-headline font-bold text-sm focus:ring-1 focus:ring-primary-container p-3 h-12">
-                <option value="">Wybierz...</option>
-                {% for cardio in cardioMachines %}
-                    <option value="{{ cardio.id }}">{{ cardio.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- INTELIGENTNY CZAS (DYNAMICZNIE ZAZNACZANY) -->
-        {% set defaultTime = 20 %}
-        {% if 'redukcj' in goalName or 'rzeźb' in goalName %}
-            {% set defaultTime = 35 %}
-        {% elseif 'sił' in goalName %}
-            {% set defaultTime = 5 %}
-        {% endif %}
-
-        <div class="md:col-span-3">
-            <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block">Czas (min)</label>
-            <select name="duration" required class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12">
-                {% for i in range(5, 60, 5) %}
-                    <option value="{{ i }}" {% if i == defaultTime %}selected{% endif %}>{{ i }} min</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- PRĘDKOŚĆ -->
-        <div class="md:col-span-2">
-            <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block" title="km/h lub poziom">Szybkość</label>
-            <input type="number" step="0.1" name="speed" class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12 m-0" placeholder="0">
-        </div>
-
-        <!-- POCHYLENIE -->
-        <div class="md:col-span-2">
-            <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block" title="Poziom lub stopnie">Pochył</label>
-            <input type="number" step="0.1" name="incline" class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12 m-0" placeholder="0">
-        </div>
-
-        <!-- PRZYCISK -->
-        <div class="md:col-span-2">
-            <button type="submit" class="w-full h-12 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-headline font-bold text-xs uppercase tracking-widest border border-outline-variant/30 cursor-pointer">
-                + ZAPISZ
-            </button>
-        </div>
-    </div>
-</form>
-
-<!-- WYKAZ DODANYCH SESJI -->
-{% if session.cardioSessions|length > 0 %}
-    <div class="mt-6 pt-4 border-t border-outline-variant/20">
-        <h4 class="font-headline text-[10px] font-bold text-outline tracking-widest uppercase mb-3">Zapisane sesje Cardio</h4>
-        <div class="space-y-2">
-            {% for c in session.cardioSessions %}
-                <div class="bg-surface-container-high border-l-2 border-primary-container px-4 py-3 flex flex-col md:flex-row justify-between md:items-center gap-2">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-primary-container text-sm">check_circle</span>
-                        <span class="font-headline font-bold text-sm text-on-surface uppercase">{{ c.machine.name }}</span>
+        <main class="pt-24 pb-48 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Header Section -->
+            <div class="lg:col-span-12 mb-4">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <span class="font-label text-xs font-bold text-outline uppercase tracking-[0.2em] mb-1 block">Session Active</span>
+                        <h1 class="font-headline text-3xl md:text-5xl font-extrabold uppercase tracking-tighter text-on-surface italic">
+                            TRENING W TOKU: <span class="text-primary-container">{{ app.user.currentGoal ? app.user.currentGoal.name : 'TRENING' }}</span>
+                        </h1>
                     </div>
-                    <div class="flex gap-4 font-headline text-xs font-bold text-on-surface-variant uppercase">
-                        <span>⏱ {{ c.durationMinutes }} min</span>
-                        {% if c.speed %}<span>| ⚡ Szyb: {{ c.speed }}</span>{% endif %}
-                        {% if c.incline %}<span>| 🏔 Pochył: {{ c.incline }}</span>{% endif %}
+                    <div class="w-full md:w-72">
+                        <div class="flex justify-between items-end mb-2">
+                            <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase">Progress</span>
+                            <span class="font-headline font-bold text-primary-container" id="workoutProgressText">0%</span>
+                        </div>
+                        <div class="h-2 bg-surface-container-highest w-full sheared-progress">
+                            <div class="h-full bg-primary-container w-0" id="workoutProgressBar" style="transition: width 0.3s ease;"></div>
+                        </div>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
+            </div>
 
-                                <!-- ZMODYFIKOWANA NAWIGACJA (Działa na podstawie JS) -->
-                                <div class="flex justify-between items-center mt-8 pt-6 border-t border-outline-variant/20">
-                                    <button type="button" onclick="navigateExercise(-1)" class="prev-ex-btn text-outline hover:text-primary-container flex items-center gap-2 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors">
-                                        <span class="material-symbols-outlined text-lg">arrow_back</span> POPRZEDNIE
-                                    </button>
-                                    <div class="font-headline font-bold text-outline text-[10px] tracking-widest uppercase text-center px-4 current-ex-label">
-                                        ĆWICZENIE -- Z --
+            <!-- Main Execution Area (KONTENER NA ĆWICZENIA) -->
+            <div class="lg:col-span-8 relative" id="exercisesContainer">
+        
+                {% for machineName, sets in groupedSets %}
+                
+                    {% set primaryMuscleNames = [] %}
+                    {% for m in sets[0].machine.primaryMuscles %}
+                        {% set primaryMuscleNames = primaryMuscleNames|merge([m.name]) %}
+                    {% endfor %}
+                    {% set secondaryMuscleNames = [] %}
+                    {% for m in sets[0].machine.secondaryMuscles %}
+                        {% set secondaryMuscleNames = secondaryMuscleNames|merge([m.name]) %}
+                    {% endfor %}
+
+                    <!-- BLOK ĆWICZENIA -->
+                    <section
+                        class="bg-surface-container p-6 relative exercise-block"
+                        data-machine-id="{{ sets[0].machine.id }}"
+                        data-primary-muscles="{{ primaryMuscleNames|join(',') }}"
+                        data-secondary-muscles="{{ secondaryMuscleNames|join(',') }}"
+                        data-rest-time="{{ restTimes[machineName] }}"
+                        style="display: none;"
+                    >
+                    
+                        <div class="flex flex-col gap-6">
+                            <div class="flex flex-col gap-6 items-start">
+                                <div class="flex-1 flex flex-col w-full">
+                                
+                                    <!-- NAGŁÓWEK Z PRZYCISKIEM POMINIĘCIA -->
+                                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-outline-variant/20 pb-4">
+                                        <h2 class="font-headline text-3xl md:text-4xl font-black uppercase leading-none tracking-tighter italic m-0">
+                                            <span class="ex-number text-primary-container">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</span>. {{ machineName }}
+                                        </h2>
+                                        <button type="button" onclick="skipOccupiedMachine()" class="shrink-0 bg-[#131313] border border-outline-variant/30 text-[#767575] hover:text-primary-container hover:border-primary-container/50 px-4 py-2 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer shadow-lg">
+                                            <span class="material-symbols-outlined text-sm">skip_next</span>
+                                            NASTĘPNE ĆWICZENIE
+                                        </button>
                                     </div>
-                                    <button type="button" onclick="navigateExercise(1)" class="next-ex-btn text-outline hover:text-primary-container flex items-center gap-2 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors">
-                                        NASTĘPNE <span class="material-symbols-outlined text-lg">arrow_forward</span>
-                                    </button>
-                                </div>
+                                
+                                    <!-- Zdjęcia Maszyny -->
+                                    <!-- SEKCJA ZDJĘĆ FAZ - W PEŁNI RESPONSYWNA -->
+                                    <div class="w-full flex flex-col gap-4 shrink-0 mb-8 max-w-4xl mx-auto">
+                                        <div class="grid grid-cols-2 gap-6">
+        
+                                            <!-- FAZA 1 -->
+                                            <div class="relative bg-[#1a1a1a] border border-white/10 flex items-center justify-center overflow-hidden aspect-[4/5] shadow-xl">
+                                                <span class="absolute top-4 left-4 bg-black px-3 py-1.5 font-headline font-black text-[12px] text-white tracking-widest uppercase z-10 border border-white/20">F1</span>
+                                                <img src="{{ asset('images/machines/' ~ sets[0].machine.imageStart) }}" class="w-full h-full object-cover mix-blend-luminosity opacity-90">
+                                            </div>
+        
+                                            <!-- FAZA 2 -->
+                                            <div class="relative bg-[#1a1a1a] border border-white/10 flex items-center justify-center overflow-hidden aspect-[4/5] shadow-xl">
+                                                <span class="absolute top-4 left-4 bg-black px-3 py-1.5 font-headline font-black text-[12px] text-white tracking-widest uppercase z-10 border border-white/20">F2</span>
+                                                <img src="{{ asset('images/machines/' ~ sets[0].machine.imageEnd) }}" class="w-full h-full object-cover mix-blend-luminosity opacity-90">
+                                            </div>
+        
+                                        </div>
+                                    </div>
+                                
+                                    <p class="text-on-surface-variant font-body text-sm max-w-2xl mb-8 leading-relaxed">
+                                        {{ sets[0].machine.description }}
+                                    </p>
 
+                                    <!-- Nagłówki tabeli -->
+                                    <div class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-4 border-b border-outline-variant/20">
+                                        <div class="col-span-2 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase">Set</div>
+                                        <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">KG</div>
+                                        <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">REPS</div>
+                                        <div class="col-span-2 text-right"></div>
+                                    </div>
+
+                                    <!-- Serie (Wiersze) -->
+                                    {% for set in sets %}
+                                        <div id="set-row-{{ set.id }}" class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-3 items-center set-row relative {% if set.isCompleted %}opacity-50 bg-surface-container-low{% else %}kinetic-stripe bg-surface-container-high{% endif %}" data-set-id="{{ set.id }}" data-target-reps="{{ set.reps }}">                                        <div class="col-span-2 font-headline font-bold text-xl md:text-2xl set-number {% if set.isCompleted %}text-on-surface{% else %}text-primary-container{% endif %}">
+                                                {{ set.setNumber > 9 ? set.setNumber : '0' ~ set.setNumber }}
+                                            </div>
+                                        
+                                            <!-- CIĘŻAR (KG) -->
+                                            <div class="col-span-4 px-1 md:px-2">
+                                                {% if set.isCompleted %}
+                                                    <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">{{ set.weight }}</div>
+                                                {% else %}
+                                                    <!-- Pobieramy krok maszyny, fallback na 2.5 -->
+                                                    {% set step = set.machine.incrementStep|default(2.5) %}
+        
+                                                    <div class="flex items-stretch h-11 border border-outline-variant/30 bg-[#131313]">
+                                                        <button type="button" onclick="adjustValue('weight-{{ set.id }}', -{{ step }})" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
+                                                        <input type="number" step="{{ step }}" id="weight-{{ set.id }}" class="w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0" value="{{ set.weight > 0 ? set.weight : '' }}">
+                                                        <button type="button" onclick="adjustValue('weight-{{ set.id }}', {{ step }})" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        
+                                            <!-- POWTÓRZENIA (REPS) -->
+                                            <div class="col-span-4 px-1 md:px-2">
+                                                {% if set.isCompleted %}
+                                                    <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">{{ set.reps }}</div>
+                                                {% else %}
+                                                    <div class="flex items-stretch h-11 border border-outline-variant/30 bg-[#131313]">
+                                                        <button type="button" onclick="adjustValue('reps-{{ set.id }}', -1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
+                                                        <input type="number" step="1" id="reps-{{ set.id }}" class="w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0" value="{{ set.reps > 0 ? set.reps : '' }}">
+                                                        <button type="button" onclick="adjustValue('reps-{{ set.id }}', 1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        
+                                            <div class="col-span-2 text-right pe-2 set-action-container">
+                                                {% if set.isCompleted %}
+                                                    <span class="material-symbols-outlined text-primary-container">check_circle</span>
+                                                {% else %}
+                                                    <button class="material-symbols-outlined text-outline hover:text-primary-container transition-colors save-set-btn cursor-pointer text-3xl" onclick="saveSet({{ set.id }}, this)">check</button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <!-- WIRTUALNY TRENER (DYNAMICZNY BANER DLA KAŻDEGO ĆWICZENIA) -->
+                                    <div id="coach-message-box-{{ sets[0].machine.id }}" class="hidden mb-4 mx-2 md:mx-6 bg-[#131313] border-l-4 border-primary-container p-4 shadow-2xl relative overflow-hidden transition-all duration-500 transform translate-y-[-10px] opacity-0">
+                                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary-container/5 rounded-full blur-3xl"></div>
+                                        <div class="flex items-start gap-4 relative z-10">
+                                            <span class="material-symbols-outlined text-primary-container text-3xl animate-bounce" style="animation-duration: 2s;">tips_and_updates</span>
+                                            <div>
+                                                <h3 class="font-headline font-black text-xs text-outline uppercase tracking-[0.2em] mb-1">Analiza Serii</h3>
+                                                <p id="coach-message-text-{{ sets[0].machine.id }}" class="font-body text-on-surface text-sm leading-relaxed font-medium"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- MODUŁ CARDIO (Opcjonalny Finisher) -->
+                                    <div class="mt-8 mb-8 bg-surface-container border border-outline-variant/30 p-6 relative">
+                                        <div class="flex items-center gap-3 mb-6 border-b border-outline-variant/20 pb-4">
+                                            <span class="material-symbols-outlined text-primary-container text-3xl">directions_run</span>
+                                            <h3 class="font-headline text-2xl font-black text-on-surface uppercase tracking-tighter italic">Opcjonalne Cardio</h3>
+                                        </div>
+    
+                                        <!-- WIRTUALNY TRENER -->
+                                        {% set goalName = app.user.currentGoal ? app.user.currentGoal.name|lower : '' %}
+    
+                                        <div class="bg-[#131313] p-4 border-l-2 border-primary-container mb-6">
+                                            <h4 class="font-headline font-bold text-outline text-[10px] uppercase tracking-widest mb-2">Wskazówka Trenerska</h4>
+        
+                                            {% if 'redukcj' in goalName or 'rzeźb' in goalName %}
+                                                <p class="font-body text-sm text-on-surface-variant leading-relaxed">
+                                                    <span class="text-primary-container font-bold">Cel: Redukcja.</span> Trening siłowy uszczuplił zapasy Twojego glikogenu. Celuj w <strong class="text-on-surface">25 - 45 minut</strong> na wybranej maszynie o stałym, umiarkowanym tempie, aby zmaksymalizować spalanie tkanki tłuszczowej.
+                                                </p>
+                                            {% elseif 'sił' in goalName %}
+                                                <p class="font-body text-sm text-on-surface-variant leading-relaxed">
+                                                    <span class="text-primary-container font-bold">Cel: Budowa Siły.</span> Zrób maksymalnie <strong class="text-on-surface">5 - 10 minut</strong> lekkiego schłodzenia (cool-down). Zbyt długa sesja zmęczy układ nerwowy i opóźni regenerację.
+                                                </p>
+                                            {% else %}
+                                                <p class="font-body text-sm text-on-surface-variant leading-relaxed">
+                                                    <span class="text-primary-container font-bold">Cel: Hipertrofia.</span> Zrób <strong class="text-on-surface">15 - 20 minut</strong> o umiarkowanej intensywności. Poprawisz przepływ krwi i ułatwisz dostarczanie składników odżywczych do mięśni.
+                                                </p>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- FORMULARZ -->
+                                        <form action="{{ path('app_tracker_add_cardio', {'id': session.id}) }}" method="POST">
+                                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-[#131313] p-4 border border-outline-variant/30">
+        
+                                                <!-- MASZYNA -->
+                                                <div class="md:col-span-3">
+                                                    <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block">Maszyna</label>
+                                                    <select name="machine_id" required class="w-full bg-surface-container-highest border-none text-on-surface font-headline font-bold text-sm focus:ring-1 focus:ring-primary-container p-3 h-12">
+                                                        <option value="">Wybierz...</option>
+                                                        {% for cardio in cardioMachines %}
+                                                            <option value="{{ cardio.id }}">{{ cardio.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+        
+                                                <!-- INTELIGENTNY CZAS (DYNAMICZNIE ZAZNACZANY) -->
+                                                {% set defaultTime = 20 %}
+                                                {% if 'redukcj' in goalName or 'rzeźb' in goalName %}
+                                                    {% set defaultTime = 35 %}
+                                                {% elseif 'sił' in goalName %}
+                                                    {% set defaultTime = 5 %}
+                                                {% endif %}
+
+                                                <div class="md:col-span-3">
+                                                    <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block">Czas (min)</label>
+                                                    <select name="duration" required class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12">
+                                                        {% for i in range(5, 60, 5) %}
+                                                            <option value="{{ i }}" {% if i == defaultTime %}selected{% endif %}>{{ i }} min</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+        
+                                                <!-- PRĘDKOŚĆ -->
+                                                <div class="md:col-span-2">
+                                                    <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block" title="km/h lub poziom">Szybkość</label>
+                                                    <input type="number" step="0.1" name="speed" class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12 m-0" placeholder="0">
+                                                </div>
+
+                                                <!-- POCHYLENIE -->
+                                                <div class="md:col-span-2">
+                                                    <label class="font-headline text-[10px] font-bold text-outline tracking-tighter uppercase mb-2 block" title="Poziom lub stopnie">Pochył</label>
+                                                    <input type="number" step="0.1" name="incline" class="w-full bg-surface-container-highest border-none text-center text-on-surface font-headline font-black text-xl focus:ring-0 p-0 h-12 m-0" placeholder="0">
+                                                </div>
+
+                                                <!-- PRZYCISK -->
+                                                <div class="md:col-span-2">
+                                                    <button type="submit" class="w-full h-12 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-headline font-bold text-xs uppercase tracking-widest border border-outline-variant/30 cursor-pointer">
+                                                        + ZAPISZ
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+
+                                        <!-- WYKAZ DODANYCH SESJI -->
+                                        {% if session.cardioSessions|length > 0 %}
+                                            <div class="mt-6 pt-4 border-t border-outline-variant/20">
+                                                <h4 class="font-headline text-[10px] font-bold text-outline tracking-widest uppercase mb-3">Zapisane sesje Cardio</h4>
+                                                <div class="space-y-2">
+                                                    {% for c in session.cardioSessions %}
+                                                        <div class="bg-surface-container-high border-l-2 border-primary-container px-4 py-3 flex flex-col md:flex-row justify-between md:items-center gap-2">
+                                                            <div class="flex items-center gap-3">
+                                                                <span class="material-symbols-outlined text-primary-container text-sm">check_circle</span>
+                                                                <span class="font-headline font-bold text-sm text-on-surface uppercase">{{ c.machine.name }}</span>
+                                                            </div>
+                                                            <div class="flex gap-4 font-headline text-xs font-bold text-on-surface-variant uppercase">
+                                                                <span>⏱ {{ c.durationMinutes }} min</span>
+                                                                {% if c.speed %}<span>| ⚡ Szyb: {{ c.speed }}</span>{% endif %}
+                                                                {% if c.incline %}<span>| 🏔 Pochył: {{ c.incline }}</span>{% endif %}
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+
+                                        <!-- ZMODYFIKOWANA NAWIGACJA (Działa na podstawie JS) -->
+                                        <div class="flex justify-between items-center mt-8 pt-6 border-t border-outline-variant/20">
+                                            <button type="button" onclick="navigateExercise(-1)" class="prev-ex-btn text-outline hover:text-primary-container flex items-center gap-2 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors">
+                                                <span class="material-symbols-outlined text-lg">arrow_back</span> POPRZEDNIE
+                                            </button>
+                                            <div class="font-headline font-bold text-outline text-[10px] tracking-widest uppercase text-center px-4 current-ex-label">
+                                                ĆWICZENIE -- Z --
+                                            </div>
+                                            <button type="button" onclick="navigateExercise(1)" class="next-ex-btn text-outline hover:text-primary-container flex items-center gap-2 font-headline font-bold text-[10px] md:text-xs uppercase tracking-widest transition-colors">
+                                                NASTĘPNE <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                    </section>
+                {% endfor %}
+            </div>
+
+            <!-- Sidebar Section -->
+            <aside class="lg:col-span-4 space-y-6">
+            
+                <!-- TIMER & ANATOMIA -->
+                <section class="bg-surface-container p-6 flex flex-col items-center justify-center text-center sticky top-24 z-40">
+                    <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Interwał Odpoczynku</span>
+                
+                    <div id="restTimerContainer" class="relative flex items-center justify-center w-48 h-48 mb-6">
+                        <button id="startRestBtn" onclick="initiateRest()" class="absolute inset-0 w-full h-full rounded-full border-[6px] border-outline-variant/20 flex flex-col items-center justify-center text-outline hover:text-primary-container hover:border-primary-container/50 hover:bg-primary-container/5 transition-all cursor-pointer bg-surface-container-highest z-20">
+                            <span class="material-symbols-outlined text-[3rem] mb-1">timer</span>
+                            <span class="font-headline font-black text-xs uppercase tracking-widest">START PRZERWY</span>
+                        </button>
+
+                        <div id="timerView" class="hidden absolute inset-0 w-full h-full z-10">
+                            <svg class="w-full h-full -rotate-90">
+                                <circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="4"></circle>
+                                <circle id="restTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="0" stroke-width="4"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span id="restTimerDisplay" class="font-headline text-4xl font-black text-on-surface">--:--</span>
+                                <span class="font-label text-[10px] text-outline uppercase tracking-widest">Pozostało</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="flex w-full gap-2 mb-6">
+                        <button onclick="addRestTime(30)" class="flex-1 border border-outline-variant/40 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors text-on-surface">
+                            +30s
+                        </button>
+                        <button onclick="skipRestTime()" class="flex-1 bg-surface-container-highest py-3 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary-container text-outline transition-colors">
+                            POMIŃ
+                        </button>
+                    </div>
+                    <div id="targetRestTimeData" data-time="0" class="hidden"></div>
+
+                    <!-- MAPA ANATOMICZNA -->
+                    <div class="w-full pt-6 border-t border-outline-variant/20 flex flex-col items-center">
+                        <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Aktywacja Mięśni</span>
+              
+                        {% include 'components/_anatomy_map.html.twig' %}
+       
+                        <div class="mt-4 flex flex-wrap gap-2 justify-center" id="anatomyLabels"></div>
                     </div>
                 </section>
-            {% endfor %}
-        </div>
 
-        <!-- Sidebar Section -->
-        <aside class="lg:col-span-4 space-y-6">
-            
-            <!-- TIMER & ANATOMIA -->
-            <section class="bg-surface-container p-6 flex flex-col items-center justify-center text-center sticky top-24 z-40">
-                <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Interwał Odpoczynku</span>
-                
-                <div id="restTimerContainer" class="relative flex items-center justify-center w-48 h-48 mb-6">
-                    <button id="startRestBtn" onclick="initiateRest()" class="absolute inset-0 w-full h-full rounded-full border-[6px] border-outline-variant/20 flex flex-col items-center justify-center text-outline hover:text-primary-container hover:border-primary-container/50 hover:bg-primary-container/5 transition-all cursor-pointer bg-surface-container-highest z-20">
-                        <span class="material-symbols-outlined text-[3rem] mb-1">timer</span>
-                        <span class="font-headline font-black text-xs uppercase tracking-widest">START PRZERWY</span>
-                    </button>
-
-                    <div id="timerView" class="hidden absolute inset-0 w-full h-full z-10">
-                        <svg class="w-full h-full -rotate-90">
-                            <circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="4"></circle>
-                            <circle id="restTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="0" stroke-width="4"></circle>
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span id="restTimerDisplay" class="font-headline text-4xl font-black text-on-surface">--:--</span>
-                            <span class="font-label text-[10px] text-outline uppercase tracking-widest">Pozostało</span>
+                <!-- KONTENER NA KOLEJKĘ -->
+                <section class="bg-surface-container p-6 hidden md:block">
+                    <h3 class="font-headline text-lg font-bold uppercase tracking-tight mb-4 border-l-2 border-primary-container pl-3 text-on-surface">Kolejka Treningowa</h3>
+                    <div class="space-y-3" id="queueContainer">
+                        {% for machineName, sets in groupedSets %}
+                            <div class="queue-item flex items-center justify-between group p-3 transition-all border-l-2 border-transparent">
+                                <div class="flex items-center gap-3">
+                                    <div class="queue-number w-10 h-10 bg-surface-container-highest flex items-center justify-center font-headline font-black text-outline transition-colors">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</div>
+                                    <div>
+                                        <span class="block font-headline text-sm font-bold uppercase tracking-tight text-on-surface">{{ machineName }}</span>
+                                        <span class="block font-label text-[10px] text-outline uppercase font-bold">{{ sets|length }} SERII</span>
+                                    </div>
+                                </div>
+                                <span class="queue-icon material-symbols-outlined text-outline text-sm transition-colors">hourglass_empty</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </aside>
+            <!-- Własny Modal Potwierdzenia Zakończenia -->
+            <div id="customConfirmModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
+                <div class="bg-surface-container border-l-4 border-primary-container p-8 max-w-md w-full mx-4 shadow-2xl relative">
+                    <div class="flex items-start gap-4 mb-6">
+                        <span class="material-symbols-outlined text-primary-container text-4xl">task_alt</span>
+                        <div>
+                            <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Zakończenie Treningu</h3>
+                            <p class="font-body text-on-surface-variant text-sm">Czy na pewno chcesz zakończyć sesję i zapisać zdobyty tonaż do systemu?</p>
                         </div>
                     </div>
-                </div>
-
-                <div class="flex w-full gap-2 mb-6">
-                    <button onclick="addRestTime(30)" class="flex-1 border border-outline-variant/40 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors text-on-surface">
-                        +30s
-                    </button>
-                    <button onclick="skipRestTime()" class="flex-1 bg-surface-container-highest py-3 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary-container text-outline transition-colors">
-                        POMIŃ
-                    </button>
-                </div>
-                <div id="targetRestTimeData" data-time="0" class="hidden"></div>
-
-                <!-- MAPA ANATOMICZNA -->
-                <div class="w-full pt-6 border-t border-outline-variant/20 flex flex-col items-center">
-                    <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Aktywacja Mięśni</span>
-              
-                    {% include 'components/_anatomy_map.html.twig' %}
-       
-                    <div class="mt-4 flex flex-wrap gap-2 justify-center" id="anatomyLabels"></div>
-                </div>
-            </section>
-
-            <!-- KONTENER NA KOLEJKĘ -->
-            <section class="bg-surface-container p-6 hidden md:block">
-                <h3 class="font-headline text-lg font-bold uppercase tracking-tight mb-4 border-l-2 border-primary-container pl-3 text-on-surface">Kolejka Treningowa</h3>
-                <div class="space-y-3" id="queueContainer">
-                    {% for machineName, sets in groupedSets %}
-                        <div class="queue-item flex items-center justify-between group p-3 transition-all border-l-2 border-transparent">
-                            <div class="flex items-center gap-3">
-                                <div class="queue-number w-10 h-10 bg-surface-container-highest flex items-center justify-center font-headline font-black text-outline transition-colors">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</div>
-                                <div>
-                                    <span class="block font-headline text-sm font-bold uppercase tracking-tight text-on-surface">{{ machineName }}</span>
-                                    <span class="block font-label text-[10px] text-outline uppercase font-bold">{{ sets|length }} SERII</span>
-                                </div>
-                            </div>
-                            <span class="queue-icon material-symbols-outlined text-outline text-sm transition-colors">hourglass_empty</span>
-                        </div>
-                    {% endfor %}
-                </div>
-            </section>
-        </aside>
-        <!-- Własny Modal Potwierdzenia Zakończenia -->
-    <div id="customConfirmModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
-        <div class="bg-surface-container border-l-4 border-primary-container p-8 max-w-md w-full mx-4 shadow-2xl relative">
-            <div class="flex items-start gap-4 mb-6">
-                <span class="material-symbols-outlined text-primary-container text-4xl">task_alt</span>
-                <div>
-                    <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Zakończenie Treningu</h3>
-                    <p class="font-body text-on-surface-variant text-sm">Czy na pewno chcesz zakończyć sesję i zapisać zdobyty tonaż do systemu?</p>
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeCustomConfirm()" class="bg-[#131313] hover:bg-surface-container-highest text-white px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest transition-colors border border-outline-variant/30">
+                            ANULUJ
+                        </button>
+                        <button type="button" onclick="submitWorkoutForm()" class="bg-primary-container hover:bg-primary-dim text-on-primary-container px-6 py-3 font-headline font-black text-xs uppercase tracking-widest transition-colors shadow-lg">
+                            ZAKOŃCZ
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeCustomConfirm()" class="bg-[#131313] hover:bg-surface-container-highest text-white px-6 py-3 font-headline font-bold text-xs uppercase tracking-widest transition-colors border border-outline-variant/30">
-                    ANULUJ
+        </main>
+
+        <!-- Sticky Bottom Bar -->
+        <footer class="fixed bottom-0 left-0 w-full z-50 bg-[#0e0e0e]/95 backdrop-blur-md border-t border-outline-variant/30 px-6 md:px-12 py-4 flex flex-col md:flex-row gap-6 items-center justify-between shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+            <div class="flex gap-8 md:gap-12 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
+                <div class="flex flex-col shrink-0">
+                    <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Volume</span>
+                    <span class="font-headline font-black text-xl text-on-surface"><span id="totalVolumeCounter">0</span> KG</span>
+                </div>
+                <div class="flex flex-col shrink-0">
+                    <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Sets Done</span>
+                    <span class="font-headline font-black text-xl text-on-surface"><span id="setsCompletedCounter">0</span> / <span id="totalSetsCounter">0</span></span>
+                </div>
+                <div class="flex flex-col shrink-0">
+                    <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Session Time</span>
+                    <span class="font-headline font-black text-xl text-primary-container" id="sessionTimerBottom">00:00</span>
+                </div>
+            </div>
+            <div class="flex w-full md:w-auto gap-4 shrink-0">
+                <button onclick="finishWorkout()" class="flex-1 md:w-48 bg-transparent py-4 font-headline font-black text-xs uppercase tracking-[0.2em] hover:bg-error-container transition-all text-outline hover:text-white border border-outline-variant/30">
+                    ZAKOŃCZ TRENING
                 </button>
-                <button type="button" onclick="submitWorkoutForm()" class="bg-primary-container hover:bg-primary-dim text-on-primary-container px-6 py-3 font-headline font-black text-xs uppercase tracking-widest transition-colors shadow-lg">
-                    ZAKOŃCZ
+                <button id="globalFinishSetBtn" class="flex-[2] md:w-72 bg-primary-container text-on-primary-container py-4 px-8 font-headline font-black text-sm uppercase tracking-[0.15em] hover:bg-primary-dim transition-transform active:scale-95 duration-75 flex items-center justify-center gap-3">
+                    ZATWIERDŹ SERIĘ
+                    <span class="material-symbols-outlined font-bold">double_arrow</span>
                 </button>
             </div>
-        </div>
+        </footer>
     </div>
-    </main>
 
-    <!-- Sticky Bottom Bar -->
-    <footer class="fixed bottom-0 left-0 w-full z-50 bg-[#0e0e0e]/95 backdrop-blur-md border-t border-outline-variant/30 px-6 md:px-12 py-4 flex flex-col md:flex-row gap-6 items-center justify-between shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
-        <div class="flex gap-8 md:gap-12 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar">
-            <div class="flex flex-col shrink-0">
-                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Volume</span>
-                <span class="font-headline font-black text-xl text-on-surface"><span id="totalVolumeCounter">0</span> KG</span>
-            </div>
-            <div class="flex flex-col shrink-0">
-                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Sets Done</span>
-                <span class="font-headline font-black text-xl text-on-surface"><span id="setsCompletedCounter">0</span> / <span id="totalSetsCounter">0</span></span>
-            </div>
-            <div class="flex flex-col shrink-0">
-                <span class="font-label text-[10px] text-outline uppercase font-bold tracking-tighter font-headline">Session Time</span>
-                <span class="font-headline font-black text-xl text-primary-container" id="sessionTimerBottom">00:00</span>
-            </div>
-        </div>
-        <div class="flex w-full md:w-auto gap-4 shrink-0">
-            <button onclick="finishWorkout()" class="flex-1 md:w-48 bg-transparent py-4 font-headline font-black text-xs uppercase tracking-[0.2em] hover:bg-error-container transition-all text-outline hover:text-white border border-outline-variant/30">
-                ZAKOŃCZ TRENING
-            </button>
-            <button id="globalFinishSetBtn" class="flex-[2] md:w-72 bg-primary-container text-on-primary-container py-4 px-8 font-headline font-black text-sm uppercase tracking-[0.15em] hover:bg-primary-dim transition-transform active:scale-95 duration-75 flex items-center justify-center gap-3">
-                ZATWIERDŹ SERIĘ
-                <span class="material-symbols-outlined font-bold">double_arrow</span>
-            </button>
-        </div>
-    </footer>
-</div>
-
-<script>
+    <script>
     let timerRunning = false;
     let currentExIndex = 0;
     let restInterval = null;
@@ -576,10 +666,21 @@
             const prevBtn = block.querySelector('.prev-ex-btn');
             const nextBtn = block.querySelector('.next-ex-btn');
             const label = block.querySelector('.current-ex-label');
+            const skipBtn = block.querySelector('button[onclick="skipOccupiedMachine()"]'); // Pobieramy przycisk
             
             if(prevBtn) prevBtn.style.visibility = (i === 0) ? 'hidden' : 'visible';
             if(nextBtn) nextBtn.style.visibility = (i === blocks.length - 1) ? 'hidden' : 'visible';
             if(label) label.innerText = `ĆWICZENIE ${i + 1} Z ${blocks.length}`;
+
+            // LOGIKA PRZYCISKU "POMIŃ": Ukryj go, jeśli ćwiczenie ma już zaliczone serie
+            if (skipBtn) {
+                const isStarted = block.querySelectorAll('.set-row.opacity-50').length > 0;
+                if (isStarted) {
+                    skipBtn.style.display = 'none';
+                } else {
+                    skipBtn.style.display = 'flex'; // Przywraca widoczność (flex dla Tailwind)
+                }
+            }
         });
         
         const queueItems = document.querySelectorAll('.queue-item');
@@ -826,6 +927,10 @@
         const weight = weightInput.value;
         const reps = repsInput.value;
 
+        // Pobieramy prawdziwy cel powtórzeń z atrybutu w HTML
+        const row = document.getElementById('set-row-' + setId);
+        const targetReps = row ? parseInt(row.getAttribute('data-target-reps')) : 10;
+
         if(!weight || !reps) {
             showCustomAlert('Wprowadź ciężar i ilość powtórzeń.');
             return;
@@ -838,22 +943,27 @@
         fetch('/tracker/set/complete/' + setId, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ weight: weight, reps: reps })
+            body: JSON.stringify({ 
+                weight: weight, 
+                reps: reps,
+                target_reps: targetReps // System używa teraz prawdziwego celu (np. 5)
+            })
         })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                const row = document.getElementById('set-row-' + setId);
-                if(row) {
-                    const col2 = row.querySelector('div:nth-child(2)');
-                    const col3 = row.querySelector('div:nth-child(3)');
-                    const actionCont = row.querySelector('.set-action-container');
-                    
-                    if(col2) col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${weight}</div>`;
-                    if(col3) col3.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${reps}</div>`;
-                    if(actionCont) actionCont.innerHTML = '<span class="material-symbols-outlined text-primary-container">check_circle</span>';
-                    
-                    row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            // 1. ZABLOKOWANIE WIERSZA
+            const row = document.getElementById('set-row-' + setId);
+            if(row) {
+                const col2 = row.querySelector('div:nth-child(2)');
+                const col3 = row.querySelector('div:nth-child(3)');
+                const actionCont = row.querySelector('.set-action-container');
+                
+                if(col2) col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${weight}</div>`;
+                if(col3) col3.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${reps}</div>`;
+                if(actionCont) actionCont.innerHTML = '<span class="material-symbols-outlined text-primary-container">check_circle</span>';
+                
+                row.classList.remove('kinetic-stripe', 'bg-surface-container-high');
                     row.classList.add('opacity-50', 'bg-surface-container-low');
                     
                     let numberDiv = row.querySelector('.set-number');
@@ -861,58 +971,98 @@
                         numberDiv.classList.remove('text-primary-container');
                         numberDiv.classList.add('text-on-surface');
                     }
-                }
 
-                const currentRow = document.getElementById('set-row-' + setId);
-                if (currentRow) {
-                    const nextRow = currentRow.nextElementSibling;
-                    if (nextRow && nextRow.classList.contains('set-row')) {
-                        const nextSetId = nextRow.getAttribute('data-set-id');
-                        const nextWeightInput = document.getElementById('weight-' + nextSetId);
-                        if (nextWeightInput && (!nextWeightInput.value || parseFloat(nextWeightInput.value) === 0)) {
-                            nextWeightInput.value = weight;
+                    // NOWE: Natychmiastowe ukrycie przycisku pomijania po zapisaniu (rozpoczęciu) ćwiczenia
+                    const skipBtn = row.closest('.exercise-block').querySelector('button[onclick="skipOccupiedMachine()"]');
+                    if (skipBtn) skipBtn.style.display = 'none';
+            }
+
+            // 2. WIRTUALNY TRENER I STOPER
+                let restTimeSeconds = 120; // Domyślna przerwa
+                
+                if (data.analysis) {
+                    restTimeSeconds = data.analysis.rest_seconds;
+
+                    // Szukamy ID maszyny dla aktualnego bloku ćwiczenia
+                    const currentExerciseBlock = document.querySelector('.exercise-block[style="display: block;"]');
+                    const machineId = currentExerciseBlock ? currentExerciseBlock.getAttribute('data-machine-id') : null;
+
+                    if (machineId) {
+                        const coachBox = document.getElementById('coach-message-box-' + machineId);
+                        const coachText = document.getElementById('coach-message-text-' + machineId);
+                        
+                        if (coachBox && coachText) {
+                            coachText.innerText = data.analysis.message;
+                            coachBox.classList.remove('hidden');
+                            setTimeout(() => {
+                                coachBox.classList.remove('translate-y-[-10px]', 'opacity-0');
+                            }, 50);
+                            
+                            coachBox.classList.add('border-white');
+                            setTimeout(() => coachBox.classList.remove('border-white'), 500);
+                        }
+                    }
+
+                    // Inteligentne wpisanie wyliczonego ciężaru do kolejnej serii
+                    const currentRow = document.getElementById('set-row-' + setId);
+                    if (currentRow) {
+                        const nextRow = currentRow.nextElementSibling;
+                        if (nextRow && nextRow.classList.contains('set-row')) {
+                            const nextSetId = nextRow.getAttribute('data-set-id');
+                            const nextWeightInput = document.getElementById('weight-' + nextSetId);
+                            if (nextWeightInput && !nextWeightInput.disabled) {
+                                nextWeightInput.value = data.analysis.next_weight;
+                            }
                         }
                     }
                 }
 
-                completedSets++;
-                currentVolume += (parseFloat(weight) * parseInt(reps));
-                updateStats();
+            // 3. STATYSTYKI
+            completedSets++;
+            currentVolume += (parseFloat(weight) * parseInt(reps));
+            updateStats();
+            
+            // 4. KONTROLA CZASU I PRZEPŁYWU
+            if (completedSets >= totalSets) {
+                setTimeout(() => {
+                    skipRestTime();
+                    submitWorkoutForm(); 
+                }, 1000);
+            } else {
+                let timerView = document.getElementById('timerView');
+                let startRestBtn = document.getElementById('startRestBtn');
+                if(startRestBtn) startRestBtn.classList.add('hidden');
+                if(timerView) timerView.classList.remove('hidden');
                 
-                if (completedSets >= totalSets) {
-                    setTimeout(() => {
-                        skipRestTime();
-                        submitWorkoutForm(); 
-                    }, 1000);
-                } else {
-                    initiateRest();
+                // Uruchamiamy stoper z czasem z backendu
+                startRestTimer(restTimeSeconds);
+                
+                const blocks = document.querySelectorAll('.exercise-block');
+                const currentBlock = blocks[currentExIndex];
+                if(currentBlock) {
+                    const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
+                    const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
                     
-                    const blocks = document.querySelectorAll('.exercise-block');
-                    const currentBlock = blocks[currentExIndex];
-                    if(currentBlock) {
-                        const allSetsInBlock = currentBlock.querySelectorAll('.set-row').length;
-                        const completedSetsInBlock = currentBlock.querySelectorAll('.set-row.opacity-50').length;
-                        
-                        if(allSetsInBlock === completedSetsInBlock) {
+                    if(allSetsInBlock === completedSetsInBlock) {
                             setTimeout(() => {
-                                navigateExercise(1);
+                                goToNextIncompleteExercise(); // <--- Zmiana tutaj
                             }, 1200); 
                         }
-                    }
                 }
-                
-            } else {
-                showCustomAlert('Wystąpił błąd zapisu serii w bazie danych.');
-                btnElement.innerHTML = originalBtnHtml;
-                btnElement.disabled = false;
             }
-        })
-        .catch(() => {
-            showCustomAlert('Błąd połączenia z serwerem. Spróbuj ponownie.');
+            
+        } else {
+            showCustomAlert('Wystąpił błąd zapisu serii w bazie danych.');
             btnElement.innerHTML = originalBtnHtml;
             btnElement.disabled = false;
-        });
-    }
+        }
+    })
+    .catch(() => {
+        showCustomAlert('Błąd połączenia z serwerem. Spróbuj ponownie.');
+        btnElement.innerHTML = originalBtnHtml;
+        btnElement.disabled = false;
+    });
+}
 
     const globalBtn = document.getElementById('globalFinishSetBtn');
     if (globalBtn) {
@@ -984,5 +1134,89 @@
             isIntentionalExit = true;
         });
     });
+
+    // === ZAJĘTA MASZYNA - PRZESKOK ===
+    function skipOccupiedMachine() {
+        const blocks = document.querySelectorAll('.exercise-block');
+        const currentBlock = blocks[currentExIndex];
+        
+        // Zabezpieczenie: Czy ćwiczenie ma już jakieś ukończone serie? (szukamy klasy opacity-50)
+        const isStarted = currentBlock.querySelectorAll('.set-row.opacity-50').length > 0;
+        if (isStarted) {
+            showCustomAlert('Nie możesz pominąć ćwiczenia, które już zacząłeś realizować!');
+            return;
+        }
+
+        let nextUnstartedIndex = -1;
+
+        // Szukamy do przodu (od następnego ćwiczenia do samego końca listy)
+        for (let i = currentExIndex + 1; i < blocks.length; i++) {
+            if (blocks[i].querySelectorAll('.set-row.opacity-50').length === 0) {
+                nextUnstartedIndex = i;
+                break;
+            }
+        }
+
+        // Jeśli z przodu wszystkie są zaczęte/ukończone, szukamy od początku listy
+        if (nextUnstartedIndex === -1) {
+            for (let i = 0; i < currentExIndex; i++) {
+                if (blocks[i].querySelectorAll('.set-row.opacity-50').length === 0) {
+                    nextUnstartedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Wykonanie płynnego przeskoku do znalezionego ćwiczenia
+        if (nextUnstartedIndex !== -1 && nextUnstartedIndex !== currentExIndex) {
+            skipRestTime();
+            currentBlock.style.opacity = '0';
+            setTimeout(() => {
+                currentBlock.style.opacity = '1';
+                showExercise(nextUnstartedIndex);
+            }, 300);
+        } else {
+            showCustomAlert('To jedyne niezaczęte ćwiczenie, jakie pozostało.');
+        }
+    }
+
+    // === INTELIGENTNY POWRÓT DO POMINIĘTYCH ĆWICZEŃ ===
+    function goToNextIncompleteExercise() {
+        const blocks = document.querySelectorAll('.exercise-block');
+        let nextIndex = -1;
+
+        // 1. Najpierw szukamy niedokończonych ćwiczeń DO PRZODU
+        for (let i = currentExIndex + 1; i < blocks.length; i++) {
+            const allSets = blocks[i].querySelectorAll('.set-row').length;
+            const doneSets = blocks[i].querySelectorAll('.set-row.opacity-50').length;
+            if (doneSets < allSets) {
+                nextIndex = i;
+                break;
+            }
+        }
+
+        // 2. Jeśli z przodu wszystko zrobione, WRACAMY NA POCZĄTEK (szukamy pominiętych)
+        if (nextIndex === -1) {
+            for (let i = 0; i < currentExIndex; i++) {
+                const allSets = blocks[i].querySelectorAll('.set-row').length;
+                const doneSets = blocks[i].querySelectorAll('.set-row.opacity-50').length;
+                if (doneSets < allSets) {
+                    nextIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // 3. Płynny przeskok na znalezione ćwiczenie
+        if (nextIndex !== -1 && nextIndex !== currentExIndex) {
+            const currentBlock = blocks[currentExIndex];
+            currentBlock.style.opacity = '0';
+            setTimeout(() => {
+                currentBlock.style.opacity = '1';
+                showExercise(nextIndex);
+            }, 300);
+        }
+    }
+
 </script>
 {% endblock %}

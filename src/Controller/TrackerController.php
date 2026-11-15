@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\WorkoutSession;
+use App\Service\ProgressionAnalyzerService;
 use App\Entity\WorkoutSet;
 use App\Repository\WorkoutPlanRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -172,8 +173,12 @@ class TrackerController extends AbstractController
     }
 
     #[Route('/tracker/set/complete/{id}', name: 'app_tracker_complete_set', methods: ['POST'])]
-    public function completeSet(WorkoutSet $workoutSet, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
+    public function completeSet(
+        WorkoutSet $workoutSet, 
+        Request $request, 
+        EntityManagerInterface $entityManager,
+        ProgressionAnalyzerService $analyzer
+    ): JsonResponse {
         if ($workoutSet->getWorkoutSession()->getUser() !== $this->getUser()) {
             return new JsonResponse(['error' => 'Odmowa dostępu'], 403);
         }
@@ -182,12 +187,28 @@ class TrackerController extends AbstractController
         
         $workoutSet->setWeight((float) $data['weight']);
         $workoutSet->setReps((int) $data['reps']);
+        // Usunęliśmy zapis i obsługę $data['rir']!
+        
         $workoutSet->setIsCompleted(true);
         $workoutSet->setLoggedAt(new \DateTime());
         
         $entityManager->flush();
+
+        // ------------------------------------------------------------------
+        // ANALIZA PROGRESJI I CZASU PRZERWY
+        // ------------------------------------------------------------------
+        $machine = $workoutSet->getMachine();
+        $type = strtolower(trim((string)$machine->getMechanicType()));
+        $isCompound = in_array($type, ['compound', 'wielostawowe', 'wielostawowa', 'złożone']);
+
+        $targetReps = isset($data['target_reps']) ? (int) $data['target_reps'] : 10;
+
+        $analysis = $analyzer->analyzeSet($workoutSet, $targetReps, $isCompound);
         
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse([
+            'success' => true,
+            'analysis' => $analysis 
+        ]);
     }
 
     #[Route('/tracker/finish/{id}', name: 'app_tracker_finish', methods: ['POST'])]
