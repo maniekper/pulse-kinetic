@@ -241,6 +241,9 @@ class GeneratorController extends AbstractController
             $targetMuscles = $activeBlueprint[$blueprintIndex];
 
             $dailyExercises = [];
+            // NOWE: Tablica śledząca użyte wzorce ruchu w danej sesji
+            $usedPatternsInSession = [];
+
             foreach ($targetMuscles as $targetMuscle) {
                 $specificMusclesForTarget = $anatomyMap[$targetMuscle] ?? [$targetMuscle];
                 $muscleSpecificMachines = [];
@@ -267,7 +270,40 @@ class GeneratorController extends AbstractController
                 }
 
                 shuffle($muscleSpecificMachines);
-                $dailyExercises = array_merge($dailyExercises, array_slice($muscleSpecificMachines, 0, $exercisesPerMuscle));
+
+                // NOWE: Dobieranie z blokowaniem duplikatów wzorców
+                $addedCount = 0;
+                foreach ($muscleSpecificMachines as $candidateMachine) {
+                    $machineNameLower = strtolower($candidateMachine->getName());
+                    $pattern = 'other';
+
+                    // Słownik rozpoznawania ruchu po nazwie
+                    if (str_contains($machineNameLower, 'wyciskanie nad głowę') || str_contains($machineNameLower, 'overhead') || str_contains($machineNameLower, 'shoulder bench')) {
+                        $pattern = 'overhead_press';
+                    } elseif (str_contains($machineNameLower, 'wznosy') || str_contains($machineNameLower, 'bocz')) {
+                        $pattern = 'lateral_raises';
+                    } elseif (str_contains($machineNameLower, 'ściąganie') || str_contains($machineNameLower, 'podciąganie')) {
+                        $pattern = 'vertical_pull';
+                    } elseif (str_contains($machineNameLower, 'wioślar') || str_contains($machineNameLower, 'przyciąganie')) {
+                        $pattern = 'horizontal_pull';
+                    }
+
+                    // Blokada: Jeśli wzorzec został już użyty dzisiaj, pomijamy tę maszynę
+                    if ($pattern !== 'other' && in_array($pattern, $usedPatternsInSession)) {
+                        continue;
+                    }
+
+                    // Dodanie maszyny do planu i zapisanie jej wzorca
+                    $dailyExercises[] = $candidateMachine;
+                    if ($pattern !== 'other') {
+                        $usedPatternsInSession[] = $pattern;
+                    }
+
+                    $addedCount++;
+                    if ($addedCount >= $exercisesPerMuscle) {
+                        break;
+                    }
+                }
             }
 
             $usedMachineIdsInSession = [];
