@@ -165,65 +165,8 @@
         </div>
     </div>
 
-    <script>
-        // Skrypt wykorzystujący opacity i pointer-events, co zapobiega psuciu układu flex
-        function openModal() {
-            const modal = document.getElementById("goalModal");
-            const modalContent = document.getElementById("modalContent");
-
-            modal.classList.remove("opacity-0", "pointer-events-none");
-            modal.classList.add("opacity-100", "pointer-events-auto");
-
-            modalContent.classList.remove("scale-95");
-            modalContent.classList.add("scale-100");
-        }
-
-        function closeModal() {
-            const modal = document.getElementById("goalModal");
-            const modalContent = document.getElementById("modalContent");
-
-            modalContent.classList.remove("scale-100");
-            modalContent.classList.add("scale-95");
-
-            modal.classList.remove("opacity-100", "pointer-events-auto");
-            modal.classList.add("opacity-0", "pointer-events-none");
-        }
-        // Obsługa customowego dropdowna dla celów
-        function toggleDropdown() {
-            const menu = document.getElementById("customDropdownMenu");
-            const arrow = document.getElementById("dropdownArrow");
-
-            if (menu.classList.contains("hidden")) {
-                menu.classList.remove("hidden");
-                menu.classList.add("flex");
-                arrow.style.transform = "rotate(180deg)";
-            } else {
-                menu.classList.add("hidden");
-                menu.classList.remove("flex");
-                arrow.style.transform = "rotate(0deg)";
-            }
-        }
-
-        function selectGoal(id, name) {
-            // Zapisz ID do ukrytego inputa (do wysłania w POST)
-            document.getElementById("newGoalIdInput").value = id;
-            // Zmień widoczny tekst
-            document.getElementById("selectedGoalText").innerText = name;
-            // Zamknij menu
-            toggleDropdown();
-        }
-
-        // Zamknięcie dropdowna po kliknięciu gdziekolwiek poza nim
-        document.addEventListener("click", function (event) {
-            const container = document.getElementById("customSelectContainer");
-            const menu = document.getElementById("customDropdownMenu");
-            if (
-                container &&
-                !container.contains(event.target) &&
-                !menu.classList.contains("hidden")
-            ) {
-                toggleDropdown();
-            }
-        });
-    </script>
+    {% block javascripts %}
+        {{ parent() }}
+        {{ encore_entry_script_tags('generator') }}
+    {% endblock %}
 {% endblock %}

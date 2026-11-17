@@ -448,6 +448,17 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'concentration_curl',
                 'incrementStep' => 1.0 // NOWE: hantle
             ],
+            [
+                'name' => 'Wyciskanie hantli zza głowy oburącz',
+                'description' => 'Ćwiczenie izolowane angażujące głowę długą mięśnia trójgłowego ramienia. Z pozycji wyjściowej z hantlem trzymanym oburącz za wewnętrzny talerz i uniesionym nad głową, przedramiona są powoli opuszczane za głowę do pełnego rozciągnięcia tricepsa, po czym następuje kontrolowany wyprost w stawach łokciowych.',
+                'tips' => 'Utrzymuj łokcie stabilnie, blisko głowy i unikaj ich nadmiernego rozchodzenia się na boki, aby zmaksymalizować pracę tricepsa.',
+                'category' => 'Wolne ciężary',
+                'mechanicType' => 'isolation',
+                'primary' => 'Triceps',
+                'secondary' => ['Barki', 'Przedramiona'],
+                'image_prefix' => 'wyciskanie_hantli_zza_glowy_oburacz',
+                'incrementStep' => 2.0
+            ],
 
 
 

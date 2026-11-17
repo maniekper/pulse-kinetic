@@ -93,12 +93,8 @@
         </main>
     </div>
 
-    <script>
-        const slider = document.getElementById("weeksSlider");
-        const display = document.getElementById("weeksDisplay");
-
-        slider.addEventListener("input", function () {
-            display.innerText = this.value;
-        });
-    </script>
+    {% block javascripts %}
+        {{ parent() }}
+        {{ encore_entry_script_tags('generator') }}
+    {% endblock %}
 {% endblock %}

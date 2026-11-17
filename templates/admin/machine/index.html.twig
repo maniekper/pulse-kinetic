@@ -109,49 +109,11 @@
     </main>
     <!-- CUSTOM DELETE MODAL -->
     <div id="customDeleteModal" class="fixed inset-0 z-[100000] bg-black/80 backdrop-blur-sm hidden items-center justify-center">
-        <div class="bg-[#111111] border-l-4 border-[#ff7351] p-8 max-w-md w-full mx-4 shadow-[0_0_40px_rgba(255,115,81,0.2)] relative">
-            <div class="flex items-start gap-4 mb-6">
-                <span class="material-symbols-outlined text-[#ff7351] text-4xl">warning</span>
-                <div>
-                    <h3 class="font-headline font-black text-xl text-white uppercase tracking-tighter mb-2">Usunięcie Sprzętu</h3>
-                    <p class="font-body text-[#767575] text-sm leading-relaxed">
-                        Czy na pewno chcesz usunąć maszynę <strong id="deleteMachineName" class="text-white uppercase tracking-widest"></strong> z bazy danych? Operacja usunie ją również ze wszystkich wygenerowanych planów treningowych.
-                    </p>
-                </div>
-            </div>
-            <div class="flex justify-end gap-3 border-t border-white/5 pt-6 mt-2">
-                <button type="button" onclick="closeDeleteModal()" class="bg-[#131313] hover:bg-[#1a1a1a] text-white px-6 py-3 font-headline font-bold text-[10px] uppercase tracking-widest transition-colors border border-white/10">
-                    ANULUJ
-                </button>
-                <button type="button" onclick="confirmDelete()" class="bg-[#ff7351] hover:bg-[#ff8a6d] text-[#111111] px-6 py-3 font-headline font-black text-[10px] uppercase tracking-widest transition-colors shadow-lg flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">delete_forever</span> USUŃ BEZPOWROTNIE
-                </button>
-            </div>
-        </div>
+        {# ... tu kod HTML twojego modala usuwania ... #}
     </div>
-    <script>
-        let currentDeleteFormId = null;
-
-        function openDeleteModal(machineId, machineName) {
-            currentDeleteFormId = "delete-form-" + machineId;
-            document.getElementById("deleteMachineName").textContent = machineName;
-
-            const modal = document.getElementById("customDeleteModal");
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-        }
-
-        function closeDeleteModal() {
-            currentDeleteFormId = null;
-            const modal = document.getElementById("customDeleteModal");
-            modal.classList.add("hidden");
-            modal.classList.remove("flex");
-        }
-
-        function confirmDelete() {
-            if (currentDeleteFormId) {
-                document.getElementById(currentDeleteFormId).submit();
-            }
-        }
-    </script>
+    
+    {% block javascripts %}
+        {{ parent() }}
+        {{ encore_entry_script_tags('admin_machine') }}
+    {% endblock %}
 {% endblock %}

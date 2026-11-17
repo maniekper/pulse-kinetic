@@ -21,6 +21,12 @@ Encore
      * and one CSS file (e.g. app.css) if your JavaScript imports CSS.
      */
     .addEntry("app", "./assets/app.js")
+    .addEntry("app_layout", "./assets/js/app_layout.js")
+    .addEntry("generator", "./assets/js/generator.js")
+    .addEntry("swap_modal", "./assets/js/_swap_modal.js")
+    .addEntry("profile", "./assets/js/profile.js")
+    .addEntry("admin_machine", "./assets/js/admin_machine.js")
+    .addEntry("tracker", "./assets/js/tracker.js")
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()

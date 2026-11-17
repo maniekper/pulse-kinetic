@@ -145,21 +145,8 @@
 
     </div>
     
-    <script>
-        function toggleMobileMenu() {
-            const menu = document.getElementById("mobileMenuOverlay");
-            const icon = document.getElementById("burgerIcon");
-            if (menu.classList.contains("hidden")) {
-                menu.classList.remove("hidden");
-                menu.classList.add("flex");
-                icon.innerText = "close";
-                document.body.style.overflow = "hidden";
-            } else {
-                menu.classList.add("hidden");
-                menu.classList.remove("flex");
-                icon.innerText = "menu";
-                document.body.style.overflow = "";
-            }
-        }
-    </script>
+    {% block javascripts %}
+        {{ parent() }}
+        {{ encore_entry_script_tags('app_layout') }}
+    {% endblock %}
 {% endblock %}

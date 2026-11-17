@@ -1,0 +1,55 @@
+<!-- Sidebar Section -->
+<aside class="lg:col-span-4 space-y-6">
+    <section class="bg-surface-container p-6 flex flex-col items-center justify-center text-center sticky top-24 z-40">
+        <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Interwał Odpoczynku</span>
+    
+        <div id="restTimerContainer" class="relative flex items-center justify-center w-48 h-48 mb-6">
+            <button id="startRestBtn" onclick="window.initiateRest()" class="absolute inset-0 w-full h-full rounded-full border-[6px] border-outline-variant/20 flex flex-col items-center justify-center text-outline hover:text-primary-container hover:border-primary-container/50 hover:bg-primary-container/5 transition-all cursor-pointer bg-surface-container-highest z-20">
+                <span class="material-symbols-outlined text-[3rem] mb-1">timer</span>
+                <span class="font-headline font-black text-xs uppercase tracking-widest">START PRZERWY</span>
+            </button>
+
+            <div id="timerView" class="hidden absolute inset-0 w-full h-full z-10">
+                <svg class="w-full h-full -rotate-90">
+                    <circle class="text-surface-container-highest" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="4"></circle>
+                    <circle id="restTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="0" stroke-width="4"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="restTimerDisplay" class="font-headline text-4xl font-black text-on-surface">--:--</span>
+                    <span class="font-label text-[10px] text-outline uppercase tracking-widest">Pozostało</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex w-full gap-2 mb-6">
+            <button onclick="window.addRestTime(30)" class="flex-1 border border-outline-variant/40 py-3 font-headline font-bold text-xs uppercase tracking-widest hover:bg-surface-container-high transition-colors text-on-surface cursor-pointer">+30s</button>
+            <button onclick="window.skipRestTime()" class="flex-1 bg-surface-container-highest py-3 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary-container text-outline transition-colors cursor-pointer">POMIŃ</button>
+        </div>
+        <div id="targetRestTimeData" data-time="0" class="hidden"></div>
+
+        <!-- MAPA ANATOMICZNA -->
+        <div class="w-full pt-6 border-t border-outline-variant/20 flex flex-col items-center">
+            <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase mb-4">Aktywacja Mięśni</span>
+            {% include 'components/_anatomy_map.html.twig' %}
+            <div class="mt-4 flex flex-wrap gap-2 justify-center" id="anatomyLabels"></div>
+        </div>
+    </section>
+
+    <section class="bg-surface-container p-6 hidden md:block">
+        <h3 class="font-headline text-lg font-bold uppercase tracking-tight mb-4 border-l-2 border-primary-container pl-3 text-on-surface">Kolejka Treningowa</h3>
+        <div class="space-y-3" id="queueContainer">
+            {% for machineName, sets in groupedSets %}
+                <div class="queue-item flex items-center justify-between group p-3 transition-all border-l-2 border-transparent">
+                    <div class="flex items-center gap-3">
+                        <div class="queue-number w-10 h-10 bg-surface-container-highest flex items-center justify-center font-headline font-black text-outline transition-colors">{{ loop.index > 9 ? loop.index : '0' ~ loop.index }}</div>
+                        <div>
+                            <span class="block font-headline text-sm font-bold uppercase tracking-tight text-on-surface">{{ machineName }}</span>
+                            <span class="block font-label text-[10px] text-outline uppercase font-bold">{{ sets|length }} SERII</span>
+                        </div>
+                    </div>
+                    <span class="queue-icon material-symbols-outlined text-outline text-sm transition-colors">hourglass_empty</span>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</aside>

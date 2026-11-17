@@ -1,0 +1,53 @@
+<!-- GIGANTYCZNY EKRAN STARTOWY (OVERLAY) -->
+<div id="readyOverlay" class="fixed inset-0 z-[99999] bg-[#0a0a0a]/95 backdrop-blur-xl flex flex-col items-center justify-center transition-all duration-700 p-6">
+
+    <h1 class="font-headline font-black text-4xl md:text-6xl text-white uppercase italic mb-8 tracking-tighter text-center leading-tight">
+        JESTEŚ GOTOWY?<br><span class="text-primary-container">ZACZYNAMY!</span>
+    </h1>
+
+    <!-- Wskazówki dobierania ciężaru (Kinetic Coach) -->
+    {% set currentGoalName = app.user.currentGoal ? app.user.currentGoal.name|lower : '' %}
+
+    <div class="max-w-2xl w-full bg-[#131313] border-l-4 border-primary-container p-6 mb-12 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 w-40 h-40 bg-primary-container/5 rounded-full blur-3xl"></div>
+        <div class="flex items-center gap-3 mb-4 relative z-10 border-b border-outline-variant/20 pb-3">
+            <span class="material-symbols-outlined text-primary-container text-2xl">psychology</span>
+            <h2 class="font-headline font-black text-sm text-outline uppercase tracking-widest">Twoje założenia (Dobór Ciężaru)</h2>
+        </div>
+    
+        <ul class="space-y-4 font-body text-sm text-on-surface-variant relative z-10">
+            {% if 'sił' in currentGoalName %}
+                <li class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-error text-xl shrink-0 mt-0.5">fitness_center</span>
+                    <div>
+                        <strong class="text-white uppercase font-headline tracking-wide">Cel: Siła (1-5 powt.)</strong><br>
+                        Ciężar musi być ekstremalnie wymagający. Ostatnie powtórzenie wykonujesz z maksymalnym wysiłkiem.
+                        <br><span class="text-error font-bold">Zapas sił: 0 powtórzeń (tzw. RIR 0).</span> Kończysz serię, gdy nie masz już siły na podniesienie sztangi ani jeden raz więcej.
+                    </div>
+                </li>
+            {% elseif 'redukcj' in currentGoalName or 'rzeźb' in currentGoalName %}
+                <li class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-tertiary-container text-xl shrink-0 mt-0.5">fitness_center</span>
+                    <div>
+                        <strong class="text-white uppercase font-headline tracking-wide">Cel: Rzeźba / Wytrzymałość (12-20 powt.)</strong><br>
+                        Umiarkowany ciężar, liczy się ciągła praca i mocne pieczenie mięśnia. Nie trenujesz do całkowitego upadku siłowego.
+                        <br><span class="text-tertiary-container font-bold">Zapas sił: 2-3 powtórzenia (tzw. RIR 2-3).</span> Przerywasz serię, czując, że z dużym wysiłkiem dałbyś radę zrobić jeszcze 2 lub 3 powtórzenia.
+                    </div>
+                </li>
+            {% else %}
+                <li class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-primary-container text-xl shrink-0 mt-0.5">fitness_center</span>
+                    <div>
+                        <strong class="text-white uppercase font-headline tracking-wide">Cel: Masa / Hipertrofia (6-12 powt.)</strong><br>
+                        Ciężar musi być wymagający, ale powinieneś zachować dobrą technikę i pełną kontrolę nad sztangą.
+                        <br><span class="text-primary-container font-bold">Zapas sił: 1-2 powtórzenia (tzw. RIR 1-2).</span> Przerywasz serię w momencie, gdy wiesz, że wykrzesałbyś z siebie jeszcze najwyżej 1 lub 2 powtórzenia.
+                    </div>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <button type="button" onclick="window.startWorkoutSession()" class="w-32 h-32 md:w-48 md:h-48 rounded-full bg-primary-container text-[#111111] font-headline font-black text-4xl md:text-6xl flex items-center justify-center hover:scale-110 hover:bg-primary-dim transition-all shadow-[0_0_80px_var(--theme-shadow)] cursor-pointer tracking-tighter shrink-0">
+        GO
+    </button>
+</div>
