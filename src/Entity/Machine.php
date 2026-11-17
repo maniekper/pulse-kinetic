@@ -40,6 +40,9 @@ class Machine
     #[ORM\Column(type: 'float', nullable: true)]
     private ?float $incrementStep = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $movementPattern = null;
+
     public function getIncrementStep(): ?float
     {
         return $this->incrementStep;
@@ -346,6 +349,18 @@ class Machine
     public function setMovementCategory(?string $movementCategory): static
     {
         $this->movementCategory = $movementCategory;
+
+        return $this;
+    }
+
+    public function getMovementPattern(): ?string
+    {
+        return $this->movementPattern;
+    }
+
+    public function setMovementPattern(?string $movementPattern): static
+    {
+        $this->movementPattern = $movementPattern;
 
         return $this;
     }

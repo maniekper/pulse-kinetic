@@ -19,12 +19,12 @@ class TrackerController extends AbstractController
 {
     #[Route('/tracker/start/{plan_id}', name: 'app_tracker_start')]
     public function start(
-        int $plan_id, 
-        WorkoutPlanRepository $planRepo, 
+        int $plan_id,
+        WorkoutPlanRepository $planRepo,
         EntityManagerInterface $entityManager
     ): Response {
         $plan = $planRepo->find($plan_id);
-        
+
         if (!$plan || $plan->getUser() !== $this->getUser()) {
             throw $this->createAccessDeniedException('Brak dostępu do tego planu.');
         }
@@ -37,7 +37,7 @@ class TrackerController extends AbstractController
 
         if ($activeSession) {
             $entityManager->remove($activeSession);
-            $entityManager->flush(); 
+            $entityManager->flush();
         }
 
         // --- AUTOMATYCZNE WYLICZANIE DNIA (Omijanie pustych dni) ---
@@ -94,10 +94,10 @@ class TrackerController extends AbstractController
                  WHERE s.user = :user AND ws.machine = :machine AND ws.isCompleted = true 
                  ORDER BY ws.loggedAt DESC'
             )
-            ->setParameter('user', $this->getUser())
-            ->setParameter('machine', $machine)
-            ->setMaxResults(1)
-            ->getOneOrNullResult();
+                ->setParameter('user', $this->getUser())
+                ->setParameter('machine', $machine)
+                ->setMaxResults(1)
+                ->getOneOrNullResult();
 
             if ($lastSet && (int) $lastSet['reps'] > 0) {
                 $startingWeight = (float) $lastSet['weight'];
@@ -118,7 +118,7 @@ class TrackerController extends AbstractController
                 $set->setReps($startingReps);
                 $set->setIsCompleted(false);
                 $set->setLoggedAt(new \DateTime());
-                
+
                 $entityManager->persist($set);
             }
         }
@@ -128,7 +128,7 @@ class TrackerController extends AbstractController
         return $this->redirectToRoute('app_tracker_session', ['id' => $session->getId()]);
     }
 
-   #[Route('/tracker/session/{id}', name: 'app_tracker_session')]
+    #[Route('/tracker/session/{id}', name: 'app_tracker_session')]
     public function session(WorkoutSession $session, EntityManagerInterface $em): Response
     {
         $cardioMachines = $em->getRepository(Machine::class)->findBy(['mechanicType' => 'cardio']);
@@ -139,12 +139,12 @@ class TrackerController extends AbstractController
 
         $groupedSets = [];
         $restTimes = [];
-        
+
         $user = $this->getUser();
         $goal = method_exists($user, 'getCurrentGoal')
             ? call_user_func([$user, 'getCurrentGoal'])
             : null;
-        
+
         $restCompound = ($goal && $goal->getRestCompoundSeconds()) ? $goal->getRestCompoundSeconds() : 180;
         $restIsolation = ($goal && $goal->getRestIsolationSeconds()) ? $goal->getRestIsolationSeconds() : 90;
 
@@ -152,9 +152,9 @@ class TrackerController extends AbstractController
             $machine = $set->getMachine();
             $machineName = $machine->getName();
             $groupedSets[$machineName][] = $set;
-            
+
             $type = strtolower(trim((string)$machine->getMechanicType()));
-            
+
             if (!isset($restTimes[$machineName])) {
                 if (in_array($type, ['compound', 'wielostawowe', 'wielostawowa', 'złożone'])) {
                     $restTimes[$machineName] = $restCompound;
@@ -174,25 +174,29 @@ class TrackerController extends AbstractController
 
     #[Route('/tracker/set/complete/{id}', name: 'app_tracker_complete_set', methods: ['POST'])]
     public function completeSet(
-        WorkoutSet $workoutSet, 
-        Request $request, 
+        WorkoutSet $workoutSet,
+        Request $request,
         EntityManagerInterface $entityManager,
-        ProgressionAnalyzerService $analyzer
+        ProgressionAnalyzerService $analyzer,
+        \App\Service\RecordTrackerService $recordTracker // <-- WSTRZYKNIĘTY SERWIS
     ): JsonResponse {
         if ($workoutSet->getWorkoutSession()->getUser() !== $this->getUser()) {
             return new JsonResponse(['error' => 'Odmowa dostępu'], 403);
         }
-        
+
         $data = json_decode($request->getContent(), true);
-        
+
         $workoutSet->setWeight((float) $data['weight']);
         $workoutSet->setReps((int) $data['reps']);
-        // Usunęliśmy zapis i obsługę $data['rir']!
-        
+
         $workoutSet->setIsCompleted(true);
         $workoutSet->setLoggedAt(new \DateTime());
-        
+
         $entityManager->flush();
+
+        // --- AKTYWACJA REKORDÓW ---
+        // Serwis sam sprawdzi, czy to nowy rekord dla tego usera na tej maszynie i go zapisze
+        $recordTracker->checkAndSaveRecord($workoutSet);
 
         // ------------------------------------------------------------------
         // ANALIZA PROGRESJI I CZASU PRZERWY
@@ -204,10 +208,10 @@ class TrackerController extends AbstractController
         $targetReps = isset($data['target_reps']) ? (int) $data['target_reps'] : 10;
 
         $analysis = $analyzer->analyzeSet($workoutSet, $targetReps, $isCompound);
-        
+
         return new JsonResponse([
             'success' => true,
-            'analysis' => $analysis 
+            'analysis' => $analysis
         ]);
     }
 
@@ -231,7 +235,7 @@ class TrackerController extends AbstractController
         // WERYFIKACJA STAGNACJI I KOŃCA MEZOCYKLU (ZASADA STAŁOŚCI)
         // ------------------------------------------------------------------
         $plan = $session->getWorkoutPlan();
-        
+
         if ($plan) {
             $uniqueDaysCount = count($em->getRepository(\App\Entity\WorkoutExercise::class)->createQueryBuilder('e')
                 ->select('e.dayNumber')
@@ -244,21 +248,21 @@ class TrackerController extends AbstractController
             $completedSessionsCount = (int) $em->createQuery(
                 'SELECT COUNT(s.id) FROM App\Entity\WorkoutSession s WHERE s.workoutPlan = :plan AND s.endedAt IS NOT NULL'
             )
-            ->setParameter('plan', $plan)
-            ->getSingleScalarResult();
+                ->setParameter('plan', $plan)
+                ->getSingleScalarResult();
 
-            $weeks = 4; 
+            $weeks = 4;
             if (preg_match('/\/ (\d+) tyg/', $plan->getName(), $matches)) {
                 $weeks = (int) $matches[1];
             }
-            
+
             $totalPlannedSessions = $uniqueDaysCount * $weeks;
 
             if ($completedSessionsCount >= $totalPlannedSessions) {
                 // Koniec Mezocyklu!
                 $plan->setName($plan->getName() . ' [ZAKOŃCZONY]');
                 $em->flush();
-                
+
                 $this->addFlash('success', 'GRATULACJE! Ukończyłeś ' . $totalPlannedSessions . ' treningów i zamknąłeś ten mezocykl! Organizm zaadaptował się do starych bodźców. Pora wygenerować nowy protokół.');
                 return $this->redirectToRoute('app_generator_start');
             }
@@ -273,11 +277,11 @@ class TrackerController extends AbstractController
         int $exercise_id,
         int $new_machine_id,
         EntityManagerInterface $em,
-        Request $request 
+        Request $request
     ): Response {
         $exercise = $em->getRepository(\App\Entity\WorkoutExercise::class)->find($exercise_id);
         $newMachine = $em->getRepository(\App\Entity\Machine::class)->find($new_machine_id);
-        
+
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
@@ -289,14 +293,14 @@ class TrackerController extends AbstractController
         if ($oldMachine) {
             $user->addBannedMachine($oldMachine);
         }
-        
+
         $exercise->setMachine($newMachine);
         $em->flush();
 
         $this->addFlash('success', 'Sprzęt podmieniony. Stara maszyna trafiła do wykluczeń.');
 
         $referer = $request->headers->get('referer');
-        
+
         if ($referer) {
             return $this->redirect($referer);
         }
@@ -305,39 +309,39 @@ class TrackerController extends AbstractController
     }
 
     #[Route('/tracker/session/{id}/add-cardio', name: 'app_tracker_add_cardio', methods: ['POST'])]
-public function addCardio(WorkoutSession $session, Request $request, EntityManagerInterface $em): Response
-{
-    if ($session->getUser() !== $this->getUser()) {
-        throw $this->createAccessDeniedException('Odmowa dostępu.');
-    }
-
-    $machineId = $request->request->get('machine_id');
-    $machine = $em->getRepository(Machine::class)->find($machineId);
-
-    if ($machine) {
-        $cardio = new CardioSession();
-        $cardio->setWorkoutSession($session);
-        $cardio->setMachine($machine);
-        $cardio->setDurationMinutes((int) $request->request->get('duration'));
-        
-        // Pobieranie Prędkości
-        $speed = $request->request->get('speed');
-        if ($speed !== null && $speed !== '') {
-            $cardio->setSpeed((float) $speed);
+    public function addCardio(WorkoutSession $session, Request $request, EntityManagerInterface $em): Response
+    {
+        if ($session->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Odmowa dostępu.');
         }
-        
-        // Pobieranie Pochylenia
-        $incline = $request->request->get('incline');
-        if ($incline !== null && $incline !== '') {
-            $cardio->setIncline((float) $incline);
-        }
-        
-        $em->persist($cardio);
-        $em->flush();
-        
-        $this->addFlash('success', 'Zarejestrowano parametry Cardio na maszynie: ' . $machine->getName());
-    }
 
-    return $this->redirectToRoute('app_tracker_session', ['id' => $session->getId()]);
-}
+        $machineId = $request->request->get('machine_id');
+        $machine = $em->getRepository(Machine::class)->find($machineId);
+
+        if ($machine) {
+            $cardio = new CardioSession();
+            $cardio->setWorkoutSession($session);
+            $cardio->setMachine($machine);
+            $cardio->setDurationMinutes((int) $request->request->get('duration'));
+
+            // Pobieranie Prędkości
+            $speed = $request->request->get('speed');
+            if ($speed !== null && $speed !== '') {
+                $cardio->setSpeed((float) $speed);
+            }
+
+            // Pobieranie Pochylenia
+            $incline = $request->request->get('incline');
+            if ($incline !== null && $incline !== '') {
+                $cardio->setIncline((float) $incline);
+            }
+
+            $em->persist($cardio);
+            $em->flush();
+
+            $this->addFlash('success', 'Zarejestrowano parametry Cardio na maszynie: ' . $machine->getName());
+        }
+
+        return $this->redirectToRoute('app_tracker_session', ['id' => $session->getId()]);
+    }
 }

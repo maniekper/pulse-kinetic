@@ -25,21 +25,21 @@ class DashboardController extends AbstractController
 
         if (!$plan) {
             $this->addFlash('warning', 'Witaj w systemie! Zanim ruszysz, wygeneruj swój pierwszy protokół operacyjny.');
-            return $this->redirectToRoute('app_generator_start'); 
+            return $this->redirectToRoute('app_generator_start');
         }
 
-        
+
         // --- ZLICZAMY TYLKO FIZYCZNIE ZAKOŃCZONE SESJE DLA BIEŻĄCEGO PLANU ---
         $completedSessionsCount = 0;
         $totalSessionsInCycle = 0;
-        
+
         if ($plan) {
             $completedSessionsCount = (int) $em->createQuery(
                 'SELECT COUNT(s.id) FROM App\Entity\WorkoutSession s WHERE s.workoutPlan = :plan AND s.endedAt IS NOT NULL'
             )
-            ->setParameter('plan', $plan)
-            ->getSingleScalarResult();
-            
+                ->setParameter('plan', $plan)
+                ->getSingleScalarResult();
+
             $uniqueDaysCount = count($em->getRepository(\App\Entity\WorkoutExercise::class)->createQueryBuilder('e')
                 ->select('e.dayNumber')
                 ->where('e.workoutPlan = :plan')
@@ -47,7 +47,7 @@ class DashboardController extends AbstractController
                 ->groupBy('e.dayNumber')
                 ->getQuery()
                 ->getResult());
-                
+
             $weeks = 4;
             if (preg_match('/\/ (\d+) tyg/', $plan->getName(), $matches)) {
                 $weeks = (int) $matches[1];
@@ -63,15 +63,13 @@ class DashboardController extends AbstractController
             }
         }
         $qb = $em->createQueryBuilder();
-        $maxLifts = $qb->select('m.name as machineName, MAX(ws.weight) as maxWeight')
-            ->from(WorkoutSet::class, 'ws')
-            ->join('ws.machine', 'm')
-            ->join('ws.workoutSession', 'sess')
-            ->where('sess.user = :user')
-            ->andWhere('ws.isCompleted = true')
+        $maxLifts = $em->createQueryBuilder()
+            ->select('m.name as machineName, r.maxWeight as maxWeight, r.maxRepsAtMaxWeight as reps')
+            ->from(\App\Entity\MachineRecord::class, 'r')
+            ->join('r.machine', 'm')
+            ->where('r.user = :user')
             ->setParameter('user', $user)
-            ->groupBy('m.id')
-            ->orderBy('maxWeight', 'DESC')
+            ->orderBy('r.maxWeight', 'DESC')
             ->setMaxResults(3)
             ->getQuery()
             ->getResult();
@@ -79,8 +77,8 @@ class DashboardController extends AbstractController
         $estimatedTimeMinutes = 0;
         if ($plan && $user instanceof \App\Entity\User && $user->getCurrentGoal()) {
             $goal = $user->getCurrentGoal();
-            $totalSeconds = 600; 
-            
+            $totalSeconds = 600;
+
             // 1. Zbieramy dni, w których fizycznie Mamy przypisane ćwiczenia
             $activeDays = [];
             foreach ($plan->getWorkoutExercises() as $ex) {
@@ -107,17 +105,17 @@ class DashboardController extends AbstractController
                 if ($workoutExercise->getDayNumber() === $nextDayNumber) {
                     $machine = $workoutExercise->getMachine();
                     $sets = $workoutExercise->getSets();
-                    
+
                     $repsRaw = $workoutExercise->getReps();
                     $repsArray = explode('-', $repsRaw);
                     $avgReps = (count($repsArray) === 2) ? ((int)$repsArray[0] + (int)$repsArray[1]) / 2 : (int)$repsArray[0];
 
                     $workTime = $sets * $avgReps * 4;
 
-                    $restTimePerSet = ($machine && $machine->getMechanicType() === 'compound') 
-                        ? $goal->getRestCompoundSeconds() 
+                    $restTimePerSet = ($machine && $machine->getMechanicType() === 'compound')
+                        ? $goal->getRestCompoundSeconds()
                         : $goal->getRestIsolationSeconds();
-                    
+
                     $restTime = ($sets > 0 ? $sets - 1 : 0) * $restTimePerSet;
                     $transitionTime = $goal->getRestBetweenMachinesSeconds();
 
@@ -133,25 +131,25 @@ class DashboardController extends AbstractController
 
         for ($i = 6; $i >= 0; $i--) {
             $date = (clone $today)->modify("-{$i} days");
-            $dayName = strtoupper($date->format('D')); 
-            
+            $dayName = strtoupper($date->format('D'));
+
             $dayTonnage = 0;
             foreach ($sessions as $session) {
                 if ($session->getStartedAt() && $session->getStartedAt()->format('Y-m-d') === $date->format('Y-m-d')) {
                     $dayTonnage += $session->getTotalTonnage();
                 }
             }
-            
+
             $chartData[] = [
                 'day' => $dayName,
                 'tonnage' => $dayTonnage
             ];
-            
+
             if ($dayTonnage > $maxChartValue) {
                 $maxChartValue = $dayTonnage;
             }
         }
-        
+
         if ($maxChartValue === 0) {
             $maxChartValue = 1;
         }

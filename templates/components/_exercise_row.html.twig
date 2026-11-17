@@ -52,7 +52,12 @@
 
                 <!-- Przyciski akcji -->
                 <div class="flex justify-end gap-2 mt-1">
-                    <button type="button" onclick="openSwapModal({{ exercise.id }}, '{{ exercise.machine.name|escape('js') }}', '{% if exercise.machine.primaryMuscles|length > 0 %}{{ exercise.machine.primaryMuscles.first.name|escape('js') }}{% endif %}')" class="w-12 h-12 bg-[#1a1a1a] border border-white/10 text-[#767575] hover:text-primary-container hover:border-primary-container/50 transition-colors flex items-center justify-center cursor-pointer shadow" title="Wymień sprzęt">
+                    <button
+                        type="button"
+                        onclick="window.openSwapModal({{ exercise.id }}, '{{ exercise.machine.name|escape('js') }}', '{% if exercise.machine.primaryMuscles|length > 0 %}{{ exercise.machine.primaryMuscles.first.name|escape('js') }}{% endif %}', {{ used_machine_ids|default('[]')|json_encode }})"
+                        class="w-12 h-12 bg-[#1a1a1a] border border-white/10 text-[#767575] hover:text-primary-container hover:border-primary-container/50 transition-colors flex items-center justify-center cursor-pointer shadow"
+                        title="Wymień sprzęt"
+                    >
                         <span class="material-symbols-outlined text-lg">published_with_changes</span>
                     </button>
                     <div class="w-12 h-12 bg-[#1a1a1a] border border-white/10 flex items-center justify-center text-[#767575] shadow">

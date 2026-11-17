@@ -57,12 +57,21 @@
 
                     {% if plan %}
                         <div class="flex flex-col gap-2">
-                            {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}                            
+                            {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}
+                            
+                            {# NOWE 1. Przygotowanie tablicy z wszystkimi dzisiejszymi maszynami #}
+                            {% set dayMachineIds = [] %}
+                            {% for exercise in todaysExercises %}
+                                {% set dayMachineIds = dayMachineIds|merge([exercise.machine.id]) %}
+                            {% endfor %}
+
+                            {# NOWE 2. Przekazanie zmiennej 'used_machine_ids' do komponentu #}
                             {% for exercise in todaysExercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': exercise,
                                     'index': loop.index,
-                                    'show_status': true
+                                    'show_status': true,
+                                    'used_machine_ids': dayMachineIds
                                 } %}
                             {% else %}
                                 <div class="text-[#767575] text-sm py-4 uppercase tracking-widest font-bold font-headline">Brak przypisanych ćwiczeń dla tej sesji.</div>

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20261116113646 extends AbstractMigration
+final class Version20261117105639 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -22,7 +22,7 @@ final class Version20261116113646 extends AbstractMigration
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE TABLE cardio_session (id INT AUTO_INCREMENT NOT NULL, duration_minutes INT DEFAULT NULL, speed DOUBLE PRECISION DEFAULT NULL, incline DOUBLE PRECISION DEFAULT NULL, distance DOUBLE PRECISION DEFAULT NULL, average_heart_rate INT DEFAULT NULL, max_heart_rate INT DEFAULT NULL, workout_session_id INT NOT NULL, machine_id INT NOT NULL, INDEX IDX_B518A030D1BA355 (workout_session_id), INDEX IDX_B518A030F6B75B26 (machine_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE goal (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, base_compound_reps_min INT NOT NULL, base_compound_reps_max INT NOT NULL, base_isolation_reps_min INT NOT NULL, base_isolation_reps_max INT NOT NULL, rest_compound_seconds INT NOT NULL, rest_isolation_seconds INT NOT NULL, rest_between_machines_seconds INT NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('CREATE TABLE machine (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description LONGTEXT NOT NULL, tips LONGTEXT NOT NULL, image_start VARCHAR(255) NOT NULL, image_end VARCHAR(255) NOT NULL, category VARCHAR(255) NOT NULL, mechanic_type VARCHAR(255) NOT NULL, increment_step DOUBLE PRECISION DEFAULT NULL, movement_category VARCHAR(255) DEFAULT NULL, muscle_group_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_1505DF845E237E06 (name), INDEX IDX_1505DF8444004D0 (muscle_group_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE machine (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, description LONGTEXT NOT NULL, tips LONGTEXT NOT NULL, image_start VARCHAR(255) NOT NULL, image_end VARCHAR(255) NOT NULL, category VARCHAR(255) NOT NULL, mechanic_type VARCHAR(255) NOT NULL, increment_step DOUBLE PRECISION DEFAULT NULL, movement_pattern VARCHAR(50) DEFAULT NULL, movement_category VARCHAR(255) DEFAULT NULL, muscle_group_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_1505DF845E237E06 (name), INDEX IDX_1505DF8444004D0 (muscle_group_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE machine_primary_muscle (machine_id INT NOT NULL, muscle_id INT NOT NULL, INDEX IDX_681CD07EF6B75B26 (machine_id), INDEX IDX_681CD07E354FDBB4 (muscle_id), PRIMARY KEY (machine_id, muscle_id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE machine_secondary_muscle (machine_id INT NOT NULL, muscle_id INT NOT NULL, INDEX IDX_FC4150E4F6B75B26 (machine_id), INDEX IDX_FC4150E4354FDBB4 (muscle_id), PRIMARY KEY (machine_id, muscle_id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE machine_record (id INT AUTO_INCREMENT NOT NULL, max_weight DOUBLE PRECISION NOT NULL, max_reps_at_max_weight INT NOT NULL, achieved_at DATETIME NOT NULL, user_id INT NOT NULL, machine_id INT NOT NULL, INDEX IDX_521130D4A76ED395 (user_id), INDEX IDX_521130D4F6B75B26 (machine_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');

@@ -41,6 +41,11 @@
                     </div>
 
                     <div>
+                        {{ form_label(form.movementPattern) }}
+                        {{ form_widget(form.movementPattern) }}
+                    </div>
+
+                    <div>
                         {{ form_label(form.description, null, {'label_attr': {'class': 'font-headline font-bold text-[10px] text-[#767575] uppercase tracking-[0.2em] block mb-2'}}) }}
                         {{ form_widget(form.description) }}
                     </div>

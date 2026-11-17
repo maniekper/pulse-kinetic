@@ -46,6 +46,23 @@ class MachineType extends AbstractType
                 ],
                 'attr' => ['class' => $inputClasses]
             ])
+            ->add('movementPattern', ChoiceType::class, [
+                'label' => 'WZORZEC RUCHOWY (DLA GENERATORA)',
+                'required' => false,
+                'placeholder' => 'Brak / Inny (Other)',
+                'choices' => [
+                    'Wypychanie poziome (Chest Press)' => 'horizontal_push',
+                    'Wypychanie pionowe (Overhead Press)' => 'overhead_press',
+                    'Przyciąganie poziome (Row)' => 'horizontal_pull',
+                    'Przyciąganie pionowe (Lat Pulldown)' => 'vertical_pull',
+                    'Wznosy bokiem (Lateral Raises)' => 'lateral_raises',
+                    'Przysiad / Wypychanie (Leg Press)' => 'squat',
+                    'Zawias biodrowy (RDL / Hinge)' => 'hinge',
+                    'Izolacja' => 'isolation',
+                    'Inny / Niesklasyfikowany' => 'other',
+                ],
+                'attr' => ['class' => $inputClasses]
+            ])
             ->add('description', TextareaType::class, [
                 'label' => 'OPIS ĆWICZENIA',
                 'attr' => ['class' => $inputClasses, 'rows' => 4]

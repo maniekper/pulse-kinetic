@@ -274,19 +274,9 @@ class GeneratorController extends AbstractController
                 // NOWE: Dobieranie z blokowaniem duplikatów wzorców
                 $addedCount = 0;
                 foreach ($muscleSpecificMachines as $candidateMachine) {
-                    $machineNameLower = strtolower($candidateMachine->getName());
-                    $pattern = 'other';
 
-                    // Słownik rozpoznawania ruchu po nazwie
-                    if (str_contains($machineNameLower, 'wyciskanie nad głowę') || str_contains($machineNameLower, 'overhead') || str_contains($machineNameLower, 'shoulder bench')) {
-                        $pattern = 'overhead_press';
-                    } elseif (str_contains($machineNameLower, 'wznosy') || str_contains($machineNameLower, 'bocz')) {
-                        $pattern = 'lateral_raises';
-                    } elseif (str_contains($machineNameLower, 'ściąganie') || str_contains($machineNameLower, 'podciąganie')) {
-                        $pattern = 'vertical_pull';
-                    } elseif (str_contains($machineNameLower, 'wioślar') || str_contains($machineNameLower, 'przyciąganie')) {
-                        $pattern = 'horizontal_pull';
-                    }
+                    $machineNameLower = strtolower($candidateMachine->getName());
+                    $pattern = $candidateMachine->getMovementPattern() ?? 'other';
 
                     // Blokada: Jeśli wzorzec został już użyty dzisiaj, pomijamy tę maszynę
                     if ($pattern !== 'other' && in_array($pattern, $usedPatternsInSession)) {

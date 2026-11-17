@@ -75,10 +75,18 @@
                         </div>
                         
                         <div class="p-4 md:p-6 flex-1 flex flex-col gap-3">
+                            {# NOWE 1: Zbieramy ID wszystkich maszyn zaplanowanych na ten konkretny dzień #}
+                            {% set dayMachineIds = [] %}
+                            {% for ex in exercises %}
+                                {% set dayMachineIds = dayMachineIds|merge([ex.machine.id]) %}
+                            {% endfor %}
+
+                            {# NOWE 2: Przekazujemy tablicę 'used_machine_ids' do każdego wiersza #}
                             {% for ex in exercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': ex,
-                                    'index': loop.index
+                                    'index': loop.index,
+                                    'used_machine_ids': dayMachineIds
                                 } %}
                             {% endfor %}
                         </div>

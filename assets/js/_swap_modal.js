@@ -1,16 +1,18 @@
 // assets/js/_swap_modal.js
 
-window.openSwapModal = function (exerciseId, machineName, muscleName) {
+window.openSwapModal = function (
+    exerciseId,
+    machineName,
+    muscleName,
+    usedMachineIds = [],
+) {
     const swapModal = document.getElementById("swapModal");
 
-    // Zabezpieczenie: jeśli modala nie ma na stronie, funkcja nic nie zrobi i nie wyrzuci błędu
     if (!swapModal) return;
 
-    // Pobieramy dane JSON z atrybutu
     const machinesDataRaw = swapModal.getAttribute("data-machines");
     const machinesData = machinesDataRaw ? JSON.parse(machinesDataRaw) : [];
 
-    // Odkrywamy modal
     swapModal.classList.remove("hidden");
     swapModal.classList.add("flex");
 
@@ -22,14 +24,27 @@ window.openSwapModal = function (exerciseId, machineName, muscleName) {
     grid.innerHTML = "";
     submitBtn.classList.add("opacity-30", "pointer-events-none");
 
-    // Filtrujemy maszyny po partii mięśniowej
+    // NOWE: Parsowanie użytych maszyn
+    let excludedIds = [];
+    if (typeof usedMachineIds === "string") {
+        try {
+            excludedIds = JSON.parse(usedMachineIds);
+        } catch (e) {}
+    } else if (Array.isArray(usedMachineIds)) {
+        excludedIds = usedMachineIds;
+    }
+
+    // Zaktualizowany filtr - ODRZUCA MASZYNY Z excludedIds
     const compatibleMachines = machinesData.filter(
-        (m) => m.muscles.includes(muscleName) && m.name !== machineName,
+        (m) =>
+            m.muscles.includes(muscleName) &&
+            m.name !== machineName &&
+            !excludedIds.includes(m.id),
     );
 
     if (compatibleMachines.length === 0) {
         grid.innerHTML =
-            '<div class="col-span-2 text-[#767575] text-xs py-4 uppercase tracking-widest font-headline text-center">Brak alternatyw dla tej partii w bazie.</div>';
+            '<div class="col-span-2 text-[#767575] text-xs py-4 uppercase tracking-widest font-headline text-center">Brak alternatyw dla tej partii w bazie (lub wszystkie są już użyte w planie).</div>';
     } else {
         compatibleMachines.forEach((m) => {
             const card = document.createElement("div");
