@@ -44,7 +44,7 @@ class AppFixtures extends Fixture
         $manager->persist($goalReduction);
 
         // --- 2. KONTA UŻYTKOWNIKÓW ---
-        
+
         // Użytkownik 1: Dzik (Admin)
         $user = new User();
         $user->setEmail('test@pulsekinetic.com')
@@ -55,7 +55,7 @@ class AppFixtures extends Fixture
             ->setHeight(180.0)
             ->setCurrentGoal($goalStrength)
             ->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
-        
+
         $password = $this->hasher->hashPassword($user, 'trening123');
         $user->setPassword($password);
         $manager->persist($user);
@@ -70,7 +70,7 @@ class AppFixtures extends Fixture
             ->setHeight(165.0)
             ->setCurrentGoal($goalReduction)
             ->setRoles(['ROLE_USER']);
-        
+
         $passwordJoa = $this->hasher->hashPassword($joa, 'trening123');
         $joa->setPassword($passwordJoa);
         $manager->persist($joa);
@@ -85,7 +85,7 @@ class AppFixtures extends Fixture
             ->setHeight(178.0)
             ->setCurrentGoal($goalHypertrophy)
             ->setRoles(['ROLE_USER']);
-        
+
         $passwordBober = $this->hasher->hashPassword($bober, 'bober123');
         $bober->setPassword($passwordBober);
         $manager->persist($bober);
@@ -112,9 +112,9 @@ class AppFixtures extends Fixture
             'Dwugłowy uda',
             'Łydki'
         ];
-        
+
         $muscleEntities = [];
-        
+
         foreach ($musclesData as $name) {
             $muscle = new Muscle();
             $muscle->setName($name);
@@ -125,7 +125,7 @@ class AppFixtures extends Fixture
         // --- ZAPIS DO BAZY ---
         $manager->flush();
     }
-    
+
     public function getDependencies(): array
     {
         return [

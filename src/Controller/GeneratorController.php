@@ -2,16 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\Machine;
+use App\Entity\User;
+use App\Service\WorkoutPlanGeneratorService;
+use App\Entity\WorkoutExercise;
+use App\Entity\WorkoutPlan;
+use App\Repository\GoalRepository;
+use App\Repository\MachineRepository;
+use App\Repository\MuscleRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Repository\GoalRepository;
-use App\Repository\MuscleRepository;
-use App\Repository\MachineRepository;
-use App\Entity\WorkoutPlan;
-use App\Entity\WorkoutExercise;
-use Doctrine\ORM\EntityManagerInterface;
 
 class GeneratorController extends AbstractController
 {
@@ -25,7 +28,7 @@ class GeneratorController extends AbstractController
         $allGoals = $goalRepository->findAll();
 
         return $this->render('generator/step1_days.html.twig', [
-            'goals' => $allGoals
+            'goals' => $allGoals,
         ]);
     }
 
@@ -36,11 +39,10 @@ class GeneratorController extends AbstractController
         $newGoal = $goalRepository->find($newGoalId);
 
         $user = $this->getUser();
-        if ($newGoal && $user instanceof \App\Entity\User) {
+        if ($newGoal && $user instanceof User) {
             $user->setCurrentGoal($newGoal);
 
             $goalName = $newGoal->getName();
-
             $plans = $entityManager->getRepository(WorkoutPlan::class)->findBy(['user' => $user]);
 
             foreach ($plans as $plan) {
@@ -50,7 +52,6 @@ class GeneratorController extends AbstractController
                     $machine = $exercise->getMachine();
                     $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                    // Dynamiczne powtórzenia prosto z encji Goal
                     $minReps = $isCompound ? $newGoal->getBaseCompoundRepsMin() : $newGoal->getBaseIsolationRepsMin();
                     $maxReps = $isCompound ? $newGoal->getBaseCompoundRepsMax() : $newGoal->getBaseIsolationRepsMax();
 
@@ -83,11 +84,12 @@ class GeneratorController extends AbstractController
     #[Route('/generator/duration', name: 'app_generator_duration')]
     public function duration(Request $request): Response
     {
-        if (!$request->getSession()->has('gen_days')) return $this->redirectToRoute('app_generator_start');
+        if (!$request->getSession()->has('gen_days')) {
+            return $this->redirectToRoute('app_generator_start');
+        }
 
         $daysPerWeek = (int) $request->getSession()->get('gen_days');
 
-        // NOWA LOGIKA: Adaptacja układu nerwowego (Mezocykl)
         if ($daysPerWeek == 2) {
             $minWeeks = 8;
             $maxWeeks = 12;
@@ -111,7 +113,7 @@ class GeneratorController extends AbstractController
             'maxWeeks' => $maxWeeks,
             'defaultWeeks' => (int) round(($minWeeks + $maxWeeks) / 2),
             'daysPerWeek' => $daysPerWeek,
-            'mesocycleDesc' => $desc
+            'mesocycleDesc' => $desc,
         ]);
     }
 
@@ -126,219 +128,49 @@ class GeneratorController extends AbstractController
     #[Route('/generator/exclusions', name: 'app_generator_exclusions')]
     public function exclusions(MuscleRepository $muscleRepository, Request $request): Response
     {
-        if (!$request->getSession()->has('gen_weeks')) return $this->redirectToRoute('app_generator_duration');
+        if (!$request->getSession()->has('gen_weeks')) {
+            return $this->redirectToRoute('app_generator_duration');
+        }
 
         $muscles = $muscleRepository->findAll();
         return $this->render('generator/step3_exclusions.html.twig', [
-            'muscles' => $muscles
+            'muscles' => $muscles,
         ]);
     }
 
     #[Route('/generator/build', name: 'app_generator_build', methods: ['POST'])]
     public function buildPlan(
         Request $request,
-        MuscleRepository $muscleRepository,
-        MachineRepository $machineRepository,
-        EntityManagerInterface $entityManager
+        WorkoutPlanGeneratorService $planGenerator
     ): Response {
-        $daysPerWeek = (int) $request->getSession()->get('gen_days', 3);
-        $weeks = (int) $request->getSession()->get('gen_weeks', 4);
-        $excludedMusclesIds = $request->request->all('excluded_muscles') ?? [];
-
         $user = $this->getUser();
-        $userGoal = $user instanceof \App\Entity\User ? $user->getCurrentGoal() : null;
-        $goalName = $userGoal ? $userGoal->getName() : 'Trening';
-
-        $allMuscles = $muscleRepository->findAll();
-        $activeMuscleNames = [];
-        foreach ($allMuscles as $m) {
-            if (!in_array($m->getId(), $excludedMusclesIds)) {
-                $activeMuscleNames[] = $m->getName();
-            }
+        if (!$user instanceof \App\Entity\User) {
+            return $this->redirectToRoute('app_login');
         }
 
-        if (empty($activeMuscleNames)) {
-            $this->addFlash('danger', 'Wykluczyłeś wszystkie partie ciała! System nie ma z czego zbudować planu.');
+        $daysPerWeek = (int) $request->getSession()->get('gen_days', 3);
+        $weeks = (int) $request->getSession()->get('gen_weeks', 4);
+        $excludedMuscleIds = $request->request->all('excluded_muscles') ?? [];
+
+        try {
+            $plan = $planGenerator->generatePlan($user, $daysPerWeek, $weeks, $excludedMuscleIds);
+        } catch (\InvalidArgumentException $e) {
+            $this->addFlash('danger', $e->getMessage());
             return $this->redirectToRoute('app_generator_exclusions');
         }
 
-        $gender = strtolower($user instanceof \App\Entity\User ? ($user->getGender() ?? '') : '');
-        $isFemale = in_array($gender, ['kobieta', 'female']);
-
-        // SPERSONALIZOWANY BLUEPRINT TRENINGOWY (GÓRA/DÓŁ DLA 2 DNI)
-        if ($daysPerWeek == 2) {
-            if ($isFemale) {
-                $masterBlueprint = [
-                    ['Nogi', 'Pośladki', 'Łydki', 'Brzuch'], // Dół
-                    ['Plecy', 'Barki', 'Klatka piersiowa', 'Biceps', 'Triceps'] // Góra
-                ];
-                $exercisesPerMuscle = 2;
-            } else {
-                $masterBlueprint = [
-                    ['Klatka piersiowa', 'Plecy', 'Barki', 'Biceps', 'Triceps'], // Góra
-                    ['Nogi', 'Łydki', 'Brzuch'] // Dół
-                ];
-                $exercisesPerMuscle = 2;
-            }
-        } elseif ($daysPerWeek == 3) {
-            if ($isFemale) {
-                $masterBlueprint = [['Nogi', 'Pośladki', 'Plecy', 'Klatka piersiowa', 'Barki']];
-                $exercisesPerMuscle = 1;
-            } else {
-                $masterBlueprint = [['Nogi', 'Plecy', 'Klatka piersiowa', 'Barki', 'Biceps', 'Triceps']];
-                $exercisesPerMuscle = 1;
-            }
-        } elseif ($daysPerWeek == 4) {
-            if ($isFemale) {
-                $masterBlueprint = [
-                    ['Nogi', 'Pośladki', 'Brzuch'],
-                    ['Plecy', 'Barki', 'Biceps'],
-                    ['Nogi', 'Pośladki', 'Łydki'],
-                    ['Klatka piersiowa', 'Triceps', 'Brzuch']
-                ];
-                $exercisesPerMuscle = 2;
-            } else {
-                $masterBlueprint = [
-                    ['Klatka piersiowa', 'Biceps'],
-                    ['Plecy', 'Triceps'],
-                    ['Nogi'],
-                    ['Barki', 'Brzuch']
-                ];
-                $exercisesPerMuscle = 3;
-            }
-        } else {
-            $masterBlueprint = [['Klatka piersiowa', 'Barki', 'Triceps'], ['Plecy', 'Biceps'], ['Nogi', 'Brzuch']];
-            $exercisesPerMuscle = 2;
-        }
-
-        $anatomyMap = [
-            'Klatka piersiowa' => ['Klatka piersiowa'],
-            'Plecy'            => ['Plecy', 'Najszerszy grzbietu', 'Czworoboczny grzbietu'],
-            'Nogi'             => ['Nogi', 'Czworogłowy uda', 'Dwugłowy uda', 'Przywodziciele'],
-            'Pośladki'         => ['Pośladki', 'Odwodziciele'],
-            'Barki'            => ['Barki'],
-            'Biceps'           => ['Biceps'],
-            'Triceps'          => ['Triceps'],
-            'Brzuch'           => ['Brzuch', 'Prosty brzucha', 'Skośne brzucha'],
-            'Łydki'            => ['Łydki']
-        ];
-
-        $totalSessions = $daysPerWeek;
-        $activeBlueprint = $masterBlueprint;
-        $allMachines = $machineRepository->findAll();
-        $bannedMachinesIds = $excludedMusclesIds;
-
-        $plan = new WorkoutPlan();
-        $plan->setUser($user);
-
-        $planSuffix = ($daysPerWeek == 2) ? ' (Split: Góra/Dół)' : ' (' . $daysPerWeek . ' dni / ' . $weeks . ' tyg.)';
-        $plan->setName($goalName . $planSuffix);
-
-        $entityManager->persist($plan);
-
-        for ($sessionNum = 1; $sessionNum <= $totalSessions; $sessionNum++) {
-            $blueprintIndex = ($sessionNum - 1) % count($activeBlueprint);
-            $targetMuscles = $activeBlueprint[$blueprintIndex];
-
-            $dailyExercises = [];
-            // NOWE: Tablica śledząca użyte wzorce ruchu w danej sesji
-            $usedPatternsInSession = [];
-
-            foreach ($targetMuscles as $targetMuscle) {
-                $specificMusclesForTarget = $anatomyMap[$targetMuscle] ?? [$targetMuscle];
-                $muscleSpecificMachines = [];
-
-                foreach ($allMachines as $machine) {
-                    if (in_array($machine->getId(), $bannedMachinesIds)) continue;
-
-                    $machineNameLower = strtolower($machine->getName());
-                    $mechType = strtolower($machine->getMechanicType() ?? '');
-
-                    if (
-                        $mechType === 'cardio' ||
-                        str_contains($machineNameLower, 'rower') ||
-                        str_contains($machineNameLower, 'bieżnia') ||
-                        str_contains($machineNameLower, 'orbitrek')
-                    ) {
-                        continue;
-                    }
-
-                    $primaryNames = array_map(fn($m) => $m->getName(), $machine->getPrimaryMuscles()->toArray());
-                    if (!empty(array_intersect($primaryNames, $specificMusclesForTarget))) {
-                        $muscleSpecificMachines[] = $machine;
-                    }
-                }
-
-                shuffle($muscleSpecificMachines);
-
-                // NOWE: Dobieranie z blokowaniem duplikatów wzorców
-                $addedCount = 0;
-                foreach ($muscleSpecificMachines as $candidateMachine) {
-
-                    $machineNameLower = strtolower($candidateMachine->getName());
-                    $pattern = $candidateMachine->getMovementPattern() ?? 'other';
-
-                    // Blokada: Jeśli wzorzec został już użyty dzisiaj, pomijamy tę maszynę
-                    if ($pattern !== 'other' && in_array($pattern, $usedPatternsInSession)) {
-                        continue;
-                    }
-
-                    // Dodanie maszyny do planu i zapisanie jej wzorca
-                    $dailyExercises[] = $candidateMachine;
-                    if ($pattern !== 'other') {
-                        $usedPatternsInSession[] = $pattern;
-                    }
-
-                    $addedCount++;
-                    if ($addedCount >= $exercisesPerMuscle) {
-                        break;
-                    }
-                }
-            }
-
-            $usedMachineIdsInSession = [];
-            $exerciseCount = 0;
-
-            foreach ($dailyExercises as $machine) {
-                if (in_array($machine->getId(), $usedMachineIdsInSession)) continue;
-
-                if ($exerciseCount >= 6) break;
-
-                $usedMachineIdsInSession[] = $machine->getId();
-
-                $exercise = new WorkoutExercise();
-                $exercise->setWorkoutPlan($plan);
-                $exercise->setMachine($machine);
-                $exercise->setDayNumber($sessionNum);
-
-                $isCompound = ($machine->getMechanicType() === 'compound');
-
-                if ($userGoal) {
-                    $minReps = $isCompound ? $userGoal->getBaseCompoundRepsMin() : $userGoal->getBaseIsolationRepsMin();
-                    $maxReps = $isCompound ? $userGoal->getBaseCompoundRepsMax() : $userGoal->getBaseIsolationRepsMax();
-
-                    $exercise->setSets($isCompound ? 4 : 3);
-                    $exercise->setReps($minReps . '-' . $maxReps);
-                } else {
-                    $exercise->setSets(3);
-                    $exercise->setReps('8-12');
-                }
-
-                $entityManager->persist($exercise);
-                $exerciseCount++;
-            }
-        }
-
-        $entityManager->flush();
         $request->getSession()->remove('gen_days');
         $request->getSession()->remove('gen_weeks');
 
         return $this->redirectToRoute('app_generator_success', ['id' => $plan->getId()]);
     }
+
     #[Route('/generator/success/{id}', name: 'app_generator_success')]
-    public function success(WorkoutPlan $plan, Request $request, \App\Repository\MachineRepository $machineRepo): Response
+    public function success(WorkoutPlan $plan, Request $request, MachineRepository $machineRepo): Response
     {
-        if ($plan->getUser() !== $this->getUser()) throw $this->createAccessDeniedException();
+        if ($plan->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
 
         $sessions = [];
         foreach ($plan->getWorkoutExercises() as $exercise) {
@@ -350,7 +182,147 @@ class GeneratorController extends AbstractController
             'plan' => $plan,
             'sessions' => $sessions,
             'daysPerWeek' => count($sessions),
-            'allMachines' => $machineRepo->findAll()
+            'allMachines' => $machineRepo->findAll(),
         ]);
+    }
+
+    private function getBlueprint(int $daysPerWeek, bool $isFemale): array
+    {
+        if ($daysPerWeek === 2) {
+            if ($isFemale) {
+                return [
+                    ['Nogi' => 3, 'Pośladki' => 1, 'Brzuch' => 2],
+                    ['Plecy' => 2, 'Barki' => 2, 'Klatka piersiowa' => 1, 'Biceps' => 1, 'Triceps' => 1],
+                ];
+            }
+
+            return [
+                ['Klatka piersiowa' => 2, 'Plecy' => 2, 'Barki' => 1, 'Biceps' => 1, 'Triceps' => 1],
+                ['Nogi' => 4, 'Pośladki' => 1, 'Brzuch' => 1],
+            ];
+        }
+
+        if ($daysPerWeek === 3) {
+            if ($isFemale) {
+                return [
+                    ['Nogi' => 2, 'Pośladki' => 1, 'Plecy' => 1, 'Klatka piersiowa' => 1, 'Brzuch' => 1],
+                    ['Nogi' => 2, 'Pośladki' => 1, 'Plecy' => 1, 'Barki' => 1, 'Biceps' => 1],
+                    ['Nogi' => 2, 'Pośladki' => 1, 'Klatka piersiowa' => 1, 'Barki' => 1, 'Triceps' => 1],
+                ];
+            }
+
+            return [
+                ['Nogi' => 2, 'Klatka piersiowa' => 1, 'Plecy' => 1, 'Barki' => 1, 'Biceps' => 1],
+                ['Nogi' => 2, 'Plecy' => 1, 'Klatka piersiowa' => 1, 'Barki' => 1, 'Triceps' => 1],
+                ['Nogi' => 2, 'Klatka piersiowa' => 1, 'Plecy' => 1, 'Biceps' => 1, 'Brzuch' => 1],
+            ];
+        }
+
+        if ($daysPerWeek === 4) {
+            if ($isFemale) {
+                return [
+                    ['Nogi' => 3, 'Pośladki' => 1, 'Brzuch' => 2],
+                    ['Plecy' => 3, 'Barki' => 2, 'Biceps' => 2], // Biceps spadnie z 2 na 1 po synergii z plecami
+                    ['Nogi' => 4, 'Pośladki' => 1, 'Brzuch' => 1],
+                    ['Klatka piersiowa' => 3, 'Triceps' => 2, 'Brzuch' => 1], // Triceps spadnie z 2 na 1 po synergii z klatką
+                ];
+            }
+
+            return [
+                ['Klatka piersiowa' => 4, 'Biceps' => 2],   // Antagoniści: pełna objętość (6 ćw.)
+                ['Plecy' => 4, 'Triceps' => 2],             // Antagoniści: pełna objętość (6 ćw.)
+                ['Nogi' => 5, 'Pośladki' => 1],             // Pełny dzień nóg (6 ćw.)
+                ['Barki' => 3, 'Brzuch' => 2],              // 3 aktony barków + 2 brzuch (5 ćw.)
+            ];
+        }
+
+        // 5+ dni: Push / Pull / Legs (z automatyczną redukcją synergistów)
+        return [
+            ['Klatka piersiowa' => 3, 'Barki (Push)' => 2, 'Triceps' => 2], // Triceps -> 1 po synergii = 6 ćw.
+            ['Plecy' => 3, 'Barki (Pull)' => 1, 'Biceps' => 3],             // Biceps -> 2 po synergii = 6 ćw.
+            ['Nogi' => 4, 'Pośladki' => 1, 'Brzuch' => 1],                  // 6 ćw.
+        ];
+    }
+
+    private function pickMachineForSlot(
+        array $pool,
+        array $slot,
+        array $usedInSession,
+        array $usedInPlan,
+        array $usedPrimariesInGroup
+    ): ?Machine {
+        $matches = array_values(array_filter($pool, function (Machine $machine) use ($slot, $usedInSession) {
+            if (in_array($machine->getId(), $usedInSession, true)) {
+                return false;
+            }
+
+            if (isset($slot['mechanic']) && $machine->getMechanicType() !== $slot['mechanic']) {
+                return false;
+            }
+
+            if (isset($slot['pattern']) && $machine->getMovementPattern() !== $slot['pattern']) {
+                return false;
+            }
+
+            if (isset($slot['primary'])) {
+                $primaryNames = $this->getMuscleNames($machine->getPrimaryMuscles());
+                if (empty(array_intersect($primaryNames, $slot['primary']))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }));
+
+        if (empty($matches)) {
+            return null;
+        }
+
+        $sorted = $this->sortCandidatesByVariety($matches, $usedInPlan, $usedPrimariesInGroup);
+        return $sorted[0];
+    }
+
+    /**
+     * Preferuje: 1) inny akton niż już wybrany w tej grupie, 2) maszynę jeszcze nieużytą w innym dniu tygodnia, 3) losowość.
+     */
+    private function sortCandidatesByVariety(array $candidates, array $usedInPlan, array $usedPrimariesInGroup): array
+    {
+        shuffle($candidates);
+
+        usort($candidates, function (Machine $a, Machine $b) use ($usedInPlan, $usedPrimariesInGroup) {
+            $aPrimaryUsed = !empty(array_intersect($this->getMuscleNames($a->getPrimaryMuscles()), $usedPrimariesInGroup)) ? 1 : 0;
+            $bPrimaryUsed = !empty(array_intersect($this->getMuscleNames($b->getPrimaryMuscles()), $usedPrimariesInGroup)) ? 1 : 0;
+
+            if ($aPrimaryUsed !== $bPrimaryUsed) {
+                return $aPrimaryUsed <=> $bPrimaryUsed;
+            }
+
+            $aPlanUsed = in_array($a->getId(), $usedInPlan, true) ? 1 : 0;
+            $bPlanUsed = in_array($b->getId(), $usedInPlan, true) ? 1 : 0;
+
+            return $aPlanUsed <=> $bPlanUsed;
+        });
+
+        return $candidates;
+    }
+
+    private function isCardioMachine(Machine $machine): bool
+    {
+        $nameLower = strtolower($machine->getName() ?? '');
+        $mechType = strtolower($machine->getMechanicType() ?? '');
+
+        return $mechType === 'cardio'
+            || str_contains($nameLower, 'rower')
+            || str_contains($nameLower, 'bieżnia')
+            || str_contains($nameLower, 'orbitrek');
+    }
+
+    private function getMuscleNames(iterable $muscles): array
+    {
+        $names = [];
+        foreach ($muscles as $muscle) {
+            $names[] = $muscle->getName();
+        }
+        return $names;
     }
 }

@@ -14,10 +14,10 @@
 
     <div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
         <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ -->
-        <div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center hidden">
-            <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-12">ODPOCZYNEK</h2>
+        <div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center p-6 hidden">
+            <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-8">ODPOCZYNEK</h2>
     
-            <div class="relative flex items-center justify-center w-64 h-64 mb-12">
+            <div class="relative flex items-center justify-center w-64 h-64 mb-8">
                 <svg class="w-full h-full -rotate-90">
                     <circle class="text-surface-container-highest" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-width="8"></circle>
                     <circle id="mobileRestTimerCircle" class="text-primary-container transition-all duration-1000 ease-linear" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-width="8" stroke-linecap="round"></circle>
@@ -27,13 +27,22 @@
                 </div>
             </div>
 
-            <div class="flex gap-4 w-full px-8 max-w-sm relative z-50">
+            <div class="flex gap-4 w-full px-2 max-w-sm relative z-50">
                 <button type="button" onclick="addRestTime(30)" class="cursor-pointer flex-1 bg-surface-container-highest text-on-surface py-5 font-headline font-bold text-sm uppercase tracking-widest border border-outline-variant/30 active:bg-outline-variant transition-colors">
                     +30s
                 </button>
                 <button type="button" onclick="document.getElementById('mobileRestOverlay').classList.add('hidden'); document.getElementById('mobileRestOverlay').classList.remove('flex'); skipRestTime();" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_var(--theme-shadow)] active:scale-95 transition-all">
                     POMIŃ
                 </button>
+            </div>
+
+            <!-- ANALIZA SERII NA EKRANIE PRZERWY MOBILNEJ -->
+            <div id="mobileCoachBox" class="hidden w-full max-w-sm bg-[#161616] border-l-4 border-primary-container px-4 py-3 text-left shadow-lg mt-6">
+                <div class="font-label text-[9px] font-bold text-primary-container uppercase tracking-widest mb-1">
+                    ANALIZA SERII
+                </div>
+                <p id="mobileCoachText" class="font-body text-xs text-white leading-relaxed"></p>
+                <p id="mobileNextWeightText" class="hidden font-headline font-bold text-[11px] text-primary-container uppercase tracking-wider mt-1.5"></p>
             </div>
         </div>
 

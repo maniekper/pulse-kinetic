@@ -6,7 +6,6 @@ use App\Entity\WorkoutSet;
 
 class ProgressionAnalyzerService
 {
-    // Wstrzykujemy kalkulator, aby mieć dostęp do ustawień z encji Goal
     public function __construct(private WorkoutCalculatorService $calculator) {}
 
     public function analyzeSet(WorkoutSet $currentSet, int $targetReps, bool $isCompound = true): array
@@ -18,31 +17,32 @@ class ProgressionAnalyzerService
 
         $increment = $machine->getIncrementStep() ?? 2.5;
 
-        // Pobieramy precyzyjne dane o przerwach dla aktywnego Celu operatora
+        // Pobieramy bazowy czas odpoczynku z bazy danych
         $targets = $this->calculator->calculateTargets($user, $machine);
         $baseRest = $targets['restSeconds'];
 
         $nextWeight = $weight;
+        $restSeconds = $baseRest;
 
         if ($reps > $targetReps) {
             $nextWeight = $weight + $increment;
-            $message = sprintf('Przebicie celu! Zrobiłeś %d powt. (cel: %d). Jesteś gotowy, dokładamy na %.1f kg w następnej serii.', $reps, $targetReps, $nextWeight);
-            // Dodajemy 30 sekund ekstra do bazowego czasu za pobicie rekordu (układ nerwowy potrzebuje oddechu)
-            $restSeconds = $baseRest + 30;
+            $restSeconds = $baseRest;
+            $message = sprintf('Przebicie celu! Zrobiłeś %d powt. (cel: %d). Dokładamy na %.1f kg w następnej serii.', $reps, $targetReps, $nextWeight);
         } elseif ($reps === $targetReps) {
             $nextWeight = $weight;
-            $message = sprintf('Cel osiągnięty (%d/%d). Zostań przy %.1f kg, utrwal ten wynik i zregeneruj układ nerwowy.', $reps, $targetReps, $nextWeight);
             $restSeconds = $baseRest;
+            $message = sprintf('Cel osiągnięty (%d/%d). Zostań przy %.1f kg, utrwal ten wynik i zregeneruj siły.', $reps, $targetReps, $nextWeight);
         } else {
             $shortfall = $targetReps - $reps;
             if ($shortfall <= 2) {
                 $nextWeight = $weight;
-                $message = sprintf('Blisko celu (%d/%d). Zostań przy %.1f kg i spróbuj dociągnąć w następnej serii.', $reps, $targetReps, $weight);
-                $restSeconds = $baseRest + 30; // Zwiększone zmęczenie wymaga dłuższej przerwy przed kolejną próbą
+                // Inteligentny bufor 30 sekund przy minimalnym braku powtórzeń
+                $restSeconds = $baseRest + 30;
+                $message = sprintf('Ciężka walka (%d/%d). Dorzucamy ekstra 30s oddechu. Zostań przy %.1f kg i spróbuj dociągnąć.', $reps, $targetReps, $weight);
             } else {
                 $nextWeight = max(0, $weight - $increment);
-                $message = sprintf('Wyraźny spadek mocy. Zmniejszamy ciężar do %.1f kg, żeby zachować formę i bezpieczeństwo.', $nextWeight);
-                $restSeconds = $baseRest;
+                $restSeconds = $baseRest + 15;
+                $message = sprintf('Spadek mocy. Zmniejszamy ciężar do %.1f kg i dajemy chwilę na złapanie oddechu.', $nextWeight);
             }
         }
 

@@ -8,6 +8,13 @@ let maxRestSeconds = 0;
 const circumference = 552.92;
 let isIntentionalExit = false;
 
+function hideMobileCoachBox() {
+    const mobileCoachBox = document.getElementById("mobileCoachBox");
+    if (mobileCoachBox) {
+        mobileCoachBox.classList.add("hidden");
+    }
+}
+
 window.startWorkoutSession = function () {
     const overlay = document.getElementById("readyOverlay");
     if (overlay) {
@@ -80,11 +87,22 @@ window.skipOccupiedMachine = function () {
 };
 
 function normalizeMuscleName(name) {
-    let normalized = name.trim().toLowerCase().replace(/\s+/g, "-");
-    if (normalized === "prosty-brzucha") return "prosty-brzuch";
-    if (normalized === "skośne-brzucha") return "skośne-brzuch";
-    if (normalized === "przywodziciele") return "przwodziciele";
-    return normalized;
+    if (!name) return "";
+
+    const normalized = name
+        .trim()
+        .toLowerCase()
+        .replace(/\s*-\s*/g, "-") // "Klatka - góra" -> "klatka-góra" (bez "---")
+        .replace(/[()]/g, "") // usuwa nawiasy z "(przód)", "(tył)", "(Kulszowo-goleniowe)"
+        .replace(/\s+/g, "-"); // pozostałe spacje -> "-"
+
+    // Aliasy (zostaw tylko jeśli w SVG użyłeś skróconych nazw bez końcówki "-a")
+    const aliases = {
+        "prosty-brzucha": "prosty-brzuch",
+        "skośne-brzucha": "skośne-brzuch",
+    };
+
+    return aliases[normalized] ?? normalized;
 }
 
 function showExercise(index) {
@@ -152,37 +170,51 @@ function showExercise(index) {
     const activeBlock = blocks[index];
     const rawPrimary = (activeBlock.getAttribute("data-primary-muscles") || "")
         .split(",")
+        .map((m) => m.trim())
         .filter(Boolean);
     const rawSecondary = (
         activeBlock.getAttribute("data-secondary-muscles") || ""
     )
         .split(",")
+        .map((m) => m.trim())
         .filter(Boolean);
 
-    document.querySelectorAll(".muscle-group").forEach((el) => {
-        el.classList.remove("muscle-active-primary", "muscle-active-secondary");
-    });
+    // Czyścimy po aktywnych klasach (bezpieczniejsze niż tylko po .muscle-group)
+    document
+        .querySelectorAll(".muscle-active-primary, .muscle-active-secondary")
+        .forEach((el) => {
+            el.classList.remove(
+                "muscle-active-primary",
+                "muscle-active-secondary",
+            );
+        });
 
     const labelsContainer = document.getElementById("anatomyLabels");
     if (labelsContainer) labelsContainer.innerHTML = "";
 
-    rawPrimary.forEach((m) => {
-        const className = "muscle-" + normalizeMuscleName(m);
-        document
-            .querySelectorAll("." + className)
-            .forEach((el) => el.classList.add("muscle-active-primary"));
-        if (labelsContainer)
-            labelsContainer.innerHTML += `<span class="bg-primary-container/20 border border-primary-container text-primary-container px-2 py-1 font-headline font-bold text-[9px] uppercase tracking-widest">${m}</span>`;
-    });
+    const highlight = (muscleName, activeClass) => {
+        const slug = normalizeMuscleName(muscleName);
+        if (!slug) return;
 
-    rawSecondary.forEach((m) => {
-        const className = "muscle-" + normalizeMuscleName(m);
-        document
-            .querySelectorAll("." + className)
-            .forEach((el) => el.classList.add("muscle-active-secondary"));
-        if (labelsContainer)
+        const selector = "." + CSS.escape("muscle-" + slug);
+        document.querySelectorAll(selector).forEach((el) => {
+            el.classList.add(activeClass);
+        });
+    };
+
+    // Najpierw pomocnicze, potem główne (gdyby jakaś nazwa się powtórzyła, główny wygra)
+    rawSecondary.forEach((m) => highlight(m, "muscle-active-secondary"));
+    rawPrimary.forEach((m) => highlight(m, "muscle-active-primary"));
+
+    // Etykiety pod mapą (najpierw główne, potem pomocnicze — tak jak wcześniej)
+    if (labelsContainer) {
+        rawPrimary.forEach((m) => {
+            labelsContainer.innerHTML += `<span class="bg-primary-container/20 border border-primary-container text-primary-container px-2 py-1 font-headline font-bold text-[9px] uppercase tracking-widest">${m}</span>`;
+        });
+        rawSecondary.forEach((m) => {
             labelsContainer.innerHTML += `<span class="bg-surface-container-highest border border-outline-variant/30 text-outline px-2 py-1 font-headline font-bold text-[9px] uppercase tracking-widest">${m}</span>`;
-    });
+        });
+    }
 
     updateActiveStateVisuals();
 }
@@ -317,6 +349,7 @@ function startRestTimer(duration) {
                 mobileOverlay.classList.add("hidden");
                 mobileOverlay.classList.remove("flex");
             }
+            hideMobileCoachBox();
         } else {
             currentRestSeconds--;
             updateRestDisplay();
@@ -367,6 +400,7 @@ window.skipRestTime = function () {
         mobileOverlay.classList.add("hidden");
     }
 
+    hideMobileCoachBox();
     clearInterval(restInterval);
     currentRestSeconds = 0;
 
@@ -473,9 +507,21 @@ window.saveSet = function (setId, btnElement) {
                 }
 
                 let restTimeSeconds = 120;
+                hideMobileCoachBox();
 
                 if (data.analysis) {
                     restTimeSeconds = data.analysis.rest_seconds;
+
+                    // DODANE: Aktualizujemy globalny element czasu, żeby stoper i przyciski znały nowy czas
+                    const targetDataEl =
+                        document.getElementById("targetRestTimeData");
+                    if (targetDataEl) {
+                        targetDataEl.setAttribute("data-time", restTimeSeconds);
+                    }
+                    maxRestSeconds =
+                        restTimeSeconds > maxRestSeconds
+                            ? restTimeSeconds
+                            : maxRestSeconds;
 
                     const currentExerciseBlock = document.querySelector(
                         '.exercise-block[style="display: block;"]',
@@ -501,6 +547,35 @@ window.saveSet = function (setId, btnElement) {
                                     "opacity-0",
                                 );
                             }, 50);
+                        }
+                    }
+
+                    const mobileCoachBox =
+                        document.getElementById("mobileCoachBox");
+                    const mobileCoachText =
+                        document.getElementById("mobileCoachText");
+                    const mobileNextWeightText = document.getElementById(
+                        "mobileNextWeightText",
+                    );
+
+                    if (mobileCoachBox && mobileCoachText) {
+                        mobileCoachText.innerText = data.analysis.message || "";
+                        mobileCoachBox.classList.toggle(
+                            "hidden",
+                            !data.analysis.message,
+                        );
+
+                        if (mobileNextWeightText) {
+                            if (
+                                data.analysis.next_weight !== undefined &&
+                                data.analysis.next_weight !== null &&
+                                data.analysis.next_weight !== ""
+                            ) {
+                                mobileNextWeightText.innerText = `SUGEROWANY NASTĘPNY CIĘŻAR: ${data.analysis.next_weight} KG`;
+                                mobileNextWeightText.classList.remove("hidden");
+                            } else {
+                                mobileNextWeightText.classList.add("hidden");
+                            }
                         }
                     }
 

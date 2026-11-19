@@ -11,28 +11,36 @@ class MachineFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        // 1. MIĘŚNIE - Słownik w 100% zsynchronizowany z interaktywnym SVG
+        // 1. PRECYZYJNY SŁOWNIK ANATOMICZNY
         $musclesData = [
-            'Klatka piersiowa',
-            'Barki',
-            'Biceps',
-            'Triceps',
-            'Przedramiona',
-            'Kaptur',
+            'Klatka piersiowa - góra',
+            'Klatka piersiowa - środek',
+            'Klatka piersiowa - dół',
+            'Barki - przód',
+            'Barki - bok',
+            'Barki - tył',
             'Najszerszy grzbietu',
-            'Czworoboczny grzbietu',
-            'Prosty brzucha',
-            'Skośne brzucha',
+            'Górna część pleców',
+            'Prostownik grzbietu',
+            'Kaptur',
+            'Biceps',
+            'Triceps - głowa długa',
+            'Triceps - głowa boczna',
+            'Triceps - głowa przyśrodkowa',
+            'Przedramiona - zginacze (przód)',
+            'Przedramiona - prostowniki (tył)',
+            'Czworogłowy uda',
+            'Tył uda (Kulszowo-goleniowe)',
             'Pośladki',
             'Przywodziciele',
             'Odwodziciele',
-            'Czworogłowy uda',
-            'Dwugłowy uda',
             'Łydki',
-            // Główne grupy kategoryzacyjne
+            'Prosty brzucha',
+            'Skośne brzucha',
+            // Grupy ogólne (zostawione do czasu sprawdzenia generatora planów)
             'Plecy',
             'Nogi',
-            'Brzuch'
+            'Brzuch',
         ];
 
         $muscleEntities = [];
@@ -44,7 +52,7 @@ class MachineFixtures extends Fixture
             $muscleEntities[$name] = $muscle;
         }
 
-        // --- 4. MASZYNY I ĆWICZENIA (Baza Wiedzy) ---
+        // --- MASZYNY I ĆWICZENIA (Baza Wiedzy) ---
         $machinesList = [
             [
                 'name' => 'Fly',
@@ -53,10 +61,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Klatka piersiowa',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód'],
                 'image_prefix' => 'fly',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Lat Pulldown',
@@ -66,9 +74,9 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'vertical_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Biceps', 'Czworoboczny grzbietu'],
+                'secondary' => ['Biceps', 'Górna część pleców'],
                 'image_prefix' => 'lat_pulldown',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Rear Delt',
@@ -77,10 +85,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Barki',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Barki',
-                'secondary' => ['Czworoboczny grzbietu'],
+                'primary' => 'Barki - tył',
+                'secondary' => ['Górna część pleców', 'Kaptur'],
                 'image_prefix' => 'rear_delt',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Leg Press',
@@ -92,7 +100,7 @@ class MachineFixtures extends Fixture
                 'primary' => 'Czworogłowy uda',
                 'secondary' => ['Pośladki', 'Łydki'],
                 'image_prefix' => 'leg_press',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Uginanie nóg leżąc na maszynie',
@@ -101,10 +109,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Nogi',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Dwugłowy uda',
+                'primary' => 'Tył uda (Kulszowo-goleniowe)',
                 'secondary' => ['Łydki', 'Pośladki'],
                 'image_prefix' => 'prone_leg_curl',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Wyciskanie nad głowę na maszynie siedząc (zbieżne)',
@@ -113,10 +121,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Barki',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'overhead_press',
-                'primary' => 'Barki',
-                'secondary' => ['Triceps', 'Klatka piersiowa'],
+                'primary' => 'Barki - przód',
+                'secondary' => ['Triceps - głowa boczna', 'Triceps - głowa przyśrodkowa', 'Klatka piersiowa - góra', 'Kaptur'],
                 'image_prefix' => 'converging_shoulder_press',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Maszyna na przywodziciele (Adductor Machine In)',
@@ -128,7 +136,7 @@ class MachineFixtures extends Fixture
                 'primary' => 'Przywodziciele',
                 'secondary' => [],
                 'image_prefix' => 'adductor_machine_in',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Podciąganie z asystą (Chin Assist)',
@@ -138,117 +146,117 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'vertical_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Biceps', 'Czworoboczny grzbietu', 'Przedramiona', 'Prosty brzucha'],
+                'secondary' => ['Biceps', 'Górna część pleców', 'Przedramiona - zginacze (przód)', 'Prosty brzucha'],
                 'image_prefix' => 'chin_assist',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Dipy z asystą (Dip Assist)',
                 'description' => 'Uklęknij na ruchomej platformie maszyny, chwytając dolne poręcze neutralnym chwytem. Przyjmij pozycję wyjściową z ramionami w pełni wyprostowanymi, a następnie powoli i kontrolowanie opuszczaj ciało, uginając łokcie do kąta około 90 stopni, po czym dynamicznym ruchem wyciśnij się w górę, prostując ramiona.',
                 'tips' => 'Prowadź łokcie blisko tułowia, aby mocniej zaangażować triceps i chronić stawy barkowe. Unikaj pełnego blokowania łokci w najwyższym punkcie, utrzymując stałe napięcie mięśniowe.',
-                'category' => 'Klatka piersiowa',
+                'category' => 'Ramiona',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'other',
-                'primary' => 'Triceps',
-                'secondary' => ['Klatka piersiowa', 'Barki', 'Prosty brzucha'],
+                'primary' => 'Triceps - głowa przyśrodkowa',
+                'secondary' => ['Triceps - głowa boczna', 'Klatka piersiowa - dół', 'Barki - przód', 'Prosty brzucha'],
                 'image_prefix' => 'dip_assist',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Go Series Abdominal',
                 'description' => 'Usiądź na siedzisku maszyny i wsuń stopy pod dolne wałki oporowe. Złap dłońmi górne uchwyty. Wykonaj wydech i płynne spięcie mięśni brzucha, przyciągając klatkę piersiową do miednicy, pociągając za sobą ruchome ramię maszyny. Powoli i pod pełną kontrolą wróć do pozycji wyjściowej, wykonując wdech.',
                 'tips' => 'Ruch powinien być inicjowany i kontrolowany wyłącznie z mięśni brzucha. Unikaj ciągnięcia ciężaru samymi ramionami. Utrzymuj stałe napięcie mięśniowe przez całą fazę ekscentryczną.',
-                'category' => 'Machine',
+                'category' => 'Brzuch',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Prosty brzucha',
                 'secondary' => ['Skośne brzucha'],
                 'image_prefix' => 'go_series_abdominal',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Wyciskanie na maszynie siedząc Chest Press',
                 'description' => 'Usiądź stabilnie, dociskając plecy do oparcia maszyny. Chwyć uchwyty na szerokości barków na wysokości klatki piersiowej. Wypchnij ciężar płynnym ruchem przed siebie, aż do wyprostu ramion, po czym powolnym i kontrolowanym ruchem opuść ciężar z powrotem do pozycji wyjściowej.',
                 'tips' => 'Utrzymuj klatkę piersiową wypchniętą do przodu i łopatki ściągnięte podczas całego ruchu. Unikaj blokowania łokci w fazie końcowej, aby zachować ciągłe napięcie mięśni.',
-                'category' => 'Maszyny',
+                'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'chest_press_machine',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Prostowanie nóg na maszynie siedząc Leg Extension',
                 'description' => 'Usiądź na maszynie, dociskając plecy do oparcia. Umieść dół goleni za wałkiem oporowym, a dłonie na bocznych uchwytach. Płynnym ruchem wyprostuj nogi w stawach kolanowych, unosząc wałek do góry, a następnie w kontrolowany sposób opuść ciężar powracając do pozycji wyjściowej.',
                 'tips' => 'Utrzymuj stabilny tułów i nie odrywaj pośladków od siedziska. Skup się na pełnej kontroli ciężaru w fazie ekscentrycznej (opuszczania), unikając swobodnego opadania ramienia maszyny.',
-                'category' => 'Maszyny',
+                'category' => 'Nogi',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Czworogłowy uda',
                 'secondary' => [],
                 'image_prefix' => 'leg_extension_machine',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Uginanie ramion na modlitewniku',
                 'description' => 'Usiądź na ławce, opierając klatkę piersiową i tył ramion (tricepsy) stabilnie na poduszce modlitewnika. Chwyć sztangę podchwytem. Płynnym ruchem ugnij przedramiona, unosząc ciężar w stronę barków, a następnie w kontrolowany sposób opuść sztangę aż do pełnego wyprostu ramion.',
                 'tips' => 'Podczas całego ruchu nie odrywaj łokci ani ramion od poduszki. Ruch powinien izolować biceps – unikaj pomagania sobie balansem tułowia.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Biceps',
-                'secondary' => ['Przedramiona'],
+                'secondary' => ['Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'arm_curl_preacher',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wyciskanie sztangi na ławce poziomej',
                 'description' => 'Połóż się płasko na ławce, opierając stopy stabilnie na podłożu lub podestach. Chwyć sztangę nachwytem nieco szerzej niż rozstaw barków. Zdejmij ciężar ze stojaków. Kontrolując ruch, powoli opuść sztangę do środkowej części klatki piersiowej, a następnie dynamicznie wyciśnij ją w górę aż do pełnego wyprostu ramion.',
                 'tips' => 'Zadbaj o stabilną pozycję poprzez ściągnięcie łopatek do siebie i w dół (retrakcja i depresja). Nie odrywaj pośladków od ławki i unikaj sprężynującego odbijania sztangi od klatki piersiowej w dolnej fazie ruchu.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'flat_bench_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wyciskanie sztangi na ławce skośnej dodatniej',
                 'description' => 'Połóż się na ławce skośnej (około 30-45 stopni), opierając stopy stabilnie na podłożu. Chwyć sztangę nachwytem nieco szerzej niż rozstaw barków. Zdejmij ciężar ze stojaków i trzymaj go nad górną częścią klatki piersiowej. Kontrolując ruch, powoli opuść sztangę w okolice obojczyków (górna część klatki), a następnie dynamicznie wyciśnij ją w górę, prostując ramiona.',
                 'tips' => 'Zadbaj o mocne ściągnięcie łopatek do tyłu i w dół przez cały czas trwania ćwiczenia. Unikaj odbijania gryfu od klatki piersiowej i dbaj o to, by łokcie nie rozchodziły się nadmiernie w stronę głowy – powinny być prowadzone lekko do wewnątrz.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - góra',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'incline_bench_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wyciskanie sztangi na ławce skośnej ujemnej',
                 'description' => 'Zajmij pozycję na ławce skośnej ujemnej, blokując stopy i podudzia za wałkami oporowymi. Połóż się, chwyć sztangę nachwytem nieco szerzej niż rozstaw barków i zdejmij ją ze stojaków. Powoli, kontrolowanym ruchem opuść sztangę do dolnej części klatki piersiowej, a następnie dynamicznie wyciśnij ją w górę do pełnego wyprostu ramion.',
                 'tips' => 'Pamiętaj o ciągłym ściągnięciu łopatek i nie odrywaj bioder ani pleców od ławki. Wyciskaj ciężar w naturalnej, lekko łukowatej płaszczyźnie, nie blokując gwałtownie łokci w najwyższym punkcie.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - dół',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'decline_bench_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wykop na maszynie do pośladków',
                 'description' => 'Zajmij pozycję na maszynie, opierając przedramiona na poduszkach i chwytając za uchwyty. Umieść stopę jednej nogi na ruchomej platformie/ramieniu wahadłowym, a nogę podporową postaw stabilnie na dolnej platformie. Oprzyj biodra o poduszkę przednią. Płynnym ruchem wypchnij stopę w tył i lekko w górę, prostując nogę, a następnie w kontrolowany sposób powróć do pozycji wyjściowej.',
                 'tips' => 'Ruch powinien być inicjowany wyłącznie przez pośladek i dwugłowy uda – unikaj rotacji w biodrach oraz nadmiernego wyginania dolnego odcinka pleców (odcinka lędźwiowego). Skup się na pełnym napięciu mięśnia w fazie maksymalnego wyprostu.',
-                'category' => 'Maszyny',
+                'category' => 'Nogi',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Pośladki',
-                'secondary' => [],
+                'secondary' => ['Tył uda (Kulszowo-goleniowe)'],
                 'image_prefix' => 'glute_machine',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Incline Lever Row',
@@ -258,9 +266,9 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Barki'],
+                'secondary' => ['Górna część pleców', 'Kaptur', 'Biceps', 'Barki - tył'],
                 'image_prefix' => 'incline_lever_row',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wypychanie nóg na suwnicy pod kątem 45 stopni',
@@ -270,9 +278,9 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'squat',
                 'primary' => 'Czworogłowy uda',
-                'secondary' => ['Pośladki', 'Dwugłowy uda', 'Łydki'],
+                'secondary' => ['Pośladki', 'Tył uda (Kulszowo-goleniowe)', 'Łydki'],
                 'image_prefix' => '45_degree_leg_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Hack Przysiad na maszynie (Hack Squat)',
@@ -282,9 +290,9 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'squat',
                 'primary' => 'Czworogłowy uda',
-                'secondary' => ['Pośladki', 'Dwugłowy uda', 'Łydki'],
+                'secondary' => ['Pośladki', 'Tył uda (Kulszowo-goleniowe)', 'Łydki'],
                 'image_prefix' => 'hack_squat',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wiosłowanie na wyciągu dolnym w siadzie',
@@ -294,9 +302,9 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
+                'secondary' => ['Górna część pleców', 'Kaptur', 'Biceps', 'Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'low_row',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Prostowanie ramion na wyciągu (Triceps Pressdown)',
@@ -305,10 +313,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Triceps',
-                'secondary' => ['Przedramiona'],
+                'primary' => 'Triceps - głowa boczna',
+                'secondary' => ['Triceps - głowa przyśrodkowa', 'Przedramiona - prostowniki (tył)'],
                 'image_prefix' => 'triceps_pressdown',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Wiosłowanie na maszynie w siadzie (Seated Row)',
@@ -318,7 +326,7 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
+                'secondary' => ['Górna część pleców', 'Kaptur', 'Biceps', 'Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'seated_row',
                 'incrementStep' => 2.5
             ],
@@ -329,22 +337,22 @@ class MachineFixtures extends Fixture
                 'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'vertical_bench_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Ściąganie drążka wyciągu pionowego (Lat Pulldown)',
                 'description' => 'Usiądź na siedzisku maszyny i zablokuj uda pod wałkami oporowymi. Chwyć rączki urządzenia szerokim chwytem. Kontrolowanym, dynamicznym ruchem przyciągnij ramiona maszyny w dół, kierując uchwyty w stronę górnej części klatki piersiowej i mocno ściągając łopatki. Następnie powolnym, płynnym ruchem pozwól ramionom powrócić do pozycji wyjściowej, w pełni rozciągając mięśnie grzbietu.',
                 'tips' => 'Podczas ściągania ciężaru utrzymuj lekko odchyloną, ale stabilną sylwetkę i nie szarp tułowiem. Ruch powinien być zapoczątkowany przez opuszczenie łopatek, a nie tylko siłę ramion.',
-                'category' => 'Najszerszy grzbietu',
+                'category' => 'Plecy',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'vertical_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Czworoboczny grzbietu', 'Biceps', 'Przedramiona'],
+                'secondary' => ['Górna część pleców', 'Biceps', 'Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'lat_pulldown_machine',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wyciskanie na ławce poziomej na maszynie (Supine Bench Press)',
@@ -353,10 +361,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Klatka piersiowa',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_push',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki', 'Triceps'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna'],
                 'image_prefix' => 'supine_bench_press_machine',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Skłony tułowia na ławce skośnej (Adjustable Ab Bench)',
@@ -368,7 +376,7 @@ class MachineFixtures extends Fixture
                 'primary' => 'Prosty brzucha',
                 'secondary' => ['Skośne brzucha'],
                 'image_prefix' => 'adjustable_ab_bench',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Wyciskanie sztangi nad głowę na ławce pionowej (Shoulder Bench)',
@@ -377,22 +385,22 @@ class MachineFixtures extends Fixture
                 'category' => 'Barki',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'overhead_press',
-                'primary' => 'Barki',
-                'secondary' => ['Triceps', 'Kaptur'],
+                'primary' => 'Barki - przód',
+                'secondary' => ['Triceps - głowa boczna', 'Górna część pleców', 'Kaptur'],
                 'image_prefix' => 'shoulder_bench',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Krzyżowe wznosy ramion bokiem na wyciągu dolnym',
-                'description' => 'Stań na środku bramy, trzymając stopy na szerokość barków. Chwyć lewą rączkę wyciągu dolnego prawą dłonią, a prawą rączkę lewą dłonią, krzyżując linki przed miednicą[cite: 4]. Utrzymując delikatne ugięcie w łokciach, unoś ramiona na boki, aż znajdą się na wysokości barków, prowadząc ruch w płaszczyźnie poziomej[cite: 4]. Powróć do pozycji startowej z pełną kontrolą obciążenia.',
+                'description' => 'Stań na środku bramy, trzymając stopy na szerokość barków. Chwyć lewą rączkę wyciągu dolnego prawą dłonią, a prawą rączkę lewą dłonią, krzyżując linki przed miednicą. Utrzymując delikatne ugięcie w łokciach, unoś ramiona na boki, aż znajdą się na wysokości barków, prowadząc ruch w płaszczyźnie poziomej. Powróć do pozycji startowej z pełną kontrolą obciążenia.',
                 'tips' => 'Inicjuj i prowadź ruch łokciami, unikając szarpania ciężaru. Zachowaj stabilny, nieruchomy tułów i nie używaj nóg do wybijania obciążenia w górę.',
                 'category' => 'Barki',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'lateral_raises',
-                'primary' => 'Barki',
-                'secondary' => ['Kaptur', 'Czworoboczny grzbietu'],
+                'primary' => 'Barki - bok',
+                'secondary' => ['Górna część pleców', 'Kaptur'],
                 'image_prefix' => 'cable_crossover_lateral_raise',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Krzyżowanie linek wyciągu górnego',
@@ -401,10 +409,10 @@ class MachineFixtures extends Fixture
                 'category' => 'Klatka piersiowa',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Klatka piersiowa',
-                'secondary' => ['Barki'],
+                'primary' => 'Klatka piersiowa - środek',
+                'secondary' => ['Barki - przód'],
                 'image_prefix' => 'cable_crossover',
-                'incrementStep' => 5.0 // NOWE: wyciąg na stos
+                'incrementStep' => 5.0
             ],
             [
                 'name' => 'Wyciskanie sztangi nad głowę stojąc',
@@ -413,92 +421,83 @@ class MachineFixtures extends Fixture
                 'category' => 'Barki',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'overhead_press',
-                'primary' => 'Barki',
-                'secondary' => ['Triceps', 'Klatka piersiowa'],
+                'primary' => 'Barki - przód',
+                'secondary' => ['Triceps - głowa boczna', 'Klatka piersiowa - góra', 'Kaptur'],
                 'image_prefix' => 'barbell_overhead_press',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Martwy ciąg klasyczny',
                 'description' => 'Stań w lekkim rozkroku, stopy na szerokość bioder, sztanga nad środkiem stóp. Wykonaj opad tułowia z jednoczesnym ugięciem kolan i chwyć gryf nachwytem nieco szerzej niż rozstaw kolan (faza początkowa). Utrzymując proste plecy i napięty brzuch, dynamicznie unieś ciężar, prostując biodra i kolana, aż do pełnego wyprostu sylwetki, prowadząc sztangę blisko ciała (faza końcowa). Kontrolowanym ruchem opuść sztangę na podłoże.',
                 'tips' => 'Zacznij ruch od napięcia pośladków i brzucha, a sztangę prowadź jak najbliżej piszczeli i ud. Nie pozwalaj na zaokrąglenie pleców (tzw. „koci grzbiet”) pod obciążeniem.',
-                'category' => 'Dwugłowy uda',
+                'category' => 'Nogi',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'hinge',
-                'primary' => 'Dwugłowy uda',
-                'secondary' => ['Pośladki', 'Czworogłowy uda', 'Najszerszy grzbietu'],
+                'primary' => 'Tył uda (Kulszowo-goleniowe)',
+                'secondary' => ['Pośladki', 'Czworogłowy uda', 'Prostownik grzbietu', 'Kaptur', 'Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'deadlift',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Wiosłowanie sztangą w opadzie tułowia',
                 'description' => 'Stań w rozkroku na szerokość barków, ugnij lekko kolana i pochyl prosty tułów do przodu (prawie równolegle do podłogi). Chwyć sztangę nachwytem nieco szerzej niż szerokość barków, ramiona swobodnie opuszczone w dół (faza początkowa). Dynamicznie przyciągnij sztangę do dolnej części brzucha, prowadząc łokcie blisko ciała i mocno ściągając łopatki (faza końcowa). Powoli i z pełną kontrolą opuść sztangę do pozycji wyjściowej.',
                 'tips' => 'Przez cały czas trwania ćwiczenia utrzymuj naturalną krzywiznę kręgosłupa i napięte mięśnie brzucha. Nie szarp ciężaru tułowiem.',
-                'category' => 'Najszerszy grzbietu',
+                'category' => 'Plecy',
                 'mechanicType' => 'compound',
                 'movementPattern' => 'horizontal_pull',
                 'primary' => 'Najszerszy grzbietu',
-                'secondary' => ['Biceps', 'Czworoboczny grzbietu', 'Przedramiona'],
+                'secondary' => ['Biceps', 'Górna część pleców', 'Kaptur', 'Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'barbell_row',
-                'incrementStep' => 2.5 // NOWE: gryf
+                'incrementStep' => 2.5
             ],
             [
                 'name' => 'Uginanie ramion z hantlami na ławce skośnej',
                 'description' => 'Usiądź na ławce skośnej z hantlami w dłoniach. Oprzyj plecy płasko na oparciu, a ramiona opuść luźno w dół prostopadle do podłogi. Unieś hantle poprzez zgięcie stawów łokciowych, utrzymując ramiona nieruchomo. Następnie powoli opuść ciężar do pozycji wyjściowej.',
                 'tips' => 'Trzymaj łokcie blisko tułowia i pilnuj, aby nie przesuwały się do przodu podczas unoszenia hantli. Skup się na pełnym rozciągnięciu mięśnia w dolnej fazie ruchu.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Biceps',
-                'secondary' => ['Przedramiona'],
+                'secondary' => ['Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'incline_dumbbell_curl',
-                'incrementStep' => 1.0 // NOWE: hantle
+                'incrementStep' => 1.0
             ],
             [
                 'name' => 'Uginanie młotkowe (Hammer Curl)',
                 'description' => 'Stań prosto, trzymając hantle wzdłuż tułowia nachwytem neutralnym (kciuki skierowane do góry). Uginaj ramiona w łokciach, unosząc hantle w kierunku barków bez zmiany ustawienia nadgarstków. Następnie powoli opuść ciężar do pozycji początkowej.',
                 'tips' => 'Utrzymuj łokcie blisko tułowia i nieruchome barki. Nie kołysz tułowiem ani nie wykorzystuj rozpędu. Zachowaj neutralny chwyt przez cały ruch i kontroluj opuszczanie hantli.',
-                'category' => 'Biceps',
+                'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Biceps',
-                'secondary' => [
-                    'Mięsień ramienny',
-                    'Mięsień ramienno-promieniowy',
-                ],
+                'secondary' => ['Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'hammer_curl',
-                'incrementStep' => 1.0 // NOWE: hantle
+                'incrementStep' => 1.0
             ],
             [
                 'name' => 'Uginanie ramienia w podporze (Concentration Curl)',
                 'description' => 'Usiądź na ławce z nogami rozstawionymi na boki. Oprzyj łokieć ćwiczonego ramienia o wewnętrzną stronę uda. Trzymając hantel podchwytem, powoli uginaj ramię, unosząc ciężar w kierunku barku. Następnie kontrolowanym ruchem opuść hantel do pełnego wyprostu ramienia.',
                 'tips' => 'Utrzymuj łokieć nieruchomo i stabilnie oparty o udo przez cały ruch. Nie odrywaj ramienia od podpory, nie kołysz tułowiem i unikaj szarpania ciężarem. Utrzymuj nadgarstek w jednej linii z przedramieniem.',
-                'category' => 'Biceps',
+                'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
                 'primary' => 'Biceps',
-                'secondary' => [
-                    'Mięsień ramienny',
-                    'Mięsień ramienno-promieniowy',
-                ],
+                'secondary' => ['Przedramiona - zginacze (przód)'],
                 'image_prefix' => 'concentration_curl',
-                'incrementStep' => 1.0 // NOWE: hantle
+                'incrementStep' => 1.0
             ],
             [
                 'name' => 'Wyciskanie hantli zza głowy oburącz',
                 'description' => 'Ćwiczenie izolowane angażujące głowę długą mięśnia trójgłowego ramienia. Z pozycji wyjściowej z hantlem trzymanym oburącz za wewnętrzny talerz i uniesionym nad głową, przedramiona są powoli opuszczane za głowę do pełnego rozciągnięcia tricepsa, po czym następuje kontrolowany wyprost w stawach łokciowych.',
                 'tips' => 'Utrzymuj łokcie stabilnie, blisko głowy i unikaj ich nadmiernego rozchodzenia się na boki, aby zmaksymalizować pracę tricepsa.',
-                'category' => 'Wolne ciężary',
+                'category' => 'Ramiona',
                 'mechanicType' => 'isolation',
                 'movementPattern' => 'isolation',
-                'primary' => 'Triceps',
-                'secondary' => ['Barki', 'Przedramiona'],
+                'primary' => 'Triceps - głowa długa',
+                'secondary' => ['Barki - przód', 'Przedramiona - prostowniki (tył)'],
                 'image_prefix' => 'wyciskanie_hantli_zza_glowy_oburacz',
                 'incrementStep' => 2.0
             ],
-
-
-
 
             // --- MASZYNY CARDIO ---
             [
@@ -509,7 +508,7 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'cardio',
                 'movementPattern' => 'other',
                 'primary' => 'Łydki',
-                'secondary' => ['Czworogłowy uda', 'Dwugłowy uda', 'Pośladki'],
+                'secondary' => ['Czworogłowy uda', 'Tył uda (Kulszowo-goleniowe)', 'Pośladki'],
                 'image_prefix' => 'treadmill'
             ],
             [
@@ -531,7 +530,7 @@ class MachineFixtures extends Fixture
                 'mechanicType' => 'cardio',
                 'movementPattern' => 'other',
                 'primary' => 'Pośladki',
-                'secondary' => ['Czworogłowy uda', 'Plecy', 'Barki'],
+                'secondary' => ['Czworogłowy uda', 'Najszerszy grzbietu', 'Barki - przód'],
                 'image_prefix' => 'elliptical'
             ],
         ];
@@ -553,11 +552,11 @@ class MachineFixtures extends Fixture
                 ->setMechanicType($data['mechanicType'])
                 ->setMovementPattern($data['movementPattern'] ?? 'other');
 
-            // NOWE: Obsługa skoku obciążenia (zabezpieczenie default na 2.5 kg)
+            // Obsługa skoku obciążenia (zabezpieczenie default na 2.5 kg)
             if (isset($data['incrementStep'])) {
                 $machine->setIncrementStep($data['incrementStep']);
             } else {
-                $machine->setIncrementStep(2.5); // Bezpieczny fallback
+                $machine->setIncrementStep(2.5);
             }
 
             if (isset($data['primary']) && isset($muscleEntities[$data['primary']])) {

@@ -35,24 +35,40 @@
 
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-16">
                 {% for sessionNum, exercises in sessions %}
-                    
-                    {% set dayMuscles = [] %}
+                    {% set dayGroups = [] %}
                     {% for ex in exercises %}
-                        {% set mName = ex.machine.primaryMuscles|first.name ?? '' %}
-                        {% if mName and mName not in dayMuscles %}
-                            {% set dayMuscles = dayMuscles|merge([mName]) %}
+                        {% set cat = ex.machine.category ?? '' %}
+                        {% set primaryName = ex.machine.primaryMuscles|first.name ?? '' %}
+
+                        {% if cat == 'Ramiona' %}
+                            {% if 'Biceps' in primaryName %}
+                                {% set groupLabel = 'Biceps' %}
+                            {% elseif 'Triceps' in primaryName %}
+                                {% set groupLabel = 'Triceps' %}
+                            {% elseif 'Przedramiona' in primaryName %}
+                                {% set groupLabel = 'Przedramiona' %}
+                            {% else %}
+                                {% set groupLabel = 'Ramiona' %}
+                            {% endif %}
+                        {% else %}
+                            {% set groupLabel = cat ?: primaryName %}
+                        {% endif %}
+
+                        {% if groupLabel and groupLabel not in dayGroups %}
+                            {% set dayGroups = dayGroups|merge([groupLabel]) %}
                         {% endif %}
                     {% endfor %}
-                    
+
                     {% set planDays = sessions|length %}
-                    {% set workoutTypeLabel = '' %}
-                    {% if planDays <= 3 or dayMuscles|length >= 5 %}
+                    {% set hasLegs = 'Nogi' in dayGroups %}
+                    {% set hasUpper = ('Klatka piersiowa' in dayGroups) or ('Plecy' in dayGroups) or ('Barki' in dayGroups) %}
+
+                    {% if planDays == 2 %}
+                        {% set workoutTypeLabel = hasLegs and not hasUpper ? 'DÓŁ CIAŁA (LOWER)' : (hasUpper and not hasLegs ? 'GÓRA CIAŁA (UPPER)' : dayGroups|join(' / ')|upper) %}
+                    {% elseif hasLegs and hasUpper %}
                         {% set workoutTypeLabel = 'FBW (TRENING CAŁEGO CIAŁA)' %}
                     {% else %}
-                        {% set workoutTypeLabel = dayMuscles|join(' / ')|upper %}
-                        {% if workoutTypeLabel == '' %}
-                            {% set workoutTypeLabel = 'MIX PARTII' %}
-                        {% endif %}
+                        {% set workoutTypeLabel = dayGroups|join(' / ')|upper ?: 'MIX PARTII' %}
                     {% endif %}
 
                     <div class="bg-[#111111] border border-white/10 shadow-2xl flex flex-col hover:border-primary-container/30 transition-colors group">
@@ -75,13 +91,13 @@
                         </div>
                         
                         <div class="p-4 md:p-6 flex-1 flex flex-col gap-3">
-                            {# NOWE 1: Zbieramy ID wszystkich maszyn zaplanowanych na ten konkretny dzień #}
+                            {# Zbieramy ID wszystkich maszyn zaplanowanych na ten konkretny dzień #}
                             {% set dayMachineIds = [] %}
                             {% for ex in exercises %}
                                 {% set dayMachineIds = dayMachineIds|merge([ex.machine.id]) %}
                             {% endfor %}
 
-                            {# NOWE 2: Przekazujemy tablicę 'used_machine_ids' do każdego wiersza #}
+                            {# Przekazujemy tablicę 'used_machine_ids' do każdego wiersza #}
                             {% for ex in exercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': ex,
@@ -91,7 +107,6 @@
                             {% endfor %}
                         </div>
                     </div>
-                    
                 {% endfor %}
             </div>
 

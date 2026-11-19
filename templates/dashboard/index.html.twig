@@ -29,6 +29,7 @@
                 </div>
                 
                 {% if plan and totalSessionsInCycle > 0 %}
+                    {% set cycleProgress = (completedSessionsCount / totalSessionsInCycle) * 100 %}
                     <div class="w-full max-w-2xl flex flex-col gap-3 mt-4">
                         <div class="flex justify-between items-end mb-1">
                             <span class="font-headline text-xs md:text-sm text-[#767575] font-black tracking-widest uppercase">PROGRES MEZOCYKLU</span>
@@ -37,7 +38,6 @@
                             </div>
                         </div>
                         <div class="h-3 md:h-4 bg-[#111111] border border-white/10 w-full relative overflow-hidden shadow-inner">
-                            {% set cycleProgress = (completedSessionsCount / totalSessionsInCycle) * 100 %}
                             <div class="h-full bg-primary-container absolute top-0 left-0 transition-all duration-1000 ease-out" style="width: {{ cycleProgress }}%; box-shadow: 0 0 20px var(--theme-main);"></div>
                         </div>
                     </div>
@@ -50,22 +50,23 @@
                 <!-- LEWA KOLUMNA: Plan na dziś -->
                 <div class="xl:col-span-7 flex flex-col gap-6">
                     
+                    {% set completionPercent = (plan and totalSessionsInCycle > 0) ? ((completedSessionsCount / totalSessionsInCycle) * 100)|round : 0 %}
                     <div class="kinetic-section-title-wrap">
                         <h2 class="kinetic-section-title">ZAPLANOWANY BLOK NA DZIŚ</h2>
-                        <span class="font-headline font-bold text-[10px] text-primary-container tracking-widest ml-auto">0% COMPLETE</span>
+                        <span class="font-headline font-bold text-[10px] text-primary-container tracking-widest ml-auto">{{ completionPercent }}% COMPLETE</span>
                     </div>
 
                     {% if plan %}
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-3">
                             {% set todaysExercises = plan.workoutExercises|filter(e => e.dayNumber == nextDayNumber) %}
                             
-                            {# NOWE 1. Przygotowanie tablicy z wszystkimi dzisiejszymi maszynami #}
+                            {# Przygotowanie tablicy z wszystkimi dzisiejszymi maszynami #}
                             {% set dayMachineIds = [] %}
                             {% for exercise in todaysExercises %}
                                 {% set dayMachineIds = dayMachineIds|merge([exercise.machine.id]) %}
                             {% endfor %}
 
-                            {# NOWE 2. Przekazanie zmiennej 'used_machine_ids' do komponentu #}
+                            {# Przekazanie zmiennej 'used_machine_ids' do komponentu #}
                             {% for exercise in todaysExercises %}
                                 {% include 'components/_exercise_row.html.twig' with {
                                     'exercise': exercise,
@@ -86,7 +87,7 @@
                                 <div class="font-label text-[9px] text-[#767575] uppercase mt-2 tracking-widest">ZAWIERA 10 MIN ROZGRZEWKI</div>
                             </div>
 
-                            <!-- NOWY PRZYCISK STARTU TRENINGU -->
+                            <!-- PRZYCISK STARTU TRENINGU -->
                             <a href="{{ path('app_tracker_start', {'plan_id': plan.id}) }}" class="kinetic-panel relative flex flex-col items-center justify-center bg-primary-container hover:bg-primary-dim transition-all active:scale-95 text-[#111111] group cursor-pointer border-none shadow-[0_0_30px_rgba(209,252,0,0.15)] hover:shadow-[0_0_50px_rgba(209,252,0,0.3)] !p-6 min-h-[120px] text-center no-underline">
                                 <span class="material-symbols-outlined text-4xl mb-1 group-hover:scale-125 transition-transform duration-300">bolt</span>
                                 <span class="font-headline font-black text-2xl tracking-tighter uppercase leading-none mb-1">ROZPOCZNIJ TRENING</span>
@@ -164,9 +165,9 @@
 
     <!-- MODAL ZMIANY MASZYNY DLA DASHBOARDU (Komponent) -->
     {% include 'components/_swap_modal.html.twig' with {'allMachines': allMachines} %}
+{% endblock %}
 
-    {% block javascripts %}
-        {{ parent() }}
-        {{ encore_entry_script_tags('swap_modal') }}
-    {% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('swap_modal') }}
 {% endblock %}
