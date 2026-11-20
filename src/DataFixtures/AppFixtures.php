@@ -3,7 +3,6 @@
 namespace App\DataFixtures;
 
 use App\Entity\Goal;
-use App\Entity\Machine;
 use App\Entity\Muscle;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -18,77 +17,114 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        $goalRepo = $manager->getRepository(Goal::class);
+        $userRepo = $manager->getRepository(User::class);
+        $muscleRepo = $manager->getRepository(Muscle::class);
+
         // --- 1. CELE TRENINGOWE ---
-        $goalHypertrophy = new Goal();
-        $goalHypertrophy->setName('Hipertrofia (Masa mięśniowa)')
-            ->setBaseCompoundRepsMin(8)->setBaseCompoundRepsMax(12)
-            ->setBaseIsolationRepsMin(12)->setBaseIsolationRepsMax(15)
-            ->setRestCompoundSeconds(120)->setRestIsolationSeconds(90)
-            ->setRestBetweenMachinesSeconds(180);
-        $manager->persist($goalHypertrophy);
+        $goalsData = [
+            'hypertrophy' => [
+                'name' => 'Hipertrofia (Masa mięśniowa)',
+                'compoundMin' => 8,
+                'compoundMax' => 12,
+                'isolationMin' => 12,
+                'isolationMax' => 15,
+                'restCompound' => 120,
+                'restIsolation' => 90,
+                'restMachines' => 180,
+            ],
+            'strength' => [
+                'name' => 'Budowa Siły',
+                'compoundMin' => 3,
+                'compoundMax' => 5,
+                'isolationMin' => 8,
+                'isolationMax' => 10,
+                'restCompound' => 240,
+                'restIsolation' => 120,
+                'restMachines' => 240,
+            ],
+            'reduction' => [
+                'name' => 'Redukcja / Rzeźba (Spalanie tłuszczu)',
+                'compoundMin' => 10,
+                'compoundMax' => 15,
+                'isolationMin' => 15,
+                'isolationMax' => 20,
+                'restCompound' => 60,
+                'restIsolation' => 45,
+                'restMachines' => 90,
+            ],
+        ];
 
-        $goalStrength = new Goal();
-        $goalStrength->setName('Budowa Siły')
-            ->setBaseCompoundRepsMin(3)->setBaseCompoundRepsMax(5)
-            ->setBaseIsolationRepsMin(8)->setBaseIsolationRepsMax(10)
-            ->setRestCompoundSeconds(240)->setRestIsolationSeconds(120)
-            ->setRestBetweenMachinesSeconds(240);
-        $manager->persist($goalStrength);
-
-        $goalReduction = new Goal();
-        $goalReduction->setName('Redukcja / Rzeźba (Spalanie tłuszczu)')
-            ->setBaseCompoundRepsMin(10)->setBaseCompoundRepsMax(15)
-            ->setBaseIsolationRepsMin(15)->setBaseIsolationRepsMax(20)
-            ->setRestCompoundSeconds(60)->setRestIsolationSeconds(45)
-            ->setRestBetweenMachinesSeconds(90);
-        $manager->persist($goalReduction);
+        $goals = [];
+        foreach ($goalsData as $key => $data) {
+            $goal = $goalRepo->findOneBy(['name' => $data['name']]);
+            if (!$goal) {
+                $goal = new Goal();
+                $goal->setName($data['name'])
+                    ->setBaseCompoundRepsMin($data['compoundMin'])->setBaseCompoundRepsMax($data['compoundMax'])
+                    ->setBaseIsolationRepsMin($data['isolationMin'])->setBaseIsolationRepsMax($data['isolationMax'])
+                    ->setRestCompoundSeconds($data['restCompound'])->setRestIsolationSeconds($data['restIsolation'])
+                    ->setRestBetweenMachinesSeconds($data['restMachines']);
+                $manager->persist($goal);
+            }
+            $goals[$key] = $goal;
+        }
 
         // --- 2. KONTA UŻYTKOWNIKÓW ---
+        $usersData = [
+            [
+                'email' => 'test@pulsekinetic.com',
+                'name' => 'Dzik',
+                'age' => 43,
+                'gender' => 'Mężczyzna',
+                'weight' => 95.0,
+                'height' => 180.0,
+                'goal' => $goals['strength'],
+                'roles' => ['ROLE_ADMIN', 'ROLE_USER'],
+                'password' => 'trening123',
+            ],
+            [
+                'email' => 'joa@pulsekinetic.com',
+                'name' => 'Joa',
+                'age' => 35,
+                'gender' => 'Kobieta',
+                'weight' => 60.0,
+                'height' => 165.0,
+                'goal' => $goals['reduction'],
+                'roles' => ['ROLE_USER'],
+                'password' => 'trening123',
+            ],
+            [
+                'email' => 'bober@pulsekinetic.com',
+                'name' => 'Bober',
+                'age' => 30,
+                'gender' => 'Mężczyzna',
+                'weight' => 80.0,
+                'height' => 178.0,
+                'goal' => $goals['hypertrophy'],
+                'roles' => ['ROLE_USER'],
+                'password' => 'bober123',
+            ],
+        ];
 
-        // Użytkownik 1: Dzik (Admin)
-        $user = new User();
-        $user->setEmail('test@pulsekinetic.com')
-            ->setName('Dzik')
-            ->setAge(43)
-            ->setGender('Mężczyzna')
-            ->setWeight(95.0)
-            ->setHeight(180.0)
-            ->setCurrentGoal($goalStrength)
-            ->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
+        foreach ($usersData as $uData) {
+            if ($userRepo->findOneBy(['email' => $uData['email']])) {
+                continue;
+            }
 
-        $password = $this->hasher->hashPassword($user, 'trening123');
-        $user->setPassword($password);
-        $manager->persist($user);
+            $user = new User();
+            $user->setEmail($uData['email'])
+                ->setName($uData['name'])
+                ->setAge($uData['age'])
+                ->setGender($uData['gender'])
+                ->setWeight($uData['weight'])
+                ->setHeight($uData['height'])
+                ->setCurrentGoal($uData['goal'])
+                ->setRoles($uData['roles']);
 
-        // Użytkownik 2: Joa (Zwykły użytkownik, Kobieta)
-        $joa = new User();
-        $joa->setEmail('joa@pulsekinetic.com')
-            ->setName('Joa')
-            ->setAge(35)
-            ->setGender('Kobieta')
-            ->setWeight(60.0)
-            ->setHeight(165.0)
-            ->setCurrentGoal($goalReduction)
-            ->setRoles(['ROLE_USER']);
-
-        $passwordJoa = $this->hasher->hashPassword($joa, 'trening123');
-        $joa->setPassword($passwordJoa);
-        $manager->persist($joa);
-
-        // Użytkownik 3: Bober (Zwykły użytkownik)
-        $bober = new User();
-        $bober->setEmail('bober@pulsekinetic.com')
-            ->setName('Bober')
-            ->setAge(30)
-            ->setGender('Mężczyzna')
-            ->setWeight(80.0)
-            ->setHeight(178.0)
-            ->setCurrentGoal($goalHypertrophy)
-            ->setRoles(['ROLE_USER']);
-
-        $passwordBober = $this->hasher->hashPassword($bober, 'bober123');
-        $bober->setPassword($passwordBober);
-        $manager->persist($bober);
+            $user->setPassword($this->hasher->hashPassword($user, $uData['password']));
+            $manager->persist($user);
+        }
 
         // --- 3. MIĘŚNIE ---
         $musclesData = [
@@ -113,13 +149,12 @@ class AppFixtures extends Fixture
             'Łydki'
         ];
 
-        $muscleEntities = [];
-
         foreach ($musclesData as $name) {
-            $muscle = new Muscle();
-            $muscle->setName($name);
-            $manager->persist($muscle);
-            $muscleEntities[$name] = $muscle;
+            if (!$muscleRepo->findOneBy(['name' => $name])) {
+                $muscle = new Muscle();
+                $muscle->setName($name);
+                $manager->persist($muscle);
+            }
         }
 
         // --- ZAPIS DO BAZY ---
@@ -129,7 +164,7 @@ class AppFixtures extends Fixture
     public function getDependencies(): array
     {
         return [
-            MachineFixtures::class, // Wymagamy załadowania maszyn przed stworzeniem usera i historii
+            MachineFixtures::class,
         ];
     }
 }

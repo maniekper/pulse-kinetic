@@ -136,8 +136,39 @@
                             <span class="font-headline font-bold text-[9px] text-white uppercase tracking-wider">APPLE ID</span>
                         </button>
                     </div>
+
+                    <!-- PRZYCISK INSTALACJI PWA -->
+                    <div id="pwaInstallWrapper" class="hidden pt-3 border-t border-white/10 flex-col gap-3">
+                        <button
+                            type="button"
+                            id="pwaInstallBtn"
+                            class="w-full bg-[#1a1a1a] border border-[color:var(--theme-main)]/40 hover:bg-[color:var(--theme-main)] text-[color:var(--theme-main)] hover:text-[color:var(--theme-text)] py-2.5 px-4 flex items-center justify-between gap-3 transition-colors cursor-pointer group"
+                        >
+                            <div class="flex items-center gap-3">
+                                <img
+                                    src="{{ asset('icons/icon-512.png') }}"
+                                    alt="Pulse Kinetic"
+                                    class="w-7 h-7 object-contain shrink-0 border border-white/10"
+                                >
+                                <div class="text-left">
+                                    <span class="block font-headline font-bold text-[10px] uppercase tracking-widest leading-tight">ZAINSTALUJ APLIKACJĘ</span>
+                                    <span class="block font-body text-[9px] text-[#767575] group-hover:text-[color:var(--theme-text)]/80 uppercase tracking-wider">PULSE KINETIC PWA</span>
+                                </div>
+                            </div>
+                            <span class="material-symbols-outlined text-lg shrink-0">download</span>
+                        </button>
+
+                        <div id="iosInstallHint" class="hidden bg-[#1a1a1a] border-l-2 border-[color:var(--theme-main)] p-3 text-[11px] text-[#767575] font-body leading-relaxed">
+                            Na iPhone kliknij <strong class="text-white">Udostępnij</strong> (ikona ze strzałką na dole), a następnie <strong class="text-white">Dodaj do ekranu początkowego</strong>.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('pwa_install') }}
 {% endblock %}

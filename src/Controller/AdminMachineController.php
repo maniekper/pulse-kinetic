@@ -20,10 +20,67 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class AdminMachineController extends AbstractController
 {
     #[Route('/', name: 'app_admin_machine_index', methods: ['GET'])]
-    public function index(MachineRepository $machineRepository): Response
+    public function index(Request $request, MachineRepository $machineRepository): Response
     {
+        $search = trim((string) $request->query->get('q', ''));
+        $category = trim((string) $request->query->get('category', ''));
+        $mechanicType = trim((string) $request->query->get('type', ''));
+        $sort = (string) $request->query->get('sort', 'newest');
+
+        $qb = $machineRepository->createQueryBuilder('m');
+
+        if ($search !== '') {
+            $qb->andWhere('LOWER(m.name) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+        }
+
+        if ($category !== '') {
+            $qb->andWhere('m.category = :category')
+                ->setParameter('category', $category);
+        }
+
+        if ($mechanicType !== '') {
+            $qb->andWhere('m.mechanicType = :type')
+                ->setParameter('type', $mechanicType);
+        }
+
+        match ($sort) {
+            'oldest' => $qb->orderBy('m.id', 'ASC'),
+            'name_asc' => $qb->orderBy('m.name', 'ASC'),
+            'name_desc' => $qb->orderBy('m.name', 'DESC'),
+            default => $qb->orderBy('m.id', 'DESC'),
+        };
+
+        // Pobieramy unikalne kategorie i typy do list rozwijanych w filtrach
+        $categoriesRows = $machineRepository->createQueryBuilder('c')
+            ->select('DISTINCT c.category')
+            ->where('c.category IS NOT NULL')
+            ->andWhere("c.category != ''")
+            ->orderBy('c.category', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        $typesRows = $machineRepository->createQueryBuilder('t')
+            ->select('DISTINCT t.mechanicType')
+            ->where('t.mechanicType IS NOT NULL')
+            ->andWhere("t.mechanicType != ''")
+            ->orderBy('t.mechanicType', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        $categories = array_column($categoriesRows, 'category');
+        $mechanicTypes = array_column($typesRows, 'mechanicType');
+
         return $this->render('admin/machine/index.html.twig', [
-            'machines' => $machineRepository->findAll(),
+            'machines' => $qb->getQuery()->getResult(),
+            'categories' => $categories,
+            'mechanicTypes' => $mechanicTypes,
+            'filters' => [
+                'q' => $search,
+                'category' => $category,
+                'type' => $mechanicType,
+                'sort' => $sort,
+            ],
         ]);
     }
 
@@ -35,12 +92,12 @@ class AdminMachineController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            
+
             $this->handleFileUpload($form, $machine, $slugger);
 
             $entityManager->persist($machine);
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Nowa jednostka sprzętowa: ' . $machine->getName() . ' została pomyślnie dodana do bazy.');
             return $this->redirectToRoute('app_admin_machine_index');
         }
@@ -58,11 +115,11 @@ class AdminMachineController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            
+
             $this->handleFileUpload($form, $machine, $slugger);
 
             $entityManager->flush();
-            
+
             $this->addFlash('success', 'Maszyna ' . $machine->getName() . ' została zaktualizowana.');
             return $this->redirectToRoute('app_admin_machine_index');
         }
@@ -76,7 +133,7 @@ class AdminMachineController extends AbstractController
     #[Route('/{id}/delete', name: 'app_admin_machine_delete', methods: ['POST'])]
     public function delete(Request $request, Machine $machine, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$machine->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $machine->getId(), $request->request->get('_token'))) {
             try {
                 $entityManager->remove($machine);
                 $entityManager->flush();

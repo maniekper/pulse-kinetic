@@ -43,12 +43,16 @@ class MachineFixtures extends Fixture
             'Brzuch',
         ];
 
+        $muscleRepo = $manager->getRepository(Muscle::class);
         $muscleEntities = [];
 
         foreach ($musclesData as $name) {
-            $muscle = new Muscle();
-            $muscle->setName($name);
-            $manager->persist($muscle);
+            $muscle = $muscleRepo->findOneBy(['name' => $name]);
+            if (!$muscle) {
+                $muscle = new Muscle();
+                $muscle->setName($name);
+                $manager->persist($muscle);
+            }
             $muscleEntities[$name] = $muscle;
         }
 
@@ -498,8 +502,30 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'wyciskanie_hantli_zza_glowy_oburacz',
                 'incrementStep' => 2.0
             ],
-
-            // --- MASZYNY CARDIO ---
+            // --- NOWE ---//
+            [
+                'name' => 'Uginanie nadgarstków ze sztangą podchwytem',
+                'description' => 'Ćwiczenie izolowane na mięśnie zginacze przedramion. W pozycji siedzącej na ławce całe przedramiona spoczywają stabilnie na udach i kolanach, a dłonie trzymają sztangę podchwytem tuż za linią kolan. W fazie początkowej nadgarstki są maksymalnie wyprostowane w dół, natomiast w fazie końcowej następuje ich kontrolowane zgięcie ku górze wyłącznie pracą stawu nadgarstkowego.',
+                'tips' => 'Przez cały czas trwania serii utrzymuj całe przedramiona i łokcie dociśnięte do ud, aby całkowicie wyeliminować pracę ramion i zmusić do pracy wyłącznie nadgarstki.',
+                'category' => 'Przedramiona',
+                'mechanicType' => 'isolation',
+                'primary' => 'Przedramiona - zginacze (przód)',
+                'secondary' => [],
+                'image_prefix' => 'barbell_wrist_curl_underhand',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Zawijanie linki na wyciągu dolnym',
+                'description' => 'Ćwiczenie izolowane na mięśnie przedramion wykonywane w pozycji stojącej przodem do wyciągu dolnego. W fazie początkowej ramiona są wyprostowane przed sobą na wysokości klatki piersiowej, a dłonie trzymają wałek nachwytem przy rozwiniętej lince. W fazie końcowej następuje naprzemienne, kontrolowane nawijanie linki na wałek wyłącznie ruchem nadgarstków, unosząc ciężar stosu w górę.',
+                'tips' => 'Utrzymuj ramiona nieruchomo na stałej wysokości przez całą serię i unikaj kołysania tułowiem – cały ruch nawijania musi wynikać wyłącznie z pracy nadgarstków.',
+                'category' => 'Przedramiona',
+                'mechanicType' => 'isolation',
+                'primary' => 'Przedramiona - prostowniki (tył)',
+                'secondary' => ['Przedramiona - zginacze (przód)', 'Barki - przód'],
+                'image_prefix' => 'low_cable_wrist_roller',
+                'incrementStep' => 5.0
+            ],
+            // --- MASZYNY CARDIO ---//
             [
                 'name' => 'Bieżnia Elektryczna',
                 'description' => 'Trening biegowy na bieżni elektrycznej. Świetny sposób na poprawę wydolności tlenowej i spalanie kalorii. Utrzymuj wyprostowaną sylwetkę i patrz przed siebie.',
@@ -536,7 +562,14 @@ class MachineFixtures extends Fixture
         ];
 
         // --- PĘTLA GENERUJĄCA MASZYNY ---
+        $machineRepo = $manager->getRepository(Machine::class);
+
         foreach ($machinesList as $data) {
+            // Jeśli maszyna już istnieje w bazie — pomijamy, nie nadpisujemy
+            if ($machineRepo->findOneBy(['name' => $data['name']])) {
+                continue;
+            }
+
             $machine = new Machine();
 
             $prefix = $data['image_prefix'] ?? 'default_machine';
@@ -552,7 +585,6 @@ class MachineFixtures extends Fixture
                 ->setMechanicType($data['mechanicType'])
                 ->setMovementPattern($data['movementPattern'] ?? 'other');
 
-            // Obsługa skoku obciążenia (zabezpieczenie default na 2.5 kg)
             if (isset($data['incrementStep'])) {
                 $machine->setIncrementStep($data['incrementStep']);
             } else {

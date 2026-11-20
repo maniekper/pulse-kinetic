@@ -27,6 +27,7 @@ Encore
     .addEntry("profile", "./assets/js/profile.js")
     .addEntry("admin_machine", "./assets/js/admin_machine.js")
     .addEntry("tracker", "./assets/js/tracker.js")
+    .addEntry("pwa_install", "./assets/js/pwa_install.js")
 
     // When enabled, Webpack "splits" your files into smaller pieces for greater optimization.
     .splitEntryChunks()
