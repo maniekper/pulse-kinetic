@@ -20,6 +20,7 @@ class TrackerController extends AbstractController
     #[Route('/tracker/start/{plan_id}', name: 'app_tracker_start')]
     public function start(
         int $plan_id,
+        Request $request,
         WorkoutPlanRepository $planRepo,
         EntityManagerInterface $entityManager
     ): Response {
@@ -40,18 +41,11 @@ class TrackerController extends AbstractController
             $entityManager->flush();
         }
 
-        // --- AUTOMATYCZNE WYLICZANIE DNIA (Omijanie pustych dni) ---
-        $completedSessionsCount = (int) $entityManager->createQuery(
-            'SELECT COUNT(s.id) FROM App\\Entity\\WorkoutSession s WHERE s.user = :user AND s.endedAt IS NOT NULL'
-        )
-            ->setParameter('user', $this->getUser())
-            ->getSingleScalarResult();
-
-        // 1. Zbieramy tylko aktywne dni
+        // 1. Zbieramy tylko aktywne dni tego planu
         $activeDays = [];
         foreach ($plan->getWorkoutExercises() as $ex) {
             $exDay = $ex->getDayNumber();
-            if (!in_array($exDay, $activeDays)) {
+            if (!in_array($exDay, $activeDays, true)) {
                 $activeDays[] = $exDay;
             }
         }
@@ -62,10 +56,22 @@ class TrackerController extends AbstractController
             return $this->redirectToRoute('app_generator_start');
         }
 
-        // 2. Wyliczamy następny AKTYWNY dzień
-        $activeDaysCount = count($activeDays);
-        $activeDayIndex = $completedSessionsCount % $activeDaysCount;
-        $day = $activeDays[$activeDayIndex];
+        // 2. Jeśli z dashboardu przyszedł konkretny dzień (?day=X), używamy go; w przeciwnym razie liczymy TYLKO dla tego planu
+        $requestedDay = $request->query->getInt('day', 0);
+
+        if ($requestedDay > 0 && in_array($requestedDay, $activeDays, true)) {
+            $day = $requestedDay;
+        } else {
+            $completedSessionsCount = (int) $entityManager->createQuery(
+                'SELECT COUNT(s.id) FROM App\Entity\WorkoutSession s WHERE s.workoutPlan = :plan AND s.endedAt IS NOT NULL'
+            )
+                ->setParameter('plan', $plan)
+                ->getSingleScalarResult();
+
+            $activeDaysCount = count($activeDays);
+            $activeDayIndex = $completedSessionsCount % $activeDaysCount;
+            $day = $activeDays[$activeDayIndex];
+        }
 
         // 3. Tworzymy nową sesję treningową
         $session = new WorkoutSession();
@@ -178,7 +184,7 @@ class TrackerController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         ProgressionAnalyzerService $analyzer,
-        \App\Service\RecordTrackerService $recordTracker // <-- WSTRZYKNIĘTY SERWIS
+        \App\Service\RecordTrackerService $recordTracker
     ): JsonResponse {
         if ($workoutSet->getWorkoutSession()->getUser() !== $this->getUser()) {
             return new JsonResponse(['error' => 'Odmowa dostępu'], 403);
@@ -195,7 +201,6 @@ class TrackerController extends AbstractController
         $entityManager->flush();
 
         // --- AKTYWACJA REKORDÓW ---
-        // Serwis sam sprawdzi, czy to nowy rekord dla tego usera na tej maszynie i go zapisze
         $recordTracker->checkAndSaveRecord($workoutSet);
 
         // ------------------------------------------------------------------
@@ -230,7 +235,6 @@ class TrackerController extends AbstractController
 
         $em->flush();
 
-
         // ------------------------------------------------------------------
         // WERYFIKACJA STAGNACJI I KOŃCA MEZOCYKLU (ZASADA STAŁOŚCI)
         // ------------------------------------------------------------------
@@ -259,7 +263,6 @@ class TrackerController extends AbstractController
             $totalPlannedSessions = $uniqueDaysCount * $weeks;
 
             if ($completedSessionsCount >= $totalPlannedSessions) {
-                // Koniec Mezocyklu!
                 $plan->setName($plan->getName() . ' [ZAKOŃCZONY]');
                 $em->flush();
 
