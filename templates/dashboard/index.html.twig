@@ -88,7 +88,7 @@
                             </div>
 
                             <!-- PRZYCISK STARTU TRENINGU -->
-                            <a href="{{ path('app_tracker_start', {'plan_id': plan.id}) }}" class="kinetic-panel relative flex flex-col items-center justify-center bg-primary-container hover:bg-primary-dim transition-all active:scale-95 text-[#111111] group cursor-pointer border-none shadow-[0_0_30px_rgba(209,252,0,0.15)] hover:shadow-[0_0_50px_rgba(209,252,0,0.3)] !p-6 min-h-[120px] text-center no-underline">
+                            <a href="{{ path('app_tracker_start', {'plan_id': plan.id, 'day': nextDayNumber}) }}" class="kinetic-panel relative flex flex-col items-center justify-center bg-primary-container hover:bg-primary-dim transition-all active:scale-95 text-[#111111] group cursor-pointer border-none shadow-[0_0_30px_rgba(209,252,0,0.15)] hover:shadow-[0_0_50px_rgba(209,252,0,0.3)] !p-6 min-h-[120px] text-center no-underline">
                                 <span class="material-symbols-outlined text-4xl mb-1 group-hover:scale-125 transition-transform duration-300">bolt</span>
                                 <span class="font-headline font-black text-2xl tracking-tighter uppercase leading-none mb-1">ROZPOCZNIJ TRENING</span>
                                 <span class="font-label text-[9px] uppercase tracking-[0.2em] font-bold opacity-80">AKTYWUJ PROTOKÓŁ OPERACYJNY</span>

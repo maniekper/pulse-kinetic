@@ -24,89 +24,18 @@
         outline: none !important;
         box-shadow: none !important;
     }
-}
 
-@layer utilities {
-    .theme-glow {
-        box-shadow: 0 0 20px var(--theme-shadow);
+    /* Usuwamy natywne strzałki w przeglądarce dla inputów liczbowych */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
-    .rotate-180 {
-        transform: rotate(180deg);
-    }
-    .watermark-pos {
-        right: -20px;
-        bottom: -30px;
-        opacity: 0.05;
-        z-index: 0;
+    input[type="number"] {
+        -moz-appearance: textfield;
     }
 }
 
-/* --- STYLE DLA AKTYWNEGO TRENINGU (SESSION) --- */
-
-.kinetic-stripe::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background-color: var(--theme-main);
-}
-
-.sheared-progress {
-    clip-path: polygon(0 0, 100% 0, 98% 100%, 0% 100%);
-}
-
-.material-symbols-outlined {
-    font-variation-settings:
-        "FILL" 0,
-        "wght" 400,
-        "GRAD" 0,
-        "opsz" 24;
-    vertical-align: middle;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* Usuwamy natywne strzałki w przeglądarce dla inputów liczbowych */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-input[type="number"] {
-    -moz-appearance: textfield;
-}
-
-/* Style dla mapy anatomicznej i animacji */
-.muscle-group {
-    transition:
-        fill 0.4s ease,
-        stroke 0.4s ease;
-}
-
-.muscle-active-primary {
-    fill: var(--theme-main) !important;
-    stroke: var(--theme-main) !important;
-    filter: drop-shadow(0 0 6px var(--theme-shadow));
-}
-
-.muscle-active-secondary {
-    fill: var(--theme-shadow) !important;
-    stroke: var(--theme-main) !important;
-}
-
-.exercise-block {
-    transition: opacity 0.3s ease;
-}
-
-/* NOWA SEKCYJA: GLOBALNE KOMPONENTY KINETIC */
 @layer components {
     /* Style dla tekstów w wierszach ćwiczeń */
     .kinetic-ex-value {
@@ -117,7 +46,7 @@ input[type="number"] {
         @apply font-label text-[10px] md:text-xs text-[#767575] uppercase tracking-widest;
     }
 
-    /* NOWE: Style layoutu, teł i głównych komponentów aplikacji */
+    /* Style layoutu, teł i głównych komponentów aplikacji */
     .kinetic-bg-container {
         @apply flex-1 overflow-y-auto p-6 lg:p-12 relative bg-[#0e0e0e];
     }
@@ -133,7 +62,6 @@ input[type="number"] {
         @apply absolute bottom-0 left-0 w-24 h-[2px];
         background-color: var(--theme-main);
     }
-
     .kinetic-main-header-title {
         @apply font-headline font-black text-5xl text-white uppercase tracking-tighter italic;
     }
@@ -145,7 +73,6 @@ input[type="number"] {
     .kinetic-panel {
         @apply bg-[#141414] border border-white/10 p-6 transition-colors shadow-sm;
     }
-
     .kinetic-panel:hover {
         border-color: var(--theme-shadow);
     }
@@ -161,6 +88,18 @@ input[type="number"] {
 }
 
 @layer utilities {
+    .theme-glow {
+        box-shadow: 0 0 20px var(--theme-shadow);
+    }
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
+    .watermark-pos {
+        right: -20px;
+        bottom: -30px;
+        opacity: 0.05;
+        z-index: 0;
+    }
     .kinetic-stripe::before {
         content: "";
         position: absolute;
@@ -189,4 +128,35 @@ input[type="number"] {
         "GRAD" 0,
         "opsz" 24;
     vertical-align: middle;
+}
+
+.exercise-block {
+    transition: opacity 0.3s ease;
+}
+
+/* --- MAPA CIAŁA (SVG) --- */
+.muscle-group {
+    fill: #444444 !important;
+    stroke: #222222 !important;
+    stroke-width: 1px;
+    transition:
+        fill 0.3s ease,
+        stroke 0.3s ease;
+}
+
+.muscle-active-primary {
+    fill: var(--theme-main) !important;
+    stroke: var(--theme-main) !important;
+    filter: drop-shadow(0 0 8px var(--theme-shadow));
+}
+
+.muscle-active-secondary {
+    fill: var(--theme-shadow) !important;
+    stroke: var(--theme-main) !important;
+}
+
+#layer-base path {
+    fill: #2d2d30;
+    stroke: #3f3f46;
+    stroke-width: 2px;
 }
