@@ -29,7 +29,7 @@ class WorkoutSet
     private ?\DateTime $loggedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'workoutSets')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?WorkoutSession $workoutSession = null;
 
     #[ORM\ManyToOne(inversedBy: 'workoutSets')]

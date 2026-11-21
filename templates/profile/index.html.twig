@@ -20,10 +20,13 @@
 
         <div class="relative z-10">
             {% for label, messages in app.flashes %}
+                {% set isError = label == 'error' %}
                 {% for message in messages %}
-                    <div class="bg-primary-container/10 border border-primary-container p-4 mb-8 flex items-center gap-4">
-                        <span class="material-symbols-outlined text-primary-container">task_alt</span>
-                        <span class="font-headline font-bold text-[11px] text-primary-container uppercase tracking-widest">{{ message }}</span>
+                    <div class="{{ isError ? 'bg-[#ff7351]/10 border-[#ff7351]' : 'bg-primary-container/10 border-primary-container' }} border p-4 mb-8 flex items-center gap-4">
+                        <span class="material-symbols-outlined {{ isError ? 'text-[#ff7351]' : 'text-primary-container' }}">
+                            {{ isError ? 'error' : 'task_alt' }}
+                        </span>
+                        <span class="font-headline font-bold text-[11px] {{ isError ? 'text-[#ff7351]' : 'text-primary-container' }} uppercase tracking-widest">{{ message }}</span>
                     </div>
                 {% endfor %}
             {% endfor %}
@@ -76,24 +79,6 @@
                             <input type="text" name="name" value="{{ app.user.name }}" required class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold">
                         </div>
                         
-                        <div class="space-y-2 group">
-                            <label class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">PŁEĆ BAZOWA</label>
-                            
-                            <!-- CUSTOMOWY DROPDOWN: PŁEĆ -->
-                            <div class="relative" id="genderSelectContainer">
-                                <input type="hidden" name="gender" id="genderInput" value="{{ app.user.gender|default('') }}">
-                                
-                                <button type="button" onclick="toggleDropdown('genderDropdown', 'genderArrow')" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container cursor-pointer font-bold flex justify-between items-center text-left relative z-20">
-                                    <span id="genderSelectedText">{{ app.user.gender ? app.user.gender : 'Wybierz...' }}</span>
-                                    <span class="material-symbols-outlined text-[#767575] transition-transform duration-200 pointer-events-none" id="genderArrow">expand_more</span>
-                                </button>
-
-                                <div id="genderDropdown" class="hidden absolute top-full left-0 w-full mt-1 bg-[#1a1a1a] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] z-[9999] flex-col">
-                                    <div onclick="selectOption('genderInput', 'Mężczyzna', 'genderSelectedText', 'Mężczyzna', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Mężczyzna</div>
-                                    <div onclick="selectOption('genderInput', 'Kobieta', 'genderSelectedText', 'Kobieta', 'genderDropdown', 'genderArrow')" class="px-4 py-3.5 font-headline text-sm font-bold text-white cursor-pointer hover:bg-primary-container hover:text-on-primary-container transition-colors border-l-4 border-transparent hover:border-primary-container">Kobieta</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -171,6 +156,113 @@
                         </div>
                     {% endif %}
                 </div>
+            </div>
+        </div>
+        <!-- SEKCJA: ZMIANA HASŁA -->
+        <div class="relative z-10 mt-8">
+            <div class="bg-[#111111]/95 backdrop-blur-xl p-8 border-l border-t border-white/5 shadow-2xl relative">
+                <div class="absolute top-0 right-0 w-12 h-12 bg-[#1a1a1a] flex items-center justify-center border-b border-l border-white/5">
+                    <span class="material-symbols-outlined text-[#767575]">lock_reset</span>
+                </div>
+                <h2 class="font-headline font-black text-sm text-white uppercase tracking-widest mb-2">BEZPIECZEŃSTWO & ZMIANA HASŁA</h2>
+                <p class="font-body text-[#767575] text-[11px] leading-relaxed mb-8">
+                    Zaktualizuj hasło dostępowe do konta. Wymagane jest minimum 8 znaków.
+                </p>
+
+                <form action="{{ path('app_profile_change_password') }}" method="POST" class="space-y-6">
+                    <input type="hidden" name="_token" value="{{ csrf_token('change_password_' ~ app.user.id) }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2 group">
+                            <label for="current_password" class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">OBECNE HASŁO</label>
+                            <input type="password" id="current_password" name="current_password" required autocomplete="current-password" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold">
+                        </div>
+
+                        <div class="space-y-2 group">
+                            <label for="new_password" class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">NOWE HASŁO</label>
+                            <input type="password" id="new_password" name="new_password" required minlength="8" autocomplete="new-password" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold">
+                        </div>
+
+                        <div class="space-y-2 group">
+                            <label for="confirm_new_password" class="text-[9px] font-bold text-[#767575] uppercase tracking-widest group-focus-within:text-primary-container transition-colors font-headline block">POWTÓRZ NOWE HASŁO</label>
+                            <input type="password" id="confirm_new_password" name="confirm_new_password" required minlength="8" autocomplete="new-password" class="w-full bg-[#1a1a1a] border-0 border-b-2 border-white/10 px-4 py-3.5 font-headline text-sm text-white focus:outline-none focus:border-primary-container font-bold">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="px-8 py-4 bg-[#1a1a1a] hover:bg-primary-container text-white hover:text-[#111111] border border-white/10 hover:border-primary-container font-headline font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center gap-3 cursor-pointer">
+                            <span>ZMIEŃ HASŁO</span>
+                            <span class="material-symbols-outlined text-base">key</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- STREFA NIEBEZPIECZNA -->
+        <div class="relative z-10 mt-12 bg-[#111111] border border-[#ff7351]/30 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">            <div>
+                <h3 class="font-headline font-black text-sm text-[#ff7351] uppercase tracking-widest mb-1">
+                    STREFA NIEBEZPIECZNA
+                </h3>
+                <p class="font-body text-xs text-[#767575]">
+                    Usunięcie konta jest nieodwracalne. Stracisz wszystkie plany, historię treningów i rekordy.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                id="openDeleteAccountModal"
+                class="px-6 py-3 bg-[#ff7351]/10 border border-[#ff7351]/40 text-[#ff7351] hover:bg-[#ff7351] hover:text-[#111111] font-headline font-black text-[10px] uppercase tracking-widest transition-colors cursor-pointer shrink-0 flex items-center gap-2"
+            >
+                <span class="material-symbols-outlined text-base">delete_forever</span>
+                USUŃ KONTO
+            </button>
+        </div>
+
+        <!-- MODAL POTWIERDZENIA USUNIĘCIA KONTA -->
+        <div id="deleteAccountModal" class="fixed inset-0 z-[100000] bg-black/85 backdrop-blur-sm hidden items-center justify-center p-4">
+            <div class="bg-[#111111] border border-[#ff7351]/40 max-w-md w-full p-6 md:p-8 shadow-2xl">
+                <div class="flex items-center gap-3 mb-4 text-[#ff7351]">
+                    <span class="material-symbols-outlined text-2xl">warning</span>
+                    <h4 class="font-headline font-black text-base uppercase tracking-widest">POTWIERDŹ USUNIĘCIE</h4>
+                </div>
+
+                <p class="font-body text-xs text-[#adaaaa] leading-relaxed mb-6">
+                    Tej operacji nie można cofnąć. Aby potwierdzić trwałe usunięcie konta <strong class="text-white">{{ app.user.email }}</strong>, wpisz swoje aktualne hasło:
+                </p>
+
+                <form method="post" action="{{ path('app_profile_delete') }}" class="space-y-5">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_account_' ~ app.user.id) }}">
+
+                    <div>
+                        <label for="confirm_password" class="font-headline font-bold text-[10px] text-[#767575] uppercase tracking-widest block mb-2">
+                            AKTUALNE HASŁO
+                        </label>
+                        <input
+                            type="password"
+                            id="confirm_password"
+                            name="confirm_password"
+                            required
+                            autocomplete="current-password"
+                            class="w-full bg-[#1a1a1a] border border-white/10 focus:border-[#ff7351] focus:ring-0 px-4 py-3 font-headline text-sm text-white"
+                        >
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            id="closeDeleteAccountModal"
+                            class="px-5 py-2.5 border border-white/10 text-[#767575] hover:text-white font-headline font-bold text-[10px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                            ANULUJ
+                        </button>
+                        <button
+                            type="submit"
+                            class="px-5 py-2.5 bg-[#ff7351] hover:bg-[#ff8a6d] text-[#111111] font-headline font-black text-[10px] uppercase tracking-widest transition-colors cursor-pointer"
+                        >
+                            USUŃ TRWALE
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </main>

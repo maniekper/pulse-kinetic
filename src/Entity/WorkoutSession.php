@@ -25,7 +25,7 @@ class WorkoutSession
     private ?float $totalTonnage = null;
 
     #[ORM\ManyToOne(inversedBy: 'workoutSessions')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'workoutSessions')]
@@ -33,7 +33,7 @@ class WorkoutSession
 
     // --- NOWE POLE DODANE DLA MEZOCYKLU ---
     #[ORM\ManyToOne(targetEntity: WorkoutPlan::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?WorkoutPlan $workoutPlan = null;
 
     #[ORM\OneToMany(mappedBy: 'workoutSession', targetEntity: CardioSession::class, cascade: ['persist', 'remove'], orphanRemoval: true)]

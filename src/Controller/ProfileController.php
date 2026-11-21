@@ -8,6 +8,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Repository\GoalRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use App\Entity\WorkoutPlan; // Dodany niezbędny import
 
 class ProfileController extends AbstractController
@@ -33,11 +36,11 @@ class ProfileController extends AbstractController
             if ($goalId) {
                 $newGoal = $goalRepository->find($goalId);
                 // BYŁO: if ($newGoal && $newGoal !== $user->getCurrentGoal()) {
-                
+
                 // ZMIEŃ NA:
                 if ($newGoal) {
                     $user->setCurrentGoal($newGoal);
-                    
+
                     $goalName = $newGoal->getName();
                     $lowerGoalName = mb_strtolower($goalName, 'UTF-8');
 
@@ -51,12 +54,12 @@ class ProfileController extends AbstractController
                             $machine = $exercise->getMachine();
                             $isCompound = $machine ? ($machine->getMechanicType() === 'compound') : false;
 
-                        // Pobieramy dane z wybranego właśnie nowego celu
-                        $minReps = $isCompound ? $newGoal->getBaseCompoundRepsMin() : $newGoal->getBaseIsolationRepsMin();
-                        $maxReps = $isCompound ? $newGoal->getBaseCompoundRepsMax() : $newGoal->getBaseIsolationRepsMax();
+                            // Pobieramy dane z wybranego właśnie nowego celu
+                            $minReps = $isCompound ? $newGoal->getBaseCompoundRepsMin() : $newGoal->getBaseIsolationRepsMin();
+                            $maxReps = $isCompound ? $newGoal->getBaseCompoundRepsMax() : $newGoal->getBaseIsolationRepsMax();
 
-                        $exercise->setSets($isCompound ? 4 : 3);
-                        $exercise->setReps($minReps . '-' . $maxReps);
+                            $exercise->setSets($isCompound ? 4 : 3);
+                            $exercise->setReps($minReps . '-' . $maxReps);
                         }
                     }
                 }
@@ -64,7 +67,7 @@ class ProfileController extends AbstractController
 
             $entityManager->flush();
             $this->addFlash('success', 'Profil i parametry treningowe zostały natychmiast zaktualizowane.');
-            
+
             return $this->redirectToRoute('app_profile');
         }
 
@@ -86,6 +89,87 @@ class ProfileController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Maszyna przywrócona. Będzie ponownie brana pod uwagę przez generator.');
         }
+        return $this->redirectToRoute('app_profile');
+    }
+    #[Route('/profile/delete', name: 'app_profile_delete', methods: ['POST'])]
+    public function deleteAccount(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher,
+        TokenStorageInterface $tokenStorage
+    ): Response {
+        /** @var User|null $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // 1. Weryfikacja tokena CSRF
+        if (!$this->isCsrfTokenValid('delete_account_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Nieprawidłowy token bezpieczeństwa.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        // 2. Weryfikacja hasła (zabezpieczenie przed przypadkowym usunięciem)
+        $password = (string) $request->request->get('confirm_password', '');
+        if (!$passwordHasher->isPasswordValid($user, $password)) {
+            $this->addFlash('error', 'Nieprawidłowe hasło. Konto nie zostało usunięte.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        // 3. Wylogowanie i wyczyszczenie sesji przed usunięciem
+        $tokenStorage->setToken(null);
+        $request->getSession()->invalidate();
+
+        // 4. Usunięcie użytkownika z bazy
+        $em->remove($user);
+        $em->flush();
+
+        $this->addFlash('success', 'Twoje konto oraz wszystkie dane treningowe zostały trwale usunięte.');
+
+        return $this->redirectToRoute('app_login');
+    }
+    #[Route('/profile/change-password', name: 'app_profile_change_password', methods: ['POST'])]
+    public function changePassword(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response {
+        /** @var User|null $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        if (!$this->isCsrfTokenValid('change_password_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Nieprawidłowy token bezpieczeństwa.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        $currentPassword = (string) $request->request->get('current_password', '');
+        $newPassword = (string) $request->request->get('new_password', '');
+        $confirmPassword = (string) $request->request->get('confirm_new_password', '');
+
+        if (!$passwordHasher->isPasswordValid($user, $currentPassword)) {
+            $this->addFlash('error', 'Obecne hasło jest nieprawidłowe.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if (mb_strlen($newPassword) < 8) {
+            $this->addFlash('error', 'Nowe hasło musi mieć co najmniej 8 znaków.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            $this->addFlash('error', 'Nowe hasła nie są identyczne.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
+        $em->flush();
+
+        $this->addFlash('success', 'Hasło zostało pomyślnie zmienione.');
+
         return $this->redirectToRoute('app_profile');
     }
 }

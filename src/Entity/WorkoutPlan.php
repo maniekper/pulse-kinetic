@@ -19,11 +19,11 @@ class WorkoutPlan
     private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'workoutPlans')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-private ?string $targetGender = null;
+    private ?string $targetGender = null;
 
     /**
      * @var Collection<int, WorkoutExercise>
@@ -66,16 +66,16 @@ private ?string $targetGender = null;
     }
 
     public function getTargetGender(): ?string
-{
-    return $this->targetGender;
-}
+    {
+        return $this->targetGender;
+    }
 
-public function setTargetGender(?string $targetGender): static
-{
-    $this->targetGender = $targetGender;
+    public function setTargetGender(?string $targetGender): static
+    {
+        $this->targetGender = $targetGender;
 
-    return $this;
-}
+        return $this;
+    }
 
     /**
      * @return Collection<int, WorkoutExercise>

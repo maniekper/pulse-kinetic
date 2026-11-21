@@ -62,5 +62,48 @@ document.addEventListener("click", function (event) {
         }
     }
 });
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("deleteAccountModal");
+    const openBtn = document.getElementById("openDeleteAccountModal");
+    const closeBtn = document.getElementById("closeDeleteAccountModal");
+    const passwordInput = document.getElementById("confirm_password");
+
+    if (!modal || !openBtn || !closeBtn) {
+        return;
+    }
+
+    const openModal = () => {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        if (passwordInput) {
+            passwordInput.focus();
+        }
+    };
+
+    const closeModal = () => {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        if (passwordInput) {
+            passwordInput.value = "";
+        }
+    };
+
+    openBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+
+    // Zamknięcie po kliknięciu w ciemne tło
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Zamknięcie klawiszem ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeModal();
+        }
+    });
+});
 
 export {};

@@ -105,6 +105,28 @@ class AppFixtures extends Fixture
                 'roles' => ['ROLE_USER'],
                 'password' => 'bober123',
             ],
+            [
+                'email' => 'wojtek@pulsekinetic.com',
+                'name' => 'Wojtek',
+                'age' => 18,
+                'gender' => 'Mężczyzna',
+                'weight' => 80.0,
+                'height' => 178.0,
+                'goal' => $goals['hypertrophy'],
+                'roles' => ['ROLE_USER'],
+                'password' => 'wojtek123',
+            ],
+            [
+                'email' => 'usun@pulsekinetic.com',
+                'name' => 'Usuń',
+                'age' => 30,
+                'gender' => 'Mężczyzna',
+                'weight' => 80.0,
+                'height' => 178.0,
+                'goal' => $goals['hypertrophy'],
+                'roles' => ['ROLE_USER'],
+                'password' => 'trening123',
+            ],
         ];
 
         foreach ($usersData as $uData) {
