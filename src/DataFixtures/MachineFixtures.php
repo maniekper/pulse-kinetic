@@ -502,7 +502,7 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'wyciskanie_hantli_zza_glowy_oburacz',
                 'incrementStep' => 2.0
             ],
-            // --- NOWE ---//
+
             [
                 'name' => 'Uginanie nadgarstków ze sztangą podchwytem',
                 'description' => 'Ćwiczenie izolowane na mięśnie zginacze przedramion. W pozycji siedzącej na ławce całe przedramiona spoczywają stabilnie na udach i kolanach, a dłonie trzymają sztangę podchwytem tuż za linią kolan. W fazie początkowej nadgarstki są maksymalnie wyprostowane w dół, natomiast w fazie końcowej następuje ich kontrolowane zgięcie ku górze wyłącznie pracą stawu nadgarstkowego.',
@@ -524,6 +524,50 @@ class MachineFixtures extends Fixture
                 'secondary' => ['Przedramiona - zginacze (przód)', 'Barki - przód'],
                 'image_prefix' => 'low_cable_wrist_roller',
                 'incrementStep' => 5.0
+            ], // --- NOWE ---//
+            [
+                'name' => 'Wyciskanie hantli na ławce skośnej dodatniej',
+                'description' => 'Wielostawowe ćwiczenie siłowe ukierunkowane na górną część klatki piersiowej, wykonywane na ławce ustawionej pod kątem dodatnim (30–45°). Ruch polega na kontrolowanym opuszczeniu hantli na wysokość górnej części klatki piersiowej z łokciami prowadzonymi pod kątem ok. 45° względem tułowia, a następnie dynamicznym wyciśnięciu ciężaru pionowo w górę do pełnego wyprostu ramion.',
+                'tips' => 'Utrzymuj ściągnięte i opuszczone łopatki przez cały czas trwania serii, a przedramiona prowadź prostopadle do podłoża, aby odciążyć stawy barkowe.',
+                'category' => 'Klatka piersiowa',
+                'mechanicType' => 'compound',
+                'primary' => 'Klatka piersiowa - góra',
+                'secondary' => ['Barki - przód', 'Triceps - głowa boczna', 'Triceps - głowa przyśrodkowa'],
+                'image_prefix' => 'wyciskanie_hantli_na_lawce_skosnej_dodatniej',
+                'incrementStep' => 2.0
+            ],
+            [
+                'name' => 'Wznosy ramienia bokiem na wyciągu dolnym (Cable Lateral Raise)',
+                'description' => 'Izolowane ćwiczenie ukierunkowane na boczny akton mięśnia naramiennego, zapewniające stałe napięcie mięśniowe w całym zakresie ruchu. Ruch rozpoczyna się z pozycji stojącej bokiem do wyciągu dolnego z ręką opuszczoną przed biodrem i napiętą linką, a kończy płynnym odwiedzeniem lekko ugiętego ramienia w bok do wysokości barku.',
+                'tips' => 'Prowadź ruch łokciem, a nie dłonią, i utrzymuj stabilny tułów bez kołysania, aby uniknąć przejmowania pracy przez mięśnie czworoboczne.',
+                'category' => 'Barki',
+                'mechanicType' => 'isolation',
+                'primary' => 'Barki - bok',
+                'secondary' => ['Kaptur', 'Barki - przód'],
+                'image_prefix' => 'cable_lateral_raise',
+                'incrementStep' => 5.0
+            ],
+            [
+                'name' => 'Face Pull (Przyciąganie liny do twarzy)',
+                'description' => 'Wielostawowe ćwiczenie na wyciągu ukierunkowane na tylny akton mięśni naramiennych, mięśnie górnej części pleców oraz rotatory zewnętrzne barku. Ruch rozpoczyna się od pozycji stojącej przodem do wyciągu z ramionami wyprostowanymi w przód i napiętą liną na wysokości twarzy, a kończy przyciągnięciem uchwytu w kierunku czoła z jednoczesnym rozciągnięciem końców liny na boki i rotacją zewnętrzną ramion.',
+                'tips' => 'Prowadź łokcie wysoko na linii barków i w końcowej fazie ruchu kieruj kciuki w tył, aby zmaksymalizować rotację zewnętrzną i pracę tylnego aktonu barku.',
+                'category' => 'Barki',
+                'mechanicType' => 'compound',
+                'primary' => 'Barki - tył',
+                'secondary' => ['Górna część pleców', 'Kaptur', 'Barki - bok'],
+                'image_prefix' => 'face_pull',
+                'incrementStep' => 5.0
+            ],
+            [
+                'name' => 'Rumuński martwy ciąg ze sztangą (RDL)',
+                'description' => 'Wielostawowe ćwiczenie oparte na wzorcu zawiasu biodrowego (hip hinge), silnie angażujące tylną taśmę mięśniową. Ruch rozpoczyna się z pozycji wyprostowanej ze sztangą trzymaną nachwytem przed udami, a następnie polega na kontrolowanym wypychaniu bioder w tył przy zachowaniu prostych pleców i lekko ugiętych kolan aż do opuszczenia gryfu na wysokość połowy piszczeli, po czym następuje dynamiczny powrót do wyprostu przez spięcie pośladków.',
+                'tips' => 'Prowadź sztangę jak najbliżej ud i piszczeli przez cały czas trwania ruchu oraz utrzymuj neutralny kręgosłup, kończąc opuszczanie w momencie, gdy biodra przestają cofać się w tył.',
+                'category' => 'Nogi',
+                'mechanicType' => 'compound',
+                'primary' => 'Tył uda (Kulszowo-goleniowe)',
+                'secondary' => ['Pośladki', 'Prostownik grzbietu', 'Przedramiona - zginacze (przód)'],
+                'image_prefix' => 'rumunski_martwy_ciag_rdl',
+                'incrementStep' => 2.5
             ],
             // --- MASZYNY CARDIO ---//
             [
