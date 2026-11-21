@@ -40,6 +40,11 @@
                     <span class="material-symbols-outlined text-xl">show_chart</span>
                     <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Osiągnięcia</span>
                 </a>
+
+                <a href="{{ path('app_exercises_index') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_exercises_index' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
+                    <span class="material-symbols-outlined text-xl">fitness_center</span>
+                    <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Baza ćwiczeń</span>
+                </a>
             
                 <a href="{{ path('app_profile') }}" class="flex items-center gap-4 px-4 py-3 transition-colors {{ app.request.attributes.get('_route') == 'app_profile' ? 'bg-surface-container-highest/50 border-l-2 text-[color:var(--theme-main)] border-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
                     <span class="material-symbols-outlined text-xl">person</span>
@@ -117,7 +122,10 @@
                         <span class="material-symbols-outlined text-xl">show_chart</span>
                         <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Osiągnięcia</span>
                     </a>
-
+                    <a href="{{ path('app_exercises_index') }}" class="flex items-center gap-4 px-5 py-4 bg-[#111111] border border-white/10 transition-colors {{ app.request.attributes.get('_route') == 'app_exercises_index' ? 'bg-surface-container-highest/50 border-l-4 border-l-[color:var(--theme-main)] text-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
+                        <span class="material-symbols-outlined text-xl">fitness_center</span>
+                        <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Baza ćwiczeń</span>
+                    </a>
                     <a href="{{ path('app_profile') }}" class="flex items-center gap-4 px-5 py-4 bg-[#111111] border border-white/10 transition-colors {{ app.request.attributes.get('_route') == 'app_profile' ? 'bg-surface-container-highest/50 border-l-4 border-l-[color:var(--theme-main)] text-[color:var(--theme-main)]' : 'text-on-surface-variant hover:text-on-surface' }}">
                         <span class="material-symbols-outlined text-xl">person</span>
                         <span class="font-headline font-bold text-xs uppercase tracking-[0.15em]">Profil</span>
