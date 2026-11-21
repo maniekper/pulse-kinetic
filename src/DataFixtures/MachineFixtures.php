@@ -524,7 +524,7 @@ class MachineFixtures extends Fixture
                 'secondary' => ['Przedramiona - zginacze (przód)', 'Barki - przód'],
                 'image_prefix' => 'low_cable_wrist_roller',
                 'incrementStep' => 5.0
-            ], // --- NOWE ---//
+            ],
             [
                 'name' => 'Wyciskanie hantli na ławce skośnej dodatniej',
                 'description' => 'Wielostawowe ćwiczenie siłowe ukierunkowane na górną część klatki piersiowej, wykonywane na ławce ustawionej pod kątem dodatnim (30–45°). Ruch polega na kontrolowanym opuszczeniu hantli na wysokość górnej części klatki piersiowej z łokciami prowadzonymi pod kątem ok. 45° względem tułowia, a następnie dynamicznym wyciśnięciu ciężaru pionowo w górę do pełnego wyprostu ramion.',
@@ -569,6 +569,7 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'rumunski_martwy_ciag_rdl',
                 'incrementStep' => 2.5
             ],
+            // --- NOWE ---//
             // --- MASZYNY CARDIO ---//
             [
                 'name' => 'Bieżnia Elektryczna',
