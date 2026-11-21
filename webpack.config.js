@@ -64,10 +64,14 @@ Encore
 
     // configure Babel
     .configureBabel((config) => {
-        config.plugins.push([
-            "polyfill-corejs3",
-            { method: "usage-global", version: "3.49" },
-        ]);
+        config.presets = [
+            [
+                "@babel/preset-env",
+                {
+                    modules: false,
+                },
+            ],
+        ];
     })
 
     // AKTYWACJA TAILWINDA (PostCSS)

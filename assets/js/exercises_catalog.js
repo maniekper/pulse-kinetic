@@ -177,20 +177,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     },
                 });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    updateCardBanState(card, btn, Boolean(data.banned));
+                const data = await res.json().catch(() => ({}));
 
-                    if (bannedCounter && typeof data.bannedCount === "number") {
-                        bannedCounter.textContent = String(data.bannedCount);
-                    }
+                if (!res.ok) {
+                    console.error("toggle-ban failed:", res.status, data);
+                    alert(data.error || `Błąd serwera (HTTP ${res.status})`);
+                    return;
+                }
 
-                    if (onlyBanned && !data.banned) {
-                        applyFilters();
-                    }
+                updateCardBanState(card, btn, Boolean(data.banned));
+
+                if (bannedCounter && typeof data.bannedCount === "number") {
+                    bannedCounter.textContent = String(data.bannedCount);
+                }
+
+                if (onlyBanned && !data.banned) {
+                    applyFilters();
                 }
             } catch (err) {
                 console.error("Błąd przełączania blokady maszyny:", err);
+                alert("Błąd połączenia z serwerem.");
             } finally {
                 btn.disabled = false;
             }

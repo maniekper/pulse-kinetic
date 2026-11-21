@@ -26,6 +26,8 @@ const SWAP_MUSCLE_GROUPS = [
     ["Prosty brzucha", "Skośne brzucha"],
 ];
 
+const SWAP_SCROLL_KEY = "pulse_kinetic_swap_scroll";
+
 function getRelatedMuscles(muscleName) {
     const cleanName = (muscleName || "").trim();
     const group = SWAP_MUSCLE_GROUPS.find((g) => g.includes(cleanName));
@@ -168,5 +170,48 @@ window.closeSwapModal = function () {
         swapModal.classList.remove("flex");
     }
 };
+
+// Zapamiętaj pozycję przewinięcia tuż przed wysłaniem formularza wymiany sprzętu
+document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (form && form.id === "swapForm") {
+        try {
+            sessionStorage.setItem(
+                SWAP_SCROLL_KEY,
+                JSON.stringify({
+                    y: window.scrollY,
+                    path: window.location.pathname,
+                    ts: Date.now(),
+                }),
+            );
+        } catch (e) {}
+    }
+});
+
+// Przywróć pozycję po przeładowaniu strony (jeśli zapis pochodzi z tej samej ścieżki i jest świeży)
+document.addEventListener("DOMContentLoaded", () => {
+    try {
+        const raw = sessionStorage.getItem(SWAP_SCROLL_KEY);
+        if (!raw) return;
+
+        sessionStorage.removeItem(SWAP_SCROLL_KEY);
+        const saved = JSON.parse(raw);
+
+        if (
+            saved &&
+            typeof saved.y === "number" &&
+            saved.path === window.location.pathname &&
+            Date.now() - Number(saved.ts || 0) < 10000
+        ) {
+            requestAnimationFrame(() => {
+                window.scrollTo({
+                    top: saved.y,
+                    left: 0,
+                    behavior: "instant",
+                });
+            });
+        }
+    } catch (e) {}
+});
 
 export {};
