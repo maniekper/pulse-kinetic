@@ -95,6 +95,70 @@
                 </div>
             </div>
 
+            <!-- SEKCJA 2.5: WYKRES WZROSTU SIŁY -->
+            {% if records|length > 0 %}
+                <div>
+                    <div class="kinetic-section-title-wrap mb-6">
+                        <h2 class="kinetic-section-title">PROGRESJA SIŁOWA</h2>
+                    </div>
+
+                    <div class="bg-[#111111] border border-white/10 shadow-2xl p-5 md:p-8 space-y-6">
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/5 pb-5">
+                            <!-- Wybór maszyny -->
+                            <div class="flex-1 max-w-md">
+                                <label for="strengthMachineSelect" class="font-label text-[10px] text-[#767575] uppercase tracking-widest block mb-2">
+                                    WYBIERZ ĆWICZENIE / MASZYNĘ
+                                </label>
+                                <select
+                                    id="strengthMachineSelect"
+                                    data-url-template="{{ path('app_achievements_strength_data', {'id': '__ID__'}) }}"
+                                    class="w-full bg-[#1a1a1a] border border-white/10 focus:border-primary-container focus:ring-0 px-4 py-3 font-headline font-bold text-xs text-white uppercase tracking-wider"
+                                >
+                                    {% for record in records %}
+                                        <option value="{{ record.machine.id }}">
+                                            {{ record.machine.name }} ({{ record.maxWeight }} kg)
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Przełącznik metryk -->
+                            <div class="flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    data-metric="oneRm"
+                                    class="strength-metric-btn bg-primary-container text-[#111111] border border-primary-container px-4 py-2.5 font-headline font-black text-[10px] uppercase tracking-widest transition-colors cursor-pointer"
+                                >
+                                    1RM (SZAC.)
+                                </button>
+                                <button
+                                    type="button"
+                                    data-metric="maxWeight"
+                                    class="strength-metric-btn bg-[#1a1a1a] text-[#767575] hover:text-white border border-white/10 px-4 py-2.5 font-headline font-bold text-[10px] uppercase tracking-widest transition-colors cursor-pointer"
+                                >
+                                    MAX CIĘŻAR
+                                </button>
+                                <button
+                                    type="button"
+                                    data-metric="tonnage"
+                                    class="strength-metric-btn bg-[#1a1a1a] text-[#767575] hover:text-white border border-white/10 px-4 py-2.5 font-headline font-bold text-[10px] uppercase tracking-widest transition-colors cursor-pointer"
+                                >
+                                    TONAŻ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Kontener na wykres -->
+                        <div class="relative h-72 md:h-80 w-full">
+                            <canvas id="strengthChart"></canvas>
+                            <div id="strengthChartEmpty" class="hidden absolute inset-0 flex items-center justify-center text-[#767575] font-headline font-bold text-xs uppercase tracking-widest">
+                                Brak ukończonych serii dla wybranej maszyny.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
             <!-- SEKCJA 3: REJESTR MAKSYMÓW -->
             <div>
                 <div class="kinetic-section-title-wrap mb-6">
@@ -139,4 +203,8 @@
 
         </div>
     </main>
+    {% block javascripts %}
+        {{ parent() }}
+        {{ encore_entry_script_tags('achievements_chart') }}
+    {% endblock %}
 {% endblock %}
