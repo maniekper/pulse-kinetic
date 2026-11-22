@@ -570,6 +570,72 @@ class MachineFixtures extends Fixture
                 'incrementStep' => 2.5
             ],
             // --- NOWE ---//
+            [
+                'name' => 'Wspięcia na palcach na maszynie Smitha',
+                'description' => 'Izolowane ćwiczenie angażujące mięśnie łydek poprzez dynamiczne zgięcie podeszwowe stawów skokowych przy wyprostowanych kolanach i ustabilizowanej sylwetce. Sztanga suwnicy Smitha spoczywa na górnej części mięśni czworobocznych, umożliwiając kontrolowany ruch wspięcia na samych palcach z pełnym napięciem w szczytowej fazie oraz powolnym opuszczaniem pięt do pozycji wyjściowej.',
+                'tips' => 'Utrzymuj wyprostowane kolana przez cały czas trwania ruchu i zatrzymaj wspięcie na sekundę w najwyższym punkcie, aby zmaksymalizować napięcie mięśnia brzuchatego łydki.',
+                'category' => 'Nogi',
+                'mechanicType' => 'isolation',
+                'primary' => 'Łydki',
+                'secondary' => [],
+                'image_prefix' => 'smith_machine_standing_calf_raise',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Wznosy hantli bokiem',
+                'description' => 'Ćwiczenie izolowane, w którym ruch odbywa się głównie w stawie ramiennym. Początkowa faza to pozycja stojąca lub siedząca z hantlami przy udach. Faza końcowa to uniesienie wyprostowanych lub lekko ugiętych ramion bokiem do poziomu barków, gdzie następuje maksymalne napięcie mięśni naramiennych.',
+                'tips' => 'Unikaj zarzucania tułowiem i używania zbyt dużego ciężaru; skup się na kontrolowanym ruchu i prowadzeniu łokciami, a nie dłońmi.',
+                'category' => 'Barki',
+                'mechanicType' => 'isolation',
+                'primary' => 'Barki - bok',
+                'secondary' => ['Barki - przód', 'Górna część pleców'],
+                'image_prefix' => 'lateral_dumbbell_raise',
+                'incrementStep' => 1.0
+            ],
+            [
+                'name' => 'Naprzemienne wznosy hantli przód chwytem młotkowym',
+                'description' => 'Ćwiczenie izolowane ukierunkowane na przedni akton mięśni naramiennych. Ruch rozpoczyna się z pozycji stojącej z ramionami opuszczonymi wzdłuż tułowia i hantlami trzymanymi chwytem neutralnym (młotkowym), po czym następuje naprzemienne zgięcie w stawie ramiennym i uniesienie jednego ramienia w przód do wysokości barków przy zachowaniu stabilnego tułowia.',
+                'tips' => 'Utrzymuj lekko ugięte łokcie i napięty brzuch, aby uniknąć bujania tułowiem oraz przejmowania pracy przez odcinek lędźwiowy kręgosłupa.',
+                'category' => 'Barki',
+                'mechanicType' => 'isolation',
+                'primary' => 'Barki - przód',
+                'secondary' => ['Barki - bok', 'Klatka piersiowa - góra', 'Przedramiona - zginacze (przód)'],
+                'image_prefix' => 'alternating_dumbbell_hammer_front_raise',
+                'incrementStep' => 1.0
+            ],
+            [
+                'name' => 'Uginanie przedramion ze sztangą',
+                'description' => 'Podstawowe ćwiczenie izolowane rozwijające mięśnie dwugłowe ramienia. Ruch rozpoczyna się z pozycji stojącej z ramionami wyprostowanymi wzdłuż tułowia i sztangą trzymaną podchwytem na szerokość barków, po czym następuje koncentryczne zgięcie w stawach łokciowych i uniesienie gryfu do wysokości górnej części klatki piersiowej przy nieruchomych łokciach.',
+                'tips' => 'Utrzymuj łokcie stabilnie przy tułowiu przez cały zakres ruchu i nie kołysz ciałem, aby zmaksymalizować napięcie mięśni dwugłowych ramienia.',
+                'category' => 'Biceps',
+                'mechanicType' => 'isolation',
+                'primary' => 'Biceps',
+                'secondary' => ['Przedramiona - zginacze (przód)', 'Barki - przód'],
+                'image_prefix' => 'barbell_biceps_curl',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Wiosłowanie szerokim chwytem na wyciągu dolnym',
+                'description' => 'Wielostawowe ćwiczenie na wyciągu dolnym angażujące mięśnie grzbietu i tylne aktony barków. Ruch rozpoczyna się w pozycji siedzącej z nogami opartymi o platformy, stabilnym tułowiem i ramionami wyprostowanymi w przód trzymającymi szeroki drążek, po czym następuje ściągnięcie drążka w kierunku dolnej klatki piersiowej z retrakcją łopatek.',
+                'tips' => 'Utrzymuj stabilny tułów bez nadmiernego pochylania w przód i w tył oraz skup się na ściągnięciu łopatek w końcowej fazie ruchu.',
+                'category' => 'Plecy',
+                'mechanicType' => 'compound',
+                'primary' => 'Górna część pleców',
+                'secondary' => ['Najszerszy grzbietu', 'Barki - tył', 'Biceps'],
+                'image_prefix' => 'wide_grip_seated_low_cable_row',
+                'incrementStep' => 5.0
+            ],
+            [
+                'name' => 'Odwodzenie nóg na maszynie siedząc',
+                'description' => 'Ćwiczenie izolowane na maszynie ze stosem angażujące mięśnie odwodzące staw biodrowy. Ruch rozpoczyna się w pozycji siedzącej z plecami opartymi o oparcie i udami złączonymi przy wewnętrznych poduszkach, po czym następuje odwiedzenie obu nóg na zewnątrz z pokonaniem oporu stosu przy zachowaniu stabilnego tułowia.',
+                'tips' => 'Utrzymuj plecy przylegające do oparcia i kontroluj fazę powrotu, nie pozwalając na gwałtowne złączenie ud.',
+                'category' => 'Nogi',
+                'mechanicType' => 'isolation',
+                'primary' => 'Odwodziciele',
+                'secondary' => ['Pośladki'],
+                'image_prefix' => 'seated_hip_abduction_machine',
+                'incrementStep' => 5.0
+            ],
             // --- MASZYNY CARDIO ---//
             [
                 'name' => 'Bieżnia Elektryczna',
