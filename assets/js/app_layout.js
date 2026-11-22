@@ -7,6 +7,7 @@ function toggleMobileMenu() {
 
     icon.innerText = isOpen ? "close" : "menu";
     document.body.style.overflow = isOpen ? "hidden" : "";
+    document.documentElement.style.overflow = isOpen ? "hidden" : "";
 }
 
 // Wystawiamy funkcję globalnie, aby onclick w HTML jej nie zgubił
