@@ -149,6 +149,17 @@ class AppFixtures extends Fixture
                 'roles' => ['ROLE_USER'],
                 'password' => 'szymon123',
             ],
+            [
+                'email' => 'zenek@pulsekinetic.com',
+                'name' => 'Zenek',
+                'age' => 17,
+                'gender' => 'Mężczyzna',
+                'weight' => 80.0,
+                'height' => 178.0,
+                'goal' => $goals['hypertrophy'],
+                'roles' => ['ROLE_USER'],
+                'password' => 'zenek123',
+            ],
         ];
 
         foreach ($usersData as $uData) {
