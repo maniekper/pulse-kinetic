@@ -15,7 +15,13 @@ class ProgressionAnalyzerService
         $machine = $currentSet->getMachine();
         $user = $currentSet->getWorkoutSession()->getUser();
 
-        $increment = $machine->getIncrementStep() ?? 2.5;
+        $userSteps = method_exists($user, 'getExerciseIncrementSteps')
+            ? $user->getExerciseIncrementSteps()
+            : [];
+        $machineKey = (string) $machine->getId();
+        $increment = isset($userSteps[$machineKey]) && (float) $userSteps[$machineKey] > 0
+            ? (float) $userSteps[$machineKey]
+            : ($machine->getIncrementStep() ?? 2.5);
 
         // Pobieramy bazowy czas odpoczynku z bazy danych
         $targets = $this->calculator->calculateTargets($user, $machine);

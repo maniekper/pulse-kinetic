@@ -8,15 +8,14 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\Machine;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-/**
- * @var Collection<int, Machine>
- */
+    /**
+     * @var Collection<int, Machine>
+     */
     #[ORM\ManyToMany(targetEntity: Machine::class)]
     #[ORM\JoinTable(name: 'user_banned_machines')]
     private Collection $bannedMachines;
@@ -28,6 +27,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180)]
     private ?string $email = null;
+
+    /**
+     * @var array<string, float>|null
+     * Klucz: ID ćwiczenia/maszyny (string), wartość: krok obciążenia w kg dla tego użytkownika.
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $exerciseIncrementSteps = [];
 
     /**
      * @var list<string> The user roles
@@ -166,7 +172,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $data = (array) $this;
         $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
-        
+
         return $data;
     }
 
@@ -256,6 +262,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->machineRecords;
     }
 
+    /**
+     * @return array<string, float>
+     */
+    public function getExerciseIncrementSteps(): array
+    {
+        return $this->exerciseIncrementSteps ?? [];
+    }
+
+    /**
+     * @param array<string, float>|null $steps
+     */
+    public function setExerciseIncrementSteps(?array $steps): static
+    {
+        $this->exerciseIncrementSteps = $steps ?? [];
+
+        return $this;
+    }
+
+    public function setExerciseIncrementStep(int|string $exerciseKey, float $stepKg): static
+    {
+        $key = trim((string) $exerciseKey);
+        if ($key === '') {
+            return $this;
+        }
+
+        $steps = $this->getExerciseIncrementSteps();
+        $cleanStep = round($stepKg, 2);
+
+        if ($cleanStep > 0) {
+            $steps[$key] = $cleanStep;
+        } else {
+            unset($steps[$key]);
+        }
+
+        $this->exerciseIncrementSteps = $steps;
+
+        return $this;
+    }
+
     public function addMachineRecord(MachineRecord $machineRecord): static
     {
         if (!$this->machineRecords->contains($machineRecord)) {
@@ -269,7 +314,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeMachineRecord(MachineRecord $machineRecord): static
     {
         if ($this->machineRecords->removeElement($machineRecord)) {
-            // set the owning side to null (unless already changed)
             if ($machineRecord->getUser() === $this) {
                 $machineRecord->setUser(null);
             }
@@ -299,7 +343,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeRoutine(Routine $routine): static
     {
         if ($this->routines->removeElement($routine)) {
-            // set the owning side to null (unless already changed)
             if ($routine->getUser() === $this) {
                 $routine->setUser(null);
             }
@@ -329,7 +372,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeWorkoutSession(WorkoutSession $workoutSession): static
     {
         if ($this->workoutSessions->removeElement($workoutSession)) {
-            // set the owning side to null (unless already changed)
             if ($workoutSession->getUser() === $this) {
                 $workoutSession->setUser(null);
             }
@@ -371,7 +413,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeWorkoutPlan(WorkoutPlan $workoutPlan): static
     {
         if ($this->workoutPlans->removeElement($workoutPlan)) {
-            // set the owning side to null (unless already changed)
             if ($workoutPlan->getUser() === $this) {
                 $workoutPlan->setUser(null);
             }
@@ -379,6 +420,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
     public function getBannedMachines(): Collection
     {
         return $this->bannedMachines;
@@ -389,12 +431,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->bannedMachines->contains($machine)) {
             $this->bannedMachines->add($machine);
         }
+
         return $this;
     }
 
     public function removeBannedMachine(Machine $machine): static
     {
         $this->bannedMachines->removeElement($machine);
+
         return $this;
     }
 }

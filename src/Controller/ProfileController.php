@@ -129,6 +129,33 @@ class ProfileController extends AbstractController
 
         return $this->redirectToRoute('app_login');
     }
+    #[Route('/profile/equipment-weights', name: 'app_profile_equipment_weights', methods: ['POST'])]
+    public function updateEquipmentWeights(Request $request, EntityManagerInterface $em): Response
+    {
+        /** @var User|null $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $token = (string) $request->request->get('_csrf_token', '');
+        if (!$this->isCsrfTokenValid('profile_equipment_weights', $token)) {
+            $this->addFlash('error', 'Nieprawidłowy token CSRF.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        $platesRaw = $request->request->all('plates');
+        $dumbbellsRaw = $request->request->all('dumbbells');
+
+        $user->setAvailablePlates(is_array($platesRaw) ? $platesRaw : []);
+        $user->setAvailableDumbbells(is_array($dumbbellsRaw) ? $dumbbellsRaw : []);
+
+        $em->flush();
+        $this->addFlash('success', 'Zapisano dostępne ciężary krążków i hantli.');
+
+        return $this->redirectToRoute('app_profile');
+    }
+
     #[Route('/profile/change-password', name: 'app_profile_change_password', methods: ['POST'])]
     public function changePassword(
         Request $request,

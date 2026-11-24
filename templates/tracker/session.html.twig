@@ -111,10 +111,16 @@
                         {% set secondaryMuscleNames = secondaryMuscleNames|merge([m.name]) %}
                     {% endfor %}
 
+                    {% set userSteps = app.user.exerciseIncrementSteps is defined and app.user.exerciseIncrementSteps is not null ? app.user.exerciseIncrementSteps : {} %}
+                    {% set machineKey = '' ~ sets[0].machine.id %}
+                    {% set effectiveStep = userSteps[machineKey] is defined ? userSteps[machineKey] : (sets[0].machine.incrementStep|default(2.5)) %}
+
                     <!-- BLOK ĆWICZENIA -->
                     <section
                         class="bg-surface-container p-6 relative exercise-block"
                         data-machine-id="{{ sets[0].machine.id }}"
+                        data-increment-step="{{ effectiveStep }}"
+                        data-unit="kg"
                         data-primary-muscles="{{ primaryMuscleNames|join(',') }}"
                         data-secondary-muscles="{{ secondaryMuscleNames|join(',') }}"
                         data-rest-time="{{ restTimes[machineName] }}"
@@ -167,9 +173,28 @@
                                     {% endif %}
 
                                     <!-- Nagłówki tabeli -->
-                                    <div class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-4 border-b border-outline-variant/20">
+                                    <div class="grid grid-cols-12 gap-2 md:gap-4 px-2 md:px-6 py-4 border-b border-outline-variant/20 items-center">
                                         <div class="col-span-2 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase">Set</div>
-                                        <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">KG</div>
+                                        <div class="col-span-4 flex justify-center">
+                                            <div class="inline-flex border border-outline-variant/40 bg-[#131313]" role="group" aria-label="Jednostka ciężaru">
+                                                <button
+                                                    type="button"
+                                                    data-unit-toggle="kg"
+                                                    onclick="setExerciseUnit(this, 'kg')"
+                                                    class="px-2.5 py-1 font-headline text-[10px] font-black uppercase tracking-widest bg-primary-container text-on-primary-container cursor-pointer transition-colors"
+                                                >
+                                                    KG
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    data-unit-toggle="lbs"
+                                                    onclick="setExerciseUnit(this, 'lbs')"
+                                                    class="px-2.5 py-1 font-headline text-[10px] font-bold uppercase tracking-widest text-outline hover:text-white cursor-pointer transition-colors"
+                                                >
+                                                    LBS
+                                                </button>
+                                            </div>
+                                        </div>
                                         <div class="col-span-4 font-headline text-[10px] font-bold text-outline tracking-tighter uppercase text-center">REPS</div>
                                         <div class="col-span-2 text-right"></div>
                                     </div>
@@ -181,16 +206,22 @@
                                                 {{ set.setNumber > 9 ? set.setNumber : '0' ~ set.setNumber }}
                                             </div>
                                         
-                                            <!-- CIĘŻAR (KG) -->
+                                            <!-- CIĘŻAR (KG / LBS -> ZAPIS W KG) -->
                                             <div class="col-span-4 px-1 md:px-2">
                                                 {% if set.isCompleted %}
-                                                    <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">{{ set.weight }}</div>
+                                                    <div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface completed-weight-display" data-weight-kg="{{ set.weight }}">{{ set.weight }}</div>
                                                 {% else %}
-                                                    {% set step = set.machine.incrementStep|default(2.5) %}
                                                     <div class="flex items-stretch h-11 border border-outline-variant/30 bg-[#131313]">
-                                                        <button type="button" onclick="adjustValue('weight-{{ set.id }}', -{{ step }})" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
-                                                        <input type="number" step="{{ step }}" id="weight-{{ set.id }}" class="w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0" value="{{ set.weight > 0 ? set.weight : '' }}">
-                                                        <button type="button" onclick="adjustValue('weight-{{ set.id }}', {{ step }})" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
+                                                        <button type="button" onclick="adjustWeightValue('weight-{{ set.id }}', -1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">-</button>
+                                                        <input
+                                                            type="number"
+                                                            step="any"
+                                                            id="weight-{{ set.id }}"
+                                                            data-weight-kg="{{ set.weight > 0 ? set.weight : '' }}"
+                                                            class="weight-input w-full bg-transparent border-none text-center font-headline font-black text-xl focus:ring-0 text-on-surface p-0 m-0"
+                                                            value="{{ set.weight > 0 ? set.weight : '' }}"
+                                                        >
+                                                        <button type="button" onclick="adjustWeightValue('weight-{{ set.id }}', 1)" class="w-8 md:w-10 bg-surface-container-highest text-outline hover:text-primary-container hover:bg-[#1a1a1a] transition-colors font-bold text-xl flex items-center justify-center shrink-0 cursor-pointer">+</button>
                                                     </div>
                                                 {% endif %}
                                             </div>

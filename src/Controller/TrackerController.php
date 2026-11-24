@@ -14,6 +14,7 @@ use App\Repository\WorkoutPlanRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\CardioSession;
 use App\Entity\Machine;
+use App\Entity\User;
 
 class TrackerController extends AbstractController
 {
@@ -346,5 +347,33 @@ class TrackerController extends AbstractController
         }
 
         return $this->redirectToRoute('app_tracker_session', ['id' => $session->getId()]);
+    }
+    #[Route('/tracker/machine/{id}/increment-step', name: 'app_tracker_update_increment_step', methods: ['POST'])]
+    public function updateIncrementStep(
+        Machine $machine,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        /** @var \App\Entity\User|null $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'Brak autoryzacji'], 401);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $stepKg = isset($data['step_kg']) ? round((float) $data['step_kg'], 2) : 0.0;
+
+        if ($stepKg <= 0 || $stepKg > 200) {
+            return new JsonResponse(['error' => 'Nieprawidłowy krok obciążenia'], 400);
+        }
+
+        $user->setExerciseIncrementStep($machine->getId(), $stepKg);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'machine_id' => $machine->getId(),
+            'step_kg' => $stepKg,
+        ]);
     }
 }

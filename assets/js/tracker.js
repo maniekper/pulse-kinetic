@@ -8,6 +8,145 @@ let maxRestSeconds = 0;
 const circumference = 552.92;
 let isIntentionalExit = false;
 
+const KG_TO_LBS = 2.2046226218;
+const LBS_TO_KG = 0.45359237;
+
+function formatWeightDisplay(val) {
+    const rounded = Math.round(val * 100) / 100;
+    return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+}
+
+function getWeightInKg(inputEl) {
+    if (!inputEl) return 0;
+    const raw = parseFloat(String(inputEl.value || "").replace(",", "."));
+    if (!Number.isFinite(raw) || raw < 0) return 0;
+
+    const block = inputEl.closest(".exercise-block");
+    const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
+    const kg = unit === "lbs" ? raw * LBS_TO_KG : raw;
+    return Math.round(kg * 100) / 100;
+}
+
+window.setExerciseUnit = function (btnEl, targetUnit) {
+    const block = btnEl.closest(".exercise-block");
+    if (!block) return;
+
+    const currentUnit = block.getAttribute("data-unit") || "kg";
+    if (currentUnit === targetUnit) return;
+
+    block.setAttribute("data-unit", targetUnit);
+
+    block.querySelectorAll("[data-unit-toggle]").forEach((btn) => {
+        const isActive = btn.getAttribute("data-unit-toggle") === targetUnit;
+        btn.classList.toggle("bg-primary-container", isActive);
+        btn.classList.toggle("text-on-primary-container", isActive);
+        btn.classList.toggle("font-black", isActive);
+        btn.classList.toggle("text-outline", !isActive);
+        btn.classList.toggle("font-bold", !isActive);
+    });
+
+    block.querySelectorAll(".weight-input").forEach((input) => {
+        const storedKg = parseFloat(input.getAttribute("data-weight-kg") || "");
+        if (Number.isFinite(storedKg) && storedKg > 0) {
+            const displayVal =
+                targetUnit === "lbs" ? storedKg * KG_TO_LBS : storedKg;
+            input.value = formatWeightDisplay(displayVal);
+        }
+    });
+
+    block.querySelectorAll(".completed-weight-display").forEach((el) => {
+        const storedKg = parseFloat(el.getAttribute("data-weight-kg") || "");
+        if (Number.isFinite(storedKg) && storedKg > 0) {
+            const displayVal =
+                targetUnit === "lbs" ? storedKg * KG_TO_LBS : storedKg;
+            el.innerText = formatWeightDisplay(displayVal);
+        }
+    });
+};
+
+window.adjustWeightValue = function (inputId, direction) {
+    const input = document.getElementById(inputId);
+    if (!input || input.disabled) return;
+
+    const block = input.closest(".exercise-block");
+    const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
+    const stepKg = block
+        ? parseFloat(block.getAttribute("data-increment-step") || "2.5")
+        : 2.5;
+
+    const stepInCurrentUnit = unit === "lbs" ? stepKg * KG_TO_LBS : stepKg;
+    let currentDisplayVal =
+        parseFloat(String(input.value || "").replace(",", ".")) || 0;
+    let nextDisplayVal = Math.max(
+        0,
+        currentDisplayVal + direction * stepInCurrentUnit,
+    );
+
+    input.value = formatWeightDisplay(nextDisplayVal);
+    const nextKg = unit === "lbs" ? nextDisplayVal * LBS_TO_KG : nextDisplayVal;
+    input.setAttribute(
+        "data-weight-kg",
+        String(Math.round(nextKg * 100) / 100),
+    );
+
+    if (block) {
+        detectAndSyncIncrementStep(block);
+    }
+};
+
+function detectAndSyncIncrementStep(block) {
+    if (!block) return;
+
+    const weightsKg = [];
+
+    block.querySelectorAll(".completed-weight-display").forEach((el) => {
+        const kg = parseFloat(el.getAttribute("data-weight-kg") || "");
+        if (Number.isFinite(kg) && kg > 0) weightsKg.push(kg);
+    });
+
+    block.querySelectorAll(".weight-input").forEach((input) => {
+        const kg = getWeightInKg(input);
+        if (kg > 0) {
+            input.setAttribute("data-weight-kg", String(kg));
+            weightsKg.push(kg);
+        }
+    });
+
+    const uniqueOrdered = [];
+    weightsKg.forEach((w) => {
+        if (
+            uniqueOrdered.length === 0 ||
+            uniqueOrdered[uniqueOrdered.length - 1] !== w
+        ) {
+            uniqueOrdered.push(w);
+        }
+    });
+
+    if (uniqueOrdered.length < 2) return;
+
+    const prevW = uniqueOrdered[uniqueOrdered.length - 2];
+    const lastW = uniqueOrdered[uniqueOrdered.length - 1];
+    const diffKg = Math.round(Math.abs(lastW - prevW) * 100) / 100;
+
+    if (diffKg <= 0 || diffKg > 100) return;
+
+    const currentSavedStep = parseFloat(
+        block.getAttribute("data-increment-step") || "0",
+    );
+    if (Math.abs(currentSavedStep - diffKg) < 0.01) return;
+
+    block.setAttribute("data-increment-step", String(diffKg));
+
+    const machineId = block.getAttribute("data-machine-id");
+    if (!machineId) return;
+
+    fetch(`/tracker/machine/${machineId}/increment-step`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step_kg: diffKg }),
+    }).catch(() => {});
+}
+
 function hideMobileCoachBox() {
     const mobileCoachBox = document.getElementById("mobileCoachBox");
     if (mobileCoachBox) {
@@ -92,11 +231,10 @@ function normalizeMuscleName(name) {
     const normalized = name
         .trim()
         .toLowerCase()
-        .replace(/\s*-\s*/g, "-") // "Klatka - góra" -> "klatka-góra" (bez "---")
-        .replace(/[()]/g, "") // usuwa nawiasy z "(przód)", "(tył)", "(Kulszowo-goleniowe)"
-        .replace(/\s+/g, "-"); // pozostałe spacje -> "-"
+        .replace(/\s*-\s*/g, "-")
+        .replace(/[()]/g, "")
+        .replace(/\s+/g, "-");
 
-    // Aliasy (zostaw tylko jeśli w SVG użyłeś skróconych nazw bez końcówki "-a")
     const aliases = {
         "prosty-brzucha": "prosty-brzuch",
         "skośne-brzucha": "skośne-brzuch",
@@ -179,7 +317,6 @@ function showExercise(index) {
         .map((m) => m.trim())
         .filter(Boolean);
 
-    // Czyścimy po aktywnych klasach (bezpieczniejsze niż tylko po .muscle-group)
     document
         .querySelectorAll(".muscle-active-primary, .muscle-active-secondary")
         .forEach((el) => {
@@ -202,11 +339,9 @@ function showExercise(index) {
         });
     };
 
-    // Najpierw pomocnicze, potem główne (gdyby jakaś nazwa się powtórzyła, główny wygra)
     rawSecondary.forEach((m) => highlight(m, "muscle-active-secondary"));
     rawPrimary.forEach((m) => highlight(m, "muscle-active-primary"));
 
-    // Etykiety pod mapą (najpierw główne, potem pomocnicze — tak jak wcześniej)
     if (labelsContainer) {
         rawPrimary.forEach((m) => {
             labelsContainer.innerHTML += `<span class="bg-primary-container/20 border border-primary-container text-primary-container px-2 py-1 font-headline font-bold text-[9px] uppercase tracking-widest">${m}</span>`;
@@ -221,7 +356,7 @@ function showExercise(index) {
 
 window.adjustValue = function (inputId, delta) {
     const input = document.getElementById(inputId);
-    if (!input) return;
+    if (!input || input.disabled) return;
     let val = parseFloat(input.value) || 0;
     val += delta;
     if (val < 0) val = 0;
@@ -242,10 +377,15 @@ function recalculateInitialStats() {
     document
         .querySelectorAll(".set-row.bg-surface-container-low")
         .forEach((row) => {
-            const weightDiv = row.querySelector("div:nth-child(2)");
+            const weightEl =
+                row.querySelector(".completed-weight-display") ||
+                row.querySelector("div:nth-child(2)");
             const repsDiv = row.querySelector("div:nth-child(3)");
-            if (weightDiv && repsDiv) {
-                const w = parseFloat(weightDiv.innerText);
+            if (weightEl && repsDiv) {
+                const w = parseFloat(
+                    weightEl.getAttribute("data-weight-kg") ||
+                        weightEl.innerText,
+                );
                 const r = parseInt(repsDiv.innerText);
                 if (!isNaN(w) && !isNaN(r)) {
                     currentVolume += w * r;
@@ -264,7 +404,7 @@ function updateStats() {
     let progBar = document.getElementById("workoutProgressBar");
 
     if (elCompleted) elCompleted.innerText = completedSets;
-    if (elVolume) elVolume.innerText = currentVolume;
+    if (elVolume) elVolume.innerText = Math.round(currentVolume * 100) / 100;
 
     let progress =
         totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
@@ -417,6 +557,32 @@ window.skipRestTime = function () {
     showStartRestButton();
 };
 
+function syncSequentialSetLocks() {
+    document.querySelectorAll(".exercise-block").forEach((block) => {
+        const rows = Array.from(block.querySelectorAll(".set-row"));
+        let activeRowFound = false;
+
+        rows.forEach((row) => {
+            const isCompleted = row.classList.contains(
+                "bg-surface-container-low",
+            );
+            const isUnlocked = !isCompleted && !activeRowFound;
+
+            if (!isCompleted && !activeRowFound) {
+                activeRowFound = true;
+            }
+
+            row.classList.toggle("opacity-40", !isCompleted && !isUnlocked);
+
+            row.querySelectorAll("input, button").forEach((el) => {
+                if (el.tagName === "INPUT" || el.tagName === "BUTTON") {
+                    el.disabled = !isUnlocked;
+                }
+            });
+        });
+    });
+}
+
 function updateActiveStateVisuals() {
     let rows = document.querySelectorAll(".set-row");
     let foundActive = false;
@@ -434,6 +600,8 @@ function updateActiveStateVisuals() {
             foundActive = true;
         }
     });
+
+    syncSequentialSetLocks();
 }
 
 window.saveSet = function (setId, btnElement) {
@@ -441,7 +609,13 @@ window.saveSet = function (setId, btnElement) {
     const repsInput = document.getElementById("reps-" + setId);
 
     if (!weightInput || !repsInput) return;
-    const weight = weightInput.value;
+
+    const block = weightInput.closest(".exercise-block");
+    if (block) {
+        detectAndSyncIncrementStep(block);
+    }
+
+    const weight = getWeightInKg(weightInput);
     const reps = repsInput.value;
 
     const row = document.getElementById("set-row-" + setId);
@@ -449,7 +623,7 @@ window.saveSet = function (setId, btnElement) {
         ? parseInt(row.getAttribute("data-target-reps"))
         : 10;
 
-    if (!weight || !reps) {
+    if (!weight || weight <= 0 || !reps) {
         window.showCustomAlert("Wprowadź ciężar i ilość powtórzeń.");
         return;
     }
@@ -477,9 +651,17 @@ window.saveSet = function (setId, btnElement) {
                     const actionCont = row.querySelector(
                         ".set-action-container",
                     );
+                    const currentUnit =
+                        row
+                            .closest(".exercise-block")
+                            ?.getAttribute("data-unit") || "kg";
+                    const displaySavedWeight =
+                        currentUnit === "lbs"
+                            ? formatWeightDisplay(weight * KG_TO_LBS)
+                            : formatWeightDisplay(weight);
 
                     if (col2)
-                        col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${weight}</div>`;
+                        col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface completed-weight-display" data-weight-kg="${weight}">${displaySavedWeight}</div>`;
                     if (col3)
                         col3.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface">${reps}</div>`;
                     if (actionCont)
@@ -506,13 +688,14 @@ window.saveSet = function (setId, btnElement) {
                     if (skipBtn) skipBtn.style.display = "none";
                 }
 
+                syncSequentialSetLocks();
+
                 let restTimeSeconds = 120;
                 hideMobileCoachBox();
 
                 if (data.analysis) {
                     restTimeSeconds = data.analysis.rest_seconds;
 
-                    // DODANE: Aktualizujemy globalny element czasu, żeby stoper i przyciski znały nowy czas
                     const targetDataEl =
                         document.getElementById("targetRestTimeData");
                     if (targetDataEl) {
@@ -591,8 +774,23 @@ window.saveSet = function (setId, btnElement) {
                                 "weight-" + nextSetId,
                             );
                             if (nextWeightInput && !nextWeightInput.disabled) {
+                                const nextKg = parseFloat(
+                                    data.analysis.next_weight,
+                                );
+                                const unit =
+                                    nextWeightInput
+                                        .closest(".exercise-block")
+                                        ?.getAttribute("data-unit") || "kg";
+                                nextWeightInput.setAttribute(
+                                    "data-weight-kg",
+                                    String(nextKg),
+                                );
                                 nextWeightInput.value =
-                                    data.analysis.next_weight;
+                                    unit === "lbs"
+                                        ? formatWeightDisplay(
+                                              nextKg * KG_TO_LBS,
+                                          )
+                                        : formatWeightDisplay(nextKg);
                             }
                         }
                     }
@@ -685,7 +883,6 @@ window.closeCustomConfirm = function () {
 
 window.submitWorkoutForm = function () {
     isIntentionalExit = true;
-    // Pobieramy link do zakończenia treningu z ukrytego inputa w HTML
     const finishUrlEl = document.getElementById("trackerFinishUrl");
     const finishAction = finishUrlEl
         ? finishUrlEl.value
@@ -736,10 +933,19 @@ function goToNextIncompleteExercise() {
     }
 }
 
-// DOMContentLoaded - Inicjalizacja nasłuchiwaczy przy starcie
 document.addEventListener("DOMContentLoaded", () => {
     recalculateInitialStats();
     updateStats();
+    syncSequentialSetLocks();
+
+    document.querySelectorAll(".weight-input").forEach((input) => {
+        input.addEventListener("change", () => {
+            const block = input.closest(".exercise-block");
+            const kg = getWeightInKg(input);
+            input.setAttribute("data-weight-kg", kg > 0 ? String(kg) : "");
+            if (block) detectAndSyncIncrementStep(block);
+        });
+    });
 
     const globalBtn = document.getElementById("globalFinishSetBtn");
     if (globalBtn) {
@@ -755,7 +961,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const activeRow = document.querySelector(".set-row.kinetic-stripe");
             if (activeRow) {
                 const btn = activeRow.querySelector(".save-set-btn");
-                if (btn)
+                if (btn && !btn.disabled)
                     window.saveSet(activeRow.getAttribute("data-set-id"), btn);
             } else {
                 window.showCustomAlert(
