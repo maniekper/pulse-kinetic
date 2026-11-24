@@ -23,6 +23,10 @@ class ProgressionAnalyzerService
             ? (float) $userSteps[$machineKey]
             : ($machine->getIncrementStep() ?? 2.5);
 
+        $goalName = strtolower((string) ($user->getCurrentGoal()?->getName() ?? ''));
+        $isCutOrTone = str_contains($goalName, 'redukc') || str_contains($goalName, 'rzeźb') || str_contains($goalName, 'rzez');
+        $isStrength = str_contains($goalName, 'sił') || str_contains($goalName, 'sil');
+
         // Pobieramy bazowy czas odpoczynku z bazy danych
         $targets = $this->calculator->calculateTargets($user, $machine);
         $baseRest = $targets['restSeconds'];
@@ -31,9 +35,48 @@ class ProgressionAnalyzerService
         $restSeconds = $baseRest;
 
         if ($reps > $targetReps) {
-            $nextWeight = $weight + $increment;
+            $extraReps = $reps - $targetReps;
+
+            $baseSteps = match (true) {
+                $extraReps >= 5 => 3,
+                $extraReps >= 3 => 2,
+                default => 1,
+            };
+
+            $maxSteps = match (true) {
+                $isCutOrTone => 2,
+                $isStrength => 2,
+                default => 3, // masa / hipertrofia
+            };
+
+            $stepsToAdd = min($baseSteps, $maxSteps);
+            $safeIncrement = $increment > 0 ? $increment : 2.5;
+            $rawNextWeight = $weight + ($stepsToAdd * $safeIncrement);
+
+            $estimated1Rm = $weight * (1 + ($reps / 30));
+            $maxSafeRatio = match (true) {
+                $isCutOrTone => $isCompound ? 0.80 : 0.75,
+                $isStrength => $isCompound ? 0.85 : 0.78,
+                default => $isCompound ? 0.85 : 0.80,
+            };
+
+            $safeCap = $estimated1Rm * $maxSafeRatio;
+            $cappedWeight = min($rawNextWeight, max($weight + $safeIncrement, $safeCap));
+
+            $nextWeight = round($cappedWeight / $safeIncrement) * $safeIncrement;
+            if ($nextWeight <= $weight) {
+                $nextWeight = $weight + $safeIncrement;
+            }
+
             $restSeconds = $baseRest;
-            $message = sprintf('Przebicie celu! Zrobiłeś %d powt. (cel: %d). Dokładamy na %.1f kg w następnej serii.', $reps, $targetReps, $nextWeight);
+            $message = sprintf(
+                'Przebicie celu (+%d powt.: %d/%d). Bezpiecznie podnosimy na %.1f kg (krok: %.1f kg).',
+                $extraReps,
+                $reps,
+                $targetReps,
+                $nextWeight,
+                $safeIncrement
+            );
         } elseif ($reps === $targetReps) {
             $nextWeight = $weight;
             $restSeconds = $baseRest;
@@ -55,7 +98,7 @@ class ProgressionAnalyzerService
         return [
             'next_weight' => $nextWeight,
             'rest_seconds' => $restSeconds,
-            'message' => $message
+            'message' => $message,
         ];
     }
 }
