@@ -27,6 +27,68 @@ function getWeightInKg(inputEl) {
     return Math.round(kg * 100) / 100;
 }
 
+function resolveDumbbellStepKg(currentWeightKg, system = "us_2_5kg") {
+    const isEu = system === "eu_2kg";
+    return isEu ? 2.0 : 2.5;
+}
+
+function getEffectiveStepKg(block, currentWeightKg = 0) {
+    if (!block) return 2.5;
+
+    const hasCustomStep = block.getAttribute("data-has-custom-step") === "1";
+    const savedStep = parseFloat(
+        block.getAttribute("data-increment-step") || "0",
+    );
+
+    if (hasCustomStep && Number.isFinite(savedStep) && savedStep > 0) {
+        return savedStep;
+    }
+
+    const eqType = block.getAttribute("data-equipment-type") || "stack_heavy";
+
+    if (eqType === "dumbbell") {
+        const system = block.getAttribute("data-dumbbell-system") || "us_2_5kg";
+        return resolveDumbbellStepKg(currentWeightKg, system);
+    }
+
+    if (eqType === "plate" || eqType === "cable") {
+        return Number.isFinite(savedStep) && savedStep > 0 ? savedStep : 2.5;
+    }
+
+    if (eqType === "stack_small") {
+        if (Number.isFinite(savedStep) && savedStep > 0 && savedStep !== 2.5) {
+            return savedStep;
+        }
+        return currentWeightKg > 0 && currentWeightKg <= 20.0 ? 2.5 : 5.0;
+    }
+
+    // stack_heavy
+    return Number.isFinite(savedStep) && savedStep > 0 ? savedStep : 5.0;
+}
+
+function getStepInDisplayUnit(block, currentWeightKg = 0) {
+    const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
+    const hasCustomStep =
+        block && block.getAttribute("data-has-custom-step") === "1";
+
+    if (unit === "lbs" && !hasCustomStep) {
+        const eqType = block
+            ? block.getAttribute("data-equipment-type") || "stack_heavy"
+            : "stack_heavy";
+        if (eqType === "dumbbell" || eqType === "plate" || eqType === "cable") {
+            return 5;
+        }
+        if (eqType === "stack_small") {
+            const currentLbs = currentWeightKg * KG_TO_LBS;
+            return currentLbs > 0 && currentLbs <= 45 ? 5 : 10;
+        }
+        return 10;
+    }
+
+    const stepKg = getEffectiveStepKg(block, currentWeightKg);
+    return unit === "lbs" ? stepKg * KG_TO_LBS : stepKg;
+}
+
 window.setExerciseUnit = function (btnEl, targetUnit) {
     const block = btnEl.closest(".exercise-block");
     if (!block) return;
@@ -70,11 +132,9 @@ window.adjustWeightValue = function (inputId, direction) {
 
     const block = input.closest(".exercise-block");
     const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
-    const stepKg = block
-        ? parseFloat(block.getAttribute("data-increment-step") || "2.5")
-        : 2.5;
+    const currentKg = getWeightInKg(input);
+    const stepInCurrentUnit = getStepInDisplayUnit(block, currentKg);
 
-    const stepInCurrentUnit = unit === "lbs" ? stepKg * KG_TO_LBS : stepKg;
     let currentDisplayVal =
         parseFloat(String(input.value || "").replace(",", ".")) || 0;
     let nextDisplayVal = Math.max(
@@ -98,17 +158,27 @@ function detectAndSyncIncrementStep(block) {
     if (!block) return;
 
     const weightsKg = [];
+    const rows = Array.from(block.querySelectorAll(".set-row"));
 
-    block.querySelectorAll(".completed-weight-display").forEach((el) => {
-        const kg = parseFloat(el.getAttribute("data-weight-kg") || "");
-        if (Number.isFinite(kg) && kg > 0) weightsKg.push(kg);
-    });
+    rows.forEach((row) => {
+        const completedEl = row.querySelector(".completed-weight-display");
+        if (completedEl) {
+            const kg = parseFloat(
+                completedEl.getAttribute("data-weight-kg") || "",
+            );
+            if (Number.isFinite(kg) && kg > 0) {
+                weightsKg.push(kg);
+                return;
+            }
+        }
 
-    block.querySelectorAll(".weight-input").forEach((input) => {
-        const kg = getWeightInKg(input);
-        if (kg > 0) {
-            input.setAttribute("data-weight-kg", String(kg));
-            weightsKg.push(kg);
+        const input = row.querySelector(".weight-input");
+        if (input) {
+            const kg = getWeightInKg(input);
+            if (kg > 0) {
+                input.setAttribute("data-weight-kg", String(kg));
+                weightsKg.push(kg);
+            }
         }
     });
 
@@ -133,9 +203,12 @@ function detectAndSyncIncrementStep(block) {
     const currentSavedStep = parseFloat(
         block.getAttribute("data-increment-step") || "0",
     );
-    if (Math.abs(currentSavedStep - diffKg) < 0.01) return;
+    const alreadyCustom = block.getAttribute("data-has-custom-step") === "1";
+
+    if (alreadyCustom && Math.abs(currentSavedStep - diffKg) < 0.01) return;
 
     block.setAttribute("data-increment-step", String(diffKg));
+    block.setAttribute("data-has-custom-step", "1");
 
     const machineId = block.getAttribute("data-machine-id");
     if (!machineId) return;
@@ -754,7 +827,23 @@ window.saveSet = function (setId, btnElement) {
                                 data.analysis.next_weight !== null &&
                                 data.analysis.next_weight !== ""
                             ) {
-                                mobileNextWeightText.innerText = `SUGEROWANY NASTĘPNY CIĘŻAR: ${data.analysis.next_weight} KG`;
+                                const nextKgVal = parseFloat(
+                                    data.analysis.next_weight,
+                                );
+                                const activeUnit =
+                                    currentExerciseBlock?.getAttribute(
+                                        "data-unit",
+                                    ) || "kg";
+                                const displayNext =
+                                    activeUnit === "lbs" &&
+                                    Number.isFinite(nextKgVal)
+                                        ? formatWeightDisplay(
+                                              nextKgVal * KG_TO_LBS,
+                                          )
+                                        : formatWeightDisplay(nextKgVal);
+                                const unitLabel =
+                                    activeUnit === "lbs" ? "LBS" : "KG";
+                                mobileNextWeightText.innerText = `SUGEROWANY NASTĘPNY CIĘŻAR: ${displayNext} ${unitLabel}`;
                                 mobileNextWeightText.classList.remove("hidden");
                             } else {
                                 mobileNextWeightText.classList.add("hidden");

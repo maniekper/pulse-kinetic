@@ -10,22 +10,19 @@ class ProgressionAnalyzerService
 
     public function analyzeSet(WorkoutSet $currentSet, int $targetReps, bool $isCompound = true): array
     {
-        $weight = $currentSet->getWeight();
-        $reps = $currentSet->getReps();
+        $weight = (float)$currentSet->getWeight();
+        $reps = (int)$currentSet->getReps();
         $machine = $currentSet->getMachine();
         $user = $currentSet->getWorkoutSession()->getUser();
 
-        $userSteps = method_exists($user, 'getExerciseIncrementSteps')
-            ? $user->getExerciseIncrementSteps()
-            : [];
-        $machineKey = (string) $machine->getId();
-        $increment = isset($userSteps[$machineKey]) && (float) $userSteps[$machineKey] > 0
-            ? (float) $userSteps[$machineKey]
-            : ($machine->getIncrementStep() ?? 2.5);
+        $increment = $this->resolveEffectiveIncrement($user, $machine, $weight);
 
         $goalName = strtolower((string) ($user->getCurrentGoal()?->getName() ?? ''));
-        $isCutOrTone = str_contains($goalName, 'redukc') || str_contains($goalName, 'rzeźb') || str_contains($goalName, 'rzez');
-        $isStrength = str_contains($goalName, 'sił') || str_contains($goalName, 'sil');
+        $isCutOrTone = str_contains($goalName, 'redukc')
+            || str_contains($goalName, 'rzeźb')
+            || str_contains($goalName, 'rzez');
+        $isStrength = str_contains($goalName, 'sił')
+            || str_contains($goalName, 'sil');
 
         // Pobieramy bazowy czas odpoczynku z bazy danych
         $targets = $this->calculator->calculateTargets($user, $machine);
@@ -100,5 +97,75 @@ class ProgressionAnalyzerService
             'rest_seconds' => $restSeconds,
             'message' => $message,
         ];
+    }
+
+    private function resolveEffectiveIncrement(object $user, object $machine, float $currentWeightKg): float
+    {
+        // 1. Priorytet: indywidualny krok wyuczony lub ustawiony dla tego użytkownika na tej maszynie
+        $userSteps = method_exists($user, 'getExerciseIncrementSteps')
+            ? $user->getExerciseIncrementSteps()
+            : [];
+        $machineKey = (string)$machine->getId();
+
+        if (isset($userSteps[$machineKey]) && (float) $userSteps[$machineKey] > 0) {
+            return (float) $userSteps[$machineKey];
+        }
+
+        $nameLower = mb_strtolower((string) ($machine->getName() ?? ''));
+        $categoryLower = mb_strtolower((string) (method_exists($machine, 'getCategory') ? ($machine->getCategory() ?? '') : ''));
+        $haystack = $nameLower . ' ' . $categoryLower;
+
+        // 2. Hantle (system EU 2.0 kg vs US 2.5 kg)
+        if (str_contains($haystack, 'hantl') || str_contains($haystack, 'dumbbell')) {
+            $system = method_exists($machine, 'getDumbbellStepSystem') && $machine->getDumbbellStepSystem()
+                ? (string) $machine->getDumbbellStepSystem()
+                : 'us_2_5kg';
+
+            return $system === 'eu_2kg' ? 2.0 : 2.5;
+        }
+
+        // 3. Krążki / sztanga / wolny ciężar ładowany talerzami (para 1.25 kg = 2.5 kg)
+        $plateKeywords = ['sztang', 'barbell', 'gryf', 'krążk', 'krazk', 'talerz', 'plate', 'smith'];
+        foreach ($plateKeywords as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return (float) ($machine->getIncrementStep() > 0 ? $machine->getIncrementStep() : 2.5);
+            }
+        }
+
+        // 4. Wyciągi i bramy (częste przełożenie 2:1 lub dokładki +2.5 kg)
+        $cableKeywords = ['bram', 'wyciąg', 'wyciag', 'link', 'cable', 'crossover', 'pulley'];
+        foreach ($cableKeywords as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return 2.5;
+            }
+        }
+
+        // 5. Maszyny ze stosem (selectorized)
+        $configuredStep = (float) ($machine->getIncrementStep() ?? 0);
+        if ($configuredStep > 0 && $configuredStep !== 2.5) {
+            return $configuredStep;
+        }
+
+        $smallStackKeywords = [
+            'biceps',
+            'triceps',
+            'bark',
+            'wznos',
+            'odwodz',
+            'przywodz',
+            'prostowanie nóg',
+            'prostowanie nog',
+            'uginanie nóg',
+            'uginanie nog',
+            'brzuch'
+        ];
+        foreach ($smallStackKeywords as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return $currentWeightKg > 0 && $currentWeightKg <= 20.0 ? 2.5 : 5.0;
+            }
+        }
+
+        // Domyślny standard dla ciężkich maszyn ze stosem
+        return 5.0;
     }
 }

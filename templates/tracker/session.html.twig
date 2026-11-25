@@ -110,16 +110,67 @@
                     {% for m in sets[0].machine.secondaryMuscles %}
                         {% set secondaryMuscleNames = secondaryMuscleNames|merge([m.name]) %}
                     {% endfor %}
-
                     {% set userSteps = app.user.exerciseIncrementSteps is defined and app.user.exerciseIncrementSteps is not null ? app.user.exerciseIncrementSteps : {} %}
                     {% set machineKey = '' ~ sets[0].machine.id %}
-                    {% set effectiveStep = userSteps[machineKey] is defined ? userSteps[machineKey] : (sets[0].machine.incrementStep|default(2.5)) %}
+                    {% set hasCustomStep = userSteps[machineKey] is defined and userSteps[machineKey] > 0 %}
+                    {% set machineNameLower = sets[0].machine.name|lower %}
+                    {% set machineCatLower = sets[0].machine.category is defined and sets[0].machine.category ? sets[0].machine.category|lower : '' %}
+                    {% set machineHaystack = machineNameLower ~ ' ' ~ machineCatLower %}
+
+                    {% set isDumbbell = ('hantl' in machineHaystack) or ('dumbbell' in machineHaystack) %}
+                    {% set isPlateLoaded = not isDumbbell and (
+                        ('sztang' in machineHaystack) or
+                        ('barbell' in machineHaystack) or
+                        ('gryf' in machineHaystack) or
+                        ('krążk' in machineHaystack) or
+                        ('krazk' in machineHaystack) or
+                        ('talerz' in machineHaystack) or
+                        ('plate' in machineHaystack) or
+                        ('smith' in machineHaystack)
+                    ) %}
+                    {% set isCable = not isDumbbell and not isPlateLoaded and (
+                        ('bram' in machineHaystack) or
+                        ('wyciąg' in machineHaystack) or
+                        ('wyciag' in machineHaystack) or
+                        ('link' in machineHaystack) or
+                        ('cable' in machineHaystack) or
+                        ('crossover' in machineHaystack) or
+                        ('pulley' in machineHaystack)
+                    ) %}
+                    {% set isSmallStack = not isDumbbell and not isPlateLoaded and not isCable and (
+                        ('biceps' in machineHaystack) or
+                        ('triceps' in machineHaystack) or
+                        ('bark' in machineHaystack) or
+                        ('wznos' in machineHaystack) or
+                        ('odwodz' in machineHaystack) or
+                        ('przywodz' in machineHaystack) or
+                        ('prostowanie nóg' in machineHaystack) or
+                        ('prostowanie nog' in machineHaystack) or
+                        ('uginanie nóg' in machineHaystack) or
+                        ('uginanie nog' in machineHaystack) or
+                        ('brzuch' in machineHaystack)
+                    ) %}
+
+                    {% set equipmentType = isDumbbell ? 'dumbbell' : (isPlateLoaded ? 'plate' : (isCable ? 'cable' : (isSmallStack ? 'stack_small' : 'stack_heavy'))) %}
+                    {% set dumbbellSystem = sets[0].machine.dumbbellStepSystem is defined and sets[0].machine.dumbbellStepSystem ? sets[0].machine.dumbbellStepSystem : 'us_2_5kg' %}
+                    {% set machineConfiguredStep = sets[0].machine.incrementStep is defined and sets[0].machine.incrementStep > 0 ? sets[0].machine.incrementStep : 0 %}
+
+                    {% set defaultStep = isDumbbell
+                        ? (dumbbellSystem == 'eu_2kg' ? 2.0 : 2.5)
+                        : (isPlateLoaded or isCable or isSmallStack
+                            ? (machineConfiguredStep > 0 ? machineConfiguredStep : 2.5)
+                            : (machineConfiguredStep > 0 and machineConfiguredStep != 2.5 ? machineConfiguredStep : 5.0))
+                    %}
+                    {% set effectiveStep = hasCustomStep ? userSteps[machineKey] : defaultStep %}
 
                     <!-- BLOK ĆWICZENIA -->
                     <section
                         class="bg-surface-container p-6 relative exercise-block"
                         data-machine-id="{{ sets[0].machine.id }}"
                         data-increment-step="{{ effectiveStep }}"
+                        data-has-custom-step="{{ hasCustomStep ? '1' : '0' }}"
+                        data-equipment-type="{{ equipmentType }}"
+                        data-dumbbell-system="{{ dumbbellSystem }}"
                         data-unit="kg"
                         data-primary-muscles="{{ primaryMuscleNames|join(',') }}"
                         data-secondary-muscles="{{ secondaryMuscleNames|join(',') }}"
