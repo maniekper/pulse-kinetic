@@ -79,35 +79,39 @@
                     data-banned="{{ isBanned ? '1' : '0' }}"
                 >
                     <div>
-                        <!-- Podgląd faz ruchu (start / end) -->
-                        <div class="grid grid-cols-2 gap-0.5 bg-[#0a0a0a] border-b border-white/5 relative">
-                            {% if machine.imageStart %}
-                                <img
-                                    src="{{ asset('images/machines/' ~ machine.imageStart) }}"
-                                    alt="{{ machine.name }} - start"
-                                    class="w-full h-40 object-cover"
-                                    loading="lazy"
-                                >
-                            {% else %}
-                                <div class="w-full h-40 bg-[#161616] flex items-center justify-center text-[#484847]">
-                                    <span class="material-symbols-outlined text-4xl">fitness_center</span>
-                                </div>
-                            {% endif %}
+                        <!-- Podgląd faz ruchu (start / end) — powiększone okno bez przycinania -->
+                        <div class="grid grid-cols-2 gap-1 bg-[#0a0a0a] border-b border-white/5 relative p-1">
+                            <div class="relative aspect-square bg-[#141414] overflow-hidden flex items-center justify-center">
+                                {% if machine.imageStart %}
+                                    <img
+                                        src="{{ asset('images/machines/' ~ machine.imageStart) }}"
+                                        alt="{{ machine.name }} - start"
+                                        class="w-full h-full object-contain"
+                                        loading="lazy"
+                                    >
+                                {% else %}
+                                    <div class="w-full h-full bg-[#161616] flex items-center justify-center text-[#484847]">
+                                        <span class="material-symbols-outlined text-4xl">fitness_center</span>
+                                    </div>
+                                {% endif %}
+                            </div>
 
-                            {% if machine.imageEnd %}
-                                <img
-                                    src="{{ asset('images/machines/' ~ machine.imageEnd) }}"
-                                    alt="{{ machine.name }} - koniec"
-                                    class="w-full h-40 object-cover"
-                                    loading="lazy"
-                                >
-                            {% else %}
-                                <div class="w-full h-40 bg-[#161616] flex items-center justify-center text-[#484847]">
-                                    <span class="material-symbols-outlined text-4xl">fitness_center</span>
-                                </div>
-                            {% endif %}
+                            <div class="relative aspect-square bg-[#141414] overflow-hidden flex items-center justify-center">
+                                {% if machine.imageEnd %}
+                                    <img
+                                        src="{{ asset('images/machines/' ~ machine.imageEnd) }}"
+                                        alt="{{ machine.name }} - koniec"
+                                        class="w-full h-full object-contain"
+                                        loading="lazy"
+                                    >
+                                {% else %}
+                                    <div class="w-full h-full bg-[#161616] flex items-center justify-center text-[#484847]">
+                                        <span class="material-symbols-outlined text-4xl">fitness_center</span>
+                                    </div>
+                                {% endif %}
+                            </div>
 
-                            <span class="banned-badge {{ isBanned ? '' : 'hidden' }} absolute top-3 left-3 bg-[#ff7351] text-[#111111] font-headline font-black text-[9px] px-2.5 py-1 uppercase tracking-widest shadow-lg">
+                            <span class="banned-badge {{ isBanned ? '' : 'hidden' }} absolute top-3 left-3 z-10 bg-[#ff7351] text-[#111111] font-headline font-black text-[9px] px-2.5 py-1 uppercase tracking-widest shadow-lg">
                                 WYKLUCZONA Z GENERATORA
                             </span>
                         </div>

@@ -28,16 +28,43 @@
         </span>
     </div>
 
-    <!-- ŚRODEK: Grafika maszyny -->
-    <div class="w-full h-52 sm:h-56 bg-[#181818] border border-white/10 overflow-hidden relative flex items-center justify-center shadow-inner p-3">
-        {% if exercise.machine.imageStart %}
-            <img
-                src="{{ asset('images/machines/' ~ exercise.machine.imageStart) }}"
-                alt="{{ exercise.machine.name }}"
-                class="w-full h-full object-contain mix-blend-luminosity opacity-90 group-hover:opacity-100 transition-opacity"
-            >
+    <!-- ŚRODEK: Grafika maszyny (2 fazy obok siebie) -->
+    <div class="w-full bg-[#181818] border border-white/10 overflow-hidden relative shadow-inner p-2.5 sm:p-3">
+        {% if exercise.machine.imageStart and exercise.machine.imageEnd %}
+            <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                <div class="relative h-44 sm:h-52 bg-[#121212] border border-white/10 overflow-hidden flex items-center justify-center p-1.5">
+                    <span class="absolute top-2 left-2 bg-black/90 px-2 py-0.5 font-headline font-black text-[9px] text-white tracking-widest uppercase z-10 border border-white/20">
+                        F1
+                    </span>
+                    <img
+                        src="{{ asset('images/machines/' ~ exercise.machine.imageStart) }}"
+                        alt="{{ exercise.machine.name }} - Faza 1"
+                        class="w-full h-full object-contain mix-blend-luminosity opacity-90 group-hover:opacity-100 transition-opacity"
+                    >
+                </div>
+                <div class="relative h-44 sm:h-52 bg-[#121212] border border-white/10 overflow-hidden flex items-center justify-center p-1.5">
+                    <span class="absolute top-2 left-2 bg-black/90 px-2 py-0.5 font-headline font-black text-[9px] text-white tracking-widest uppercase z-10 border border-white/20">
+                        F2
+                    </span>
+                    <img
+                        src="{{ asset('images/machines/' ~ exercise.machine.imageEnd) }}"
+                        alt="{{ exercise.machine.name }} - Faza 2"
+                        class="w-full h-full object-contain mix-blend-luminosity opacity-90 group-hover:opacity-100 transition-opacity"
+                    >
+                </div>
+            </div>
+        {% elseif exercise.machine.imageStart %}
+            <div class="w-full h-44 sm:h-52 bg-[#121212] border border-white/10 overflow-hidden relative flex items-center justify-center p-1.5">
+                <img
+                    src="{{ asset('images/machines/' ~ exercise.machine.imageStart) }}"
+                    alt="{{ exercise.machine.name }}"
+                    class="w-full h-full object-contain mix-blend-luminosity opacity-90 group-hover:opacity-100 transition-opacity"
+                >
+            </div>
         {% else %}
-            <span class="material-symbols-outlined text-outline text-5xl">fitness_center</span>
+            <div class="w-full h-44 sm:h-52 flex items-center justify-center">
+                <span class="material-symbols-outlined text-outline text-5xl">fitness_center</span>
+            </div>
         {% endif %}
     </div>
 
