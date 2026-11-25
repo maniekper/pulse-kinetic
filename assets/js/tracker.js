@@ -7,15 +7,23 @@ let currentRestSeconds = 0;
 let maxRestSeconds = 0;
 const circumference = 552.92;
 let isIntentionalExit = false;
+let isMobileRestMinimized = false;
 
 const KG_TO_LBS = 2.2046226218;
 const LBS_TO_KG = 0.45359237;
 
+/**
+ * Formatuje wartość ciężaru do czytelnej postaci (bez zbędnych zer po przecinku).
+ */
 function formatWeightDisplay(val) {
     const rounded = Math.round(val * 100) / 100;
     return Number.isInteger(rounded) ? String(rounded) : String(rounded);
 }
 
+/**
+ * Pobiera wartość ciężaru z pola input i przelicza ją na kilogramy (KG)
+ * na podstawie aktualnej jednostki wybranej w bloku ćwiczenia (KG lub LBS)[cite: 14].
+ */
 function getWeightInKg(inputEl) {
     if (!inputEl) return 0;
     const raw = parseFloat(String(inputEl.value || "").replace(",", "."));
@@ -27,11 +35,20 @@ function getWeightInKg(inputEl) {
     return Math.round(kg * 100) / 100;
 }
 
+/**
+ * Zwraca domyślny krok (w KG) dla hantli na podstawie wybranego systemu
+ * ('eu_2kg' -> 2.0 kg, 'us_2_5kg' -> 2.5 kg)[cite: 14].
+ */
 function resolveDumbbellStepKg(currentWeightKg, system = "us_2_5kg") {
     const isEu = system === "eu_2kg";
     return isEu ? 2.0 : 2.5;
 }
 
+/**
+ * Wyznacza efektywny krok zmiany ciężaru (w KG) dla danego bloku ćwiczenia:
+ * priorytet ma własny krok użytkownika, a w dalszej kolejności typ sprzętu
+ * (hantle, krążki/sztanga, wyciąg, mały stos, ciężki stos)[cite: 14].
+ */
 function getEffectiveStepKg(block, currentWeightKg = 0) {
     if (!block) return 2.5;
 
@@ -66,6 +83,10 @@ function getEffectiveStepKg(block, currentWeightKg = 0) {
     return Number.isFinite(savedStep) && savedStep > 0 ? savedStep : 5.0;
 }
 
+/**
+ * Przelicza krok zmiany ciężaru na aktualnie wyświetlaną jednostkę (KG lub LBS),
+ * uwzględniając standardowe skoki sprzętu w funtach, gdy użytkownik nie ustawił własnego kroku[cite: 14].
+ */
 function getStepInDisplayUnit(block, currentWeightKg = 0) {
     const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
     const hasCustomStep =
@@ -89,6 +110,10 @@ function getStepInDisplayUnit(block, currentWeightKg = 0) {
     return unit === "lbs" ? stepKg * KG_TO_LBS : stepKg;
 }
 
+/**
+ * Przełącza jednostkę ciężaru (KG / LBS) dla wybranego ćwiczenia,
+ * aktualizując stan przycisków oraz wartości w aktywnych i ukończonych seriach[cite: 14].
+ */
 window.setExerciseUnit = function (btnEl, targetUnit) {
     const block = btnEl.closest(".exercise-block");
     if (!block) return;
@@ -126,6 +151,10 @@ window.setExerciseUnit = function (btnEl, targetUnit) {
     });
 };
 
+/**
+ * Zwiększa lub zmniejsza ciężar w polu serii o wyznaczony krok (direction: 1 lub -1),
+ * zapisuje przeliczoną wartość w KG oraz uruchamia wykrywanie skoku między seriami[cite: 14].
+ */
 window.adjustWeightValue = function (inputId, direction) {
     const input = document.getElementById(inputId);
     if (!input || input.disabled) return;
@@ -154,6 +183,10 @@ window.adjustWeightValue = function (inputId, direction) {
     }
 };
 
+/**
+ * Analizuje kolejne ciężary wpisane w seriach danego ćwiczenia i po wykryciu różnicy
+ * aktualizuje krok w DOM oraz wysyła go na backend, aby zapisać go dla użytkownika[cite: 14].
+ */
 function detectAndSyncIncrementStep(block) {
     if (!block) return;
 
@@ -220,6 +253,9 @@ function detectAndSyncIncrementStep(block) {
     }).catch(() => {});
 }
 
+/**
+ * Ukrywa boks analizy serii widoczny na mobilnym ekranie przerwy[cite: 14].
+ */
 function hideMobileCoachBox() {
     const mobileCoachBox = document.getElementById("mobileCoachBox");
     if (mobileCoachBox) {
@@ -227,6 +263,46 @@ function hideMobileCoachBox() {
     }
 }
 
+/**
+ * Minimalizuje pełnoekranową nakładkę przerwy na urządzeniach mobilnych do kompaktowego
+ * górnego paska, aby użytkownik mógł przeglądać kolejne lub bieżące ćwiczenie.
+ */
+window.minimizeMobileRestOverlay = function () {
+    isMobileRestMinimized = true;
+    const mobileOverlay = document.getElementById("mobileRestOverlay");
+    const miniBar = document.getElementById("mobileRestMiniBar");
+
+    if (mobileOverlay) {
+        mobileOverlay.classList.add("hidden");
+        mobileOverlay.classList.remove("flex");
+    }
+    if (miniBar && window.innerWidth < 1024 && currentRestSeconds > 0) {
+        miniBar.classList.remove("hidden");
+    }
+};
+
+/**
+ * Ponownie rozwija pełnoekranowy widok przerwy na urządzeniu mobilnym,
+ * jeśli odliczanie przerwy nadal trwa.
+ */
+window.expandMobileRestOverlay = function () {
+    isMobileRestMinimized = false;
+    const mobileOverlay = document.getElementById("mobileRestOverlay");
+    const miniBar = document.getElementById("mobileRestMiniBar");
+
+    if (miniBar) {
+        miniBar.classList.add("hidden");
+    }
+    if (mobileOverlay && window.innerWidth < 1024 && currentRestSeconds > 0) {
+        mobileOverlay.classList.remove("hidden");
+        mobileOverlay.classList.add("flex");
+    }
+};
+
+/**
+ * Ukrywa ekran powitalny (overlay), uruchamia główny zegar treningu
+ * i wyświetla pierwsze ćwiczenie[cite: 14].
+ */
 window.startWorkoutSession = function () {
     const overlay = document.getElementById("readyOverlay");
     if (overlay) {
@@ -242,6 +318,10 @@ window.startWorkoutSession = function () {
     showExercise(0);
 };
 
+/**
+ * Przełącza aktywne ćwiczenie o wskazany kierunek (-1 poprzednie, +1 następne)
+ * i przerywa aktywną przerwę[cite: 14].
+ */
 window.navigateExercise = function (direction) {
     window.skipRestTime();
     const blocks = document.querySelectorAll(".exercise-block");
@@ -251,6 +331,10 @@ window.navigateExercise = function (direction) {
     }
 };
 
+/**
+ * Przechodzi do najbliższego niezaczętego ćwiczenia, jeśli bieżące ćwiczenie
+ * nie ma jeszcze żadnych ukończonych serii[cite: 14].
+ */
 window.skipOccupiedMachine = function () {
     const blocks = document.querySelectorAll(".exercise-block");
     const currentBlock = blocks[currentExIndex];
@@ -298,6 +382,9 @@ window.skipOccupiedMachine = function () {
     }
 };
 
+/**
+ * Normalizuje nazwę mięśnia do postaci klasy CSS używanej na mapie anatomicznej[cite: 14].
+ */
 function normalizeMuscleName(name) {
     if (!name) return "";
 
@@ -316,6 +403,10 @@ function normalizeMuscleName(name) {
     return aliases[normalized] ?? normalized;
 }
 
+/**
+ * Wyświetla ćwiczenie o podanym indeksie, aktualizuje nawigację, kolejkę treningową,
+ * domyślny czas przerwy oraz podświetlenie mięśni głównych i pomocniczych na mapie[cite: 14].
+ */
 function showExercise(index) {
     const blocks = document.querySelectorAll(".exercise-block");
     if (index < 0 || index >= blocks.length) return;
@@ -427,6 +518,9 @@ function showExercise(index) {
     updateActiveStateVisuals();
 }
 
+/**
+ * Zwiększa lub zmniejsza wartość w polu numerycznym (np. powtórzenia) o podaną deltę[cite: 14].
+ */
 window.adjustValue = function (inputId, delta) {
     const input = document.getElementById(inputId);
     if (!input || input.disabled) return;
@@ -440,6 +534,10 @@ let totalSets = 0;
 let completedSets = 0;
 let currentVolume = 0;
 
+/**
+ * Przelicza początkowe statystyki treningu (łączną liczbę serii, ukończone serie
+ * oraz dotychczasowy tonaż) na podstawie stanu wierszy po załadowaniu strony[cite: 14].
+ */
 function recalculateInitialStats() {
     totalSets = document.querySelectorAll(".set-row").length;
     completedSets = document.querySelectorAll(
@@ -470,6 +568,9 @@ function recalculateInitialStats() {
     if (elTotal) elTotal.innerText = totalSets;
 }
 
+/**
+ * Odświeża liczniki ukończonych serii, tonażu, pasek postępu oraz wizualne aktywowanie serii[cite: 14].
+ */
 function updateStats() {
     let elCompleted = document.getElementById("setsCompletedCounter");
     let elVolume = document.getElementById("totalVolumeCounter");
@@ -486,6 +587,9 @@ function updateStats() {
     updateActiveStateVisuals();
 }
 
+/**
+ * Uruchamia licznik całkowitego czasu trwania sesji treningowej w formacie MM:SS / HH:MM:SS[cite: 14].
+ */
 function startGlobalTimer() {
     let workoutSeconds = 0;
     setInterval(() => {
@@ -503,6 +607,9 @@ function startGlobalTimer() {
     }, 1000);
 }
 
+/**
+ * Zatrzymuje odliczanie przerwy i przywraca przycisk ręcznego startu przerwy[cite: 14].
+ */
 function showStartRestButton() {
     clearInterval(restInterval);
     let timerView = document.getElementById("timerView");
@@ -511,6 +618,9 @@ function showStartRestButton() {
     if (startRestBtn) startRestBtn.classList.remove("hidden");
 }
 
+/**
+ * Ręcznie uruchamia zegar przerwy z czasem przypisanym do aktywnego ćwiczenia[cite: 14].
+ */
 window.initiateRest = function () {
     let timerView = document.getElementById("timerView");
     let startRestBtn = document.getElementById("startRestBtn");
@@ -526,15 +636,31 @@ window.initiateRest = function () {
     startRestTimer(timeToSet);
 };
 
+/**
+ * Uruchamia odliczanie przerwy o zadanej liczbie sekund i zarządza widocznością
+ * pełnoekranowego widoku przerwy oraz kompaktowego paska na urządzeniach mobilnych[cite: 13, 14].
+ */
 function startRestTimer(duration) {
     clearInterval(restInterval);
     currentRestSeconds = duration;
     maxRestSeconds = duration > maxRestSeconds ? duration : maxRestSeconds;
 
     const mobileOverlay = document.getElementById("mobileRestOverlay");
-    if (window.innerWidth < 1024 && mobileOverlay) {
-        mobileOverlay.classList.remove("hidden");
-        mobileOverlay.classList.add("flex");
+    const miniBar = document.getElementById("mobileRestMiniBar");
+    if (window.innerWidth < 1024) {
+        if (isMobileRestMinimized) {
+            if (mobileOverlay) {
+                mobileOverlay.classList.add("hidden");
+                mobileOverlay.classList.remove("flex");
+            }
+            if (miniBar) miniBar.classList.remove("hidden");
+        } else {
+            if (miniBar) miniBar.classList.add("hidden");
+            if (mobileOverlay) {
+                mobileOverlay.classList.remove("hidden");
+                mobileOverlay.classList.add("flex");
+            }
+        }
     }
 
     const display = document.getElementById("restTimerDisplay");
@@ -562,6 +688,8 @@ function startRestTimer(duration) {
                 mobileOverlay.classList.add("hidden");
                 mobileOverlay.classList.remove("flex");
             }
+            if (miniBar) miniBar.classList.add("hidden");
+            isMobileRestMinimized = false;
             hideMobileCoachBox();
         } else {
             currentRestSeconds--;
@@ -570,9 +698,14 @@ function startRestTimer(duration) {
     }, 1000);
 }
 
+/**
+ * Aktualizuje tekstowe liczniki oraz okręgi SVG odliczające czas przerwy
+ * na desktopie, pełnym ekranie mobilnym oraz mini-pasku mobilnym[cite: 13, 14].
+ */
 function updateRestDisplay() {
     const display = document.getElementById("restTimerDisplay");
     const mobileDisplay = document.getElementById("mobileRestTimerDisplay");
+    const mobileMiniDisplay = document.getElementById("mobileMiniTimerDisplay");
 
     let m = Math.floor(currentRestSeconds / 60);
     let s = currentRestSeconds % 60;
@@ -580,6 +713,7 @@ function updateRestDisplay() {
 
     if (display) display.innerText = formattedStr;
     if (mobileDisplay) mobileDisplay.innerText = formattedStr;
+    if (mobileMiniDisplay) mobileMiniDisplay.innerText = formattedStr;
 
     let fraction = currentRestSeconds / maxRestSeconds;
     if (fraction > 1) fraction = 1;
@@ -594,6 +728,9 @@ function updateRestDisplay() {
             mobileCircumference * (1 - fraction);
 }
 
+/**
+ * Dodaje określoną liczbę sekund do aktualnej przerwy lub uruchamia przerwę od nowa[cite: 14].
+ */
 window.addRestTime = function (seconds) {
     if (currentRestSeconds <= 0) currentRestSeconds = 0;
     currentRestSeconds += seconds;
@@ -606,13 +743,21 @@ window.addRestTime = function (seconds) {
     }
 };
 
+/**
+ * Kończy i pomija bieżącą przerwę, zamykając widoki przerwy na urządzeniach mobilnych[cite: 13, 14].
+ */
 window.skipRestTime = function () {
     const mobileOverlay = document.getElementById("mobileRestOverlay");
+    const miniBar = document.getElementById("mobileRestMiniBar");
     if (mobileOverlay) {
         mobileOverlay.classList.remove("flex");
         mobileOverlay.classList.add("hidden");
     }
+    if (miniBar) {
+        miniBar.classList.add("hidden");
+    }
 
+    isMobileRestMinimized = false;
     hideMobileCoachBox();
     clearInterval(restInterval);
     currentRestSeconds = 0;
@@ -630,6 +775,10 @@ window.skipRestTime = function () {
     showStartRestButton();
 };
 
+/**
+ * Blokuje wszystkie kolejne nieukończone serie w każdym ćwiczeniu,
+ * pozostawiając aktywną tylko pierwszą nieukończoną serię[cite: 14].
+ */
 function syncSequentialSetLocks() {
     document.querySelectorAll(".exercise-block").forEach((block) => {
         const rows = Array.from(block.querySelectorAll(".set-row"));
@@ -656,6 +805,9 @@ function syncSequentialSetLocks() {
     });
 }
 
+/**
+ * Aktualizuje podświetlenie aktywnej serii w każdym ćwiczeniu oraz wywołuje synchronizację blokad[cite: 14].
+ */
 function updateActiveStateVisuals() {
     let rows = document.querySelectorAll(".set-row");
     let foundActive = false;
@@ -677,6 +829,10 @@ function updateActiveStateVisuals() {
     syncSequentialSetLocks();
 }
 
+/**
+ * Waliduje i zapisuje ukończoną serię na serwerze, aktualizuje wiersz serii,
+ * wyświetla analizę trenera i sugerowany ciężar w kolejnej serii oraz uruchamia przerwę[cite: 14].
+ */
 window.saveSet = function (setId, btnElement) {
     const weightInput = document.getElementById("weight-" + setId);
     const repsInput = document.getElementById("reps-" + setId);
@@ -895,6 +1051,18 @@ window.saveSet = function (setId, btnElement) {
                         window.submitWorkoutForm();
                     }, 1000);
                 } else {
+                    const blocks = document.querySelectorAll(".exercise-block");
+                    const currentBlock = blocks[currentExIndex];
+                    const isExerciseFinished =
+                        currentBlock &&
+                        currentBlock.querySelectorAll(".set-row").length ===
+                            currentBlock.querySelectorAll(".set-row.opacity-50")
+                                .length;
+
+                    // Przy przejściu do kolejnego ćwiczenia zwijamy pełny ekran przerwy do mini-paska,
+                    // aby użytkownik mógł od razu przeglądać nadchodzące ćwiczenie[cite: 13].
+                    isMobileRestMinimized = Boolean(isExerciseFinished);
+
                     let timerView = document.getElementById("timerView");
                     let startRestBtn = document.getElementById("startRestBtn");
                     if (startRestBtn) startRestBtn.classList.add("hidden");
@@ -902,21 +1070,10 @@ window.saveSet = function (setId, btnElement) {
 
                     startRestTimer(restTimeSeconds);
 
-                    const blocks = document.querySelectorAll(".exercise-block");
-                    const currentBlock = blocks[currentExIndex];
-                    if (currentBlock) {
-                        const allSetsInBlock =
-                            currentBlock.querySelectorAll(".set-row").length;
-                        const completedSetsInBlock =
-                            currentBlock.querySelectorAll(
-                                ".set-row.opacity-50",
-                            ).length;
-
-                        if (allSetsInBlock === completedSetsInBlock) {
-                            setTimeout(() => {
-                                goToNextIncompleteExercise();
-                            }, 1200);
-                        }
+                    if (isExerciseFinished) {
+                        setTimeout(() => {
+                            goToNextIncompleteExercise();
+                        }, 800);
                     }
                 }
             } else {
@@ -936,6 +1093,9 @@ window.saveSet = function (setId, btnElement) {
         });
 };
 
+/**
+ * Wyświetla modal ostrzegawczy / walidacji z podaną treścią[cite: 14].
+ */
 window.showCustomAlert = function (message) {
     const msgEl = document.getElementById("customAlertMessage");
     const modal = document.getElementById("customAlertModal");
@@ -946,6 +1106,9 @@ window.showCustomAlert = function (message) {
     }
 };
 
+/**
+ * Zamyka modal ostrzegawczy / walidacji[cite: 14].
+ */
 window.closeCustomAlert = function () {
     const modal = document.getElementById("customAlertModal");
     if (modal) {
@@ -954,6 +1117,9 @@ window.closeCustomAlert = function () {
     }
 };
 
+/**
+ * Otwiera modal potwierdzenia zakończenia treningu[cite: 14].
+ */
 window.finishWorkout = function () {
     const modal = document.getElementById("customConfirmModal");
     if (modal) {
@@ -962,6 +1128,9 @@ window.finishWorkout = function () {
     }
 };
 
+/**
+ * Zamyka modal potwierdzenia zakończenia treningu[cite: 14].
+ */
 window.closeCustomConfirm = function () {
     const modal = document.getElementById("customConfirmModal");
     if (modal) {
@@ -970,6 +1139,9 @@ window.closeCustomConfirm = function () {
     }
 };
 
+/**
+ * Wysyła formularz POST kończący sesję treningową i zapisujący podsumowanie[cite: 14].
+ */
 window.submitWorkoutForm = function () {
     isIntentionalExit = true;
     const finishUrlEl = document.getElementById("trackerFinishUrl");
@@ -984,6 +1156,9 @@ window.submitWorkoutForm = function () {
     form.submit();
 };
 
+/**
+ * Przełącza widok na kolejne ćwiczenie, które ma jeszcze nieukończone serie[cite: 14].
+ */
 function goToNextIncompleteExercise() {
     const blocks = document.querySelectorAll(".exercise-block");
     let nextIndex = -1;
@@ -1022,6 +1197,9 @@ function goToNextIncompleteExercise() {
     }
 }
 
+/**
+ * Inicjalizuje statystyki, blokady serii oraz nasłuchiwacze zdarzeń po załadowaniu DOM[cite: 14].
+ */
 document.addEventListener("DOMContentLoaded", () => {
     recalculateInitialStats();
     updateStats();

@@ -13,8 +13,17 @@
     {% include 'components/_tracker_ready_overlay.html.twig' %}
 
     <div class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container min-h-screen">
-        <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ -->
+        <!-- EKRAN PRZERWY DLA WERSJI MOBILNEJ (PEŁNY EKRAN) -->
         <div id="mobileRestOverlay" class="fixed inset-0 z-[100000] bg-[#0e0e0e]/95 backdrop-blur-xl flex-col items-center justify-center p-6 hidden">
+            <button
+                type="button"
+                onclick="minimizeMobileRestOverlay()"
+                class="cursor-pointer absolute top-5 right-5 bg-surface-container-highest text-outline hover:text-primary-container border border-outline-variant/30 px-3.5 py-2 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+            >
+                <span class="material-symbols-outlined text-base">expand_more</span>
+                PODGLĄD ĆWICZENIA
+            </button>
+
             <h2 class="font-headline font-black text-2xl text-outline uppercase tracking-widest mb-8">ODPOCZYNEK</h2>
     
             <div class="relative flex items-center justify-center w-64 h-64 mb-8">
@@ -31,7 +40,7 @@
                 <button type="button" onclick="addRestTime(30)" class="cursor-pointer flex-1 bg-surface-container-highest text-on-surface py-5 font-headline font-bold text-sm uppercase tracking-widest border border-outline-variant/30 active:bg-outline-variant transition-colors">
                     +30s
                 </button>
-                <button type="button" onclick="document.getElementById('mobileRestOverlay').classList.add('hidden'); document.getElementById('mobileRestOverlay').classList.remove('flex'); skipRestTime();" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_var(--theme-shadow)] active:scale-95 transition-all">
+                <button type="button" onclick="skipRestTime()" class="cursor-pointer flex-1 bg-primary-container text-on-primary-container py-5 font-headline font-black text-sm uppercase tracking-widest shadow-[0_0_20px_var(--theme-shadow)] active:scale-95 transition-all">
                     POMIŃ
                 </button>
             </div>
@@ -43,6 +52,49 @@
                 </div>
                 <p id="mobileCoachText" class="font-body text-xs text-white leading-relaxed"></p>
                 <p id="mobileNextWeightText" class="hidden font-headline font-bold text-[11px] text-primary-container uppercase tracking-wider mt-1.5"></p>
+            </div>
+        </div>
+
+        <!-- KOMPAKTOWY PASEK PRZERWY (GDY UŻYTKOWNIK PRZEGLĄDA ĆWICZENIE) -->
+        <div id="mobileRestMiniBar" class="fixed top-16 left-0 right-0 z-[99990] lg:hidden hidden bg-[#141414]/95 backdrop-blur-md border-b-2 border-primary-container px-4 py-2.5 shadow-2xl">
+            <div class="flex items-center justify-between gap-3 max-w-xl mx-auto">
+                <button
+                    type="button"
+                    onclick="expandMobileRestOverlay()"
+                    class="flex items-center gap-2.5 text-left cursor-pointer"
+                    title="Rozwiń pełny ekran przerwy"
+                >
+                    <span class="material-symbols-outlined text-primary-container text-xl">timer</span>
+                    <div>
+                        <span class="block font-label text-[9px] font-bold text-outline uppercase tracking-widest leading-none">PRZERWA</span>
+                        <span id="mobileMiniTimerDisplay" class="font-headline font-black text-xl text-primary-container tracking-tight">--:--</span>
+                    </div>
+                </button>
+
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onclick="addRestTime(30)"
+                        class="cursor-pointer bg-surface-container-highest text-on-surface px-3 py-2 font-headline font-bold text-xs uppercase tracking-wider border border-outline-variant/30"
+                    >
+                        +30s
+                    </button>
+                    <button
+                        type="button"
+                        onclick="skipRestTime()"
+                        class="cursor-pointer bg-primary-container text-on-primary-container px-3.5 py-2 font-headline font-black text-xs uppercase tracking-wider"
+                    >
+                        POMIŃ
+                    </button>
+                    <button
+                        type="button"
+                        onclick="expandMobileRestOverlay()"
+                        class="cursor-pointer bg-[#1a1a1a] text-outline hover:text-white p-2 border border-outline-variant/30 flex items-center justify-center"
+                        title="Pełny ekran"
+                    >
+                        <span class="material-symbols-outlined text-base">open_in_full</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -110,6 +162,7 @@
                     {% for m in sets[0].machine.secondaryMuscles %}
                         {% set secondaryMuscleNames = secondaryMuscleNames|merge([m.name]) %}
                     {% endfor %}
+
                     {% set userSteps = app.user.exerciseIncrementSteps is defined and app.user.exerciseIncrementSteps is not null ? app.user.exerciseIncrementSteps : {} %}
                     {% set machineKey = '' ~ sets[0].machine.id %}
                     {% set hasCustomStep = userSteps[machineKey] is defined and userSteps[machineKey] > 0 %}
@@ -478,3 +531,4 @@
     {{ parent() }}
     {{ encore_entry_script_tags('tracker') }}
 {% endblock %}
+
