@@ -8,6 +8,7 @@ use App\Entity\WorkoutSet;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -17,71 +18,139 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminStatsController extends AbstractController
 {
     #[Route('', name: 'app_admin_stats', methods: ['GET'])]
-    public function index(UserRepository $userRepository, EntityManagerInterface $em): Response
+    public function index(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
     {
+        $days = $request->query->getInt('days', 7);
+        if (!in_array($days, [7, 30], true)) {
+            $days = 7;
+        }
+
         $now = new \DateTimeImmutable();
         $todayStart = \DateTime::createFromImmutable($now->setTime(0, 0, 0));
-        $weekStart = \DateTime::createFromImmutable($now->setTime(0, 0, 0)->modify('-6 days'));
+        $periodStart = \DateTime::createFromImmutable($now->setTime(0, 0, 0)->modify('-' . ($days - 1) . ' days'));
 
         $users = $userRepository->findBy([], ['id' => 'ASC']);
         $totalUsers = count($users);
 
-        $loggedInToday = (int)$userRepository->createQueryBuilder('u')
+        // --- METRYKI DZIŚ ---
+        $loggedInToday = (int) $userRepository->createQueryBuilder('u')
             ->select('COUNT(DISTINCT u.id)')
             ->where('u.lastLoginAt >= :todayStart')
             ->setParameter('todayStart', $todayStart)
             ->getQuery()
             ->getSingleScalarResult();
 
-        $loggedInLast7Days = (int)$userRepository->createQueryBuilder('u')
+        $sessionsToday = (int) $em->createQuery(
+            'SELECT COUNT(s.id)
+             FROM ' . WorkoutSession::class . ' s
+             WHERE s.endedAt IS NOT NULL AND s.endedAt >= :start'
+        )
+            ->setParameter('start', $todayStart)
+            ->getSingleScalarResult();
+
+        $tonnageTodayKg = (float) $em->createQuery(
+            'SELECT COALESCE(SUM(ws.weight * ws.reps), 0)
+             FROM ' . WorkoutSet::class . ' ws
+             WHERE ws.isCompleted = true AND ws.loggedAt >= :start'
+        )
+            ->setParameter('start', $todayStart)
+            ->getSingleScalarResult();
+
+        // --- METRYKI WYBRANEGO OKRESU (7 LUB 30 DNI) ---
+        $loggedInPeriod = (int) $userRepository->createQueryBuilder('u')
             ->select('COUNT(DISTINCT u.id)')
-            ->where('u.lastLoginAt >= :weekStart')
-            ->setParameter('weekStart', $weekStart)
+            ->where('u.lastLoginAt >= :periodStart')
+            ->setParameter('periodStart', $periodStart)
             ->getQuery()
             ->getSingleScalarResult();
 
-        $sessionsToday = (int)$em->createQuery(
+        $sessionsPeriod = (int) $em->createQuery(
             'SELECT COUNT(s.id)
              FROM ' . WorkoutSession::class . ' s
              WHERE s.endedAt IS NOT NULL AND s.endedAt >= :start'
         )
-            ->setParameter('start', $todayStart)
+            ->setParameter('start', $periodStart)
             ->getSingleScalarResult();
 
-        $sessionsLast7Days = (int)$em->createQuery(
+        $abandonedSessionsPeriod = (int) $em->createQuery(
             'SELECT COUNT(s.id)
+             FROM ' . WorkoutSession::class . ' s
+             WHERE s.endedAt IS NULL AND s.startedAt >= :start'
+        )
+            ->setParameter('start', $periodStart)
+            ->getSingleScalarResult();
+
+        $tonnagePeriodKg = (float) $em->createQuery(
+            'SELECT COALESCE(SUM(ws.weight * ws.reps), 0)
+             FROM ' . WorkoutSet::class . ' ws
+             WHERE ws.isCompleted = true AND ws.loggedAt >= :start'
+        )
+            ->setParameter('start', $periodStart)
+            ->getSingleScalarResult();
+
+        $activeTrainersPeriod = (int) $em->createQuery(
+            'SELECT COUNT(DISTINCT IDENTITY(s.user))
              FROM ' . WorkoutSession::class . ' s
              WHERE s.endedAt IS NOT NULL AND s.endedAt >= :start'
         )
-            ->setParameter('start', $weekStart)
+            ->setParameter('start', $periodStart)
             ->getSingleScalarResult();
 
-        $tonnageTodayKg = (float)$em->createQuery(
-            'SELECT COALESCE(SUM(ws.weight * ws.reps), 0)
+        $avgTonnagePerSessionKg = $sessionsPeriod > 0
+            ? round($tonnagePeriodKg / $sessionsPeriod, 0)
+            : 0.0;
+
+        $totalStartedInPeriod = $sessionsPeriod + $abandonedSessionsPeriod;
+        $completionRatePercent = $totalStartedInPeriod > 0
+            ? (int) round(($sessionsPeriod / $totalStartedInPeriod) * 100)
+            : 100;
+
+        // --- TOP 5 NAJCZĘŚCIEJ UŻYWANYCH MASZYN (W OKRESIE) ---
+        $topUsedMachines = $em->createQuery(
+            'SELECT m.id AS id,
+                    m.name AS name,
+                    m.category AS category,
+                    COUNT(ws.id) AS setsCount,
+                    COALESCE(SUM(ws.weight * ws.reps), 0) AS totalTonnage
              FROM ' . WorkoutSet::class . ' ws
-             WHERE ws.isCompleted = true AND ws.loggedAt >= :start'
+             JOIN ws.machine m
+             WHERE ws.isCompleted = true AND ws.loggedAt >= :start
+             GROUP BY m.id, m.name, m.category
+             ORDER BY setsCount DESC, totalTonnage DESC'
         )
-            ->setParameter('start', $todayStart)
-            ->getSingleScalarResult();
+            ->setParameter('start', $periodStart)
+            ->setMaxResults(5)
+            ->getResult();
 
-        $tonnageLast7DaysKg = (float)$em->createQuery(
-            'SELECT COALESCE(SUM(ws.weight * ws.reps), 0)
-             FROM ' . WorkoutSet::class . ' ws
-             WHERE ws.isCompleted = true AND ws.loggedAt >= :start'
-        )
-            ->setParameter('start', $weekStart)
-            ->getSingleScalarResult();
+        // --- TOP 5 NAJCZĘŚCIEJ BANOWANYCH MASZYN (GLOBALNIE) ---
+        $bannedCountMap = [];
+        foreach ($users as $u) {
+            /** @var User $u */
+            foreach ($u->getBannedMachines() as $bannedMachine) {
+                $mid = $bannedMachine->getId();
+                if (!isset($bannedCountMap[$mid])) {
+                    $bannedCountMap[$mid] = [
+                        'id' => $mid,
+                        'name' => $bannedMachine->getName(),
+                        'category' => $bannedMachine->getCategory() ?: 'Brak kategorii',
+                        'bansCount' => 0,
+                    ];
+                }
+                $bannedCountMap[$mid]['bansCount']++;
+            }
+        }
+        usort($bannedCountMap, static fn(array $a, array $b): int => $b['bansCount'] <=> $a['bansCount']);
+        $topBannedMachines = array_slice($bannedCountMap, 0, 5);
 
-        // --- PRZYGOTOWANIE DANYCH DO WYKRESU (OSTATNIE 7 DNI PER UŻYTKOWNIK) ---
+        // --- DANE DO WYKRESU DZIENNEGO PER UŻYTKOWNIK ---
         $dateKeys = [];
         $dateLabels = [];
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = $days - 1; $i >= 0; $i--) {
             $d = $now->modify("-{$i} days");
             $dateKeys[] = $d->format('Y-m-d');
             $dateLabels[] = $d->format('d.m');
         }
 
-        // Paleta kontrastowych kolorów dla poszczególnych użytkowników
         $palette = [
             '#d1fc00', // neon limonka
             '#f000ff', // neon magenta
@@ -97,20 +166,23 @@ class AdminStatsController extends AbstractController
 
         $userSeries = [];
         foreach ($users as $idx => $u) {
-            /** @var User $u */ $uid = $u->getId();
+            /** @var User $u */
+            $uid = $u->getId();
             $label = $u->getName() ?: ('User #' . $uid);
             $color = $palette[$idx % count($palette)];
 
             $userSeries[$uid] = [
+                'id' => $uid,
                 'label' => $label,
                 'color' => $color,
+                'totalTonnage' => 0.0,
+                'totalSessions' => 0,
                 'tonnage' => array_fill_keys($dateKeys, 0.0),
                 'sessions' => array_fill_keys($dateKeys, 0),
                 'logins' => array_fill_keys($dateKeys, 0),
             ];
 
-            // Zaznaczamy dzień ostatniego logowania użytkownika (1 = zalogowany w tym dniu)
-            if ($u->getLastLoginAt() && $u->getLastLoginAt() >= $weekStart) {
+            if ($u->getLastLoginAt() && $u->getLastLoginAt() >= $periodStart) {
                 $loginDay = $u->getLastLoginAt()->format('Y-m-d');
                 if (isset($userSeries[$uid]['logins'][$loginDay])) {
                     $userSeries[$uid]['logins'][$loginDay] = 1;
@@ -118,14 +190,13 @@ class AdminStatsController extends AbstractController
             }
         }
 
-        // Sesje z ostatnich 7 dni
         $recentSessions = $em->createQuery(
             'SELECT s, u
              FROM ' . WorkoutSession::class . ' s
              JOIN s.user u
              WHERE s.endedAt IS NOT NULL AND s.endedAt >= :start'
         )
-            ->setParameter('start', $weekStart)
+            ->setParameter('start', $periodStart)
             ->getResult();
 
         /** @var WorkoutSession $session */
@@ -134,10 +205,10 @@ class AdminStatsController extends AbstractController
             $dayKey = $session->getEndedAt()?->format('Y-m-d');
             if ($uid && $dayKey && isset($userSeries[$uid]['sessions'][$dayKey])) {
                 $userSeries[$uid]['sessions'][$dayKey]++;
+                $userSeries[$uid]['totalSessions']++;
             }
         }
 
-        // Tonaż z ukończonych serii z ostatnich 7 dni
         $recentSets = $em->createQuery(
             'SELECT ws, s, u
              FROM ' . WorkoutSet::class . ' ws
@@ -145,7 +216,7 @@ class AdminStatsController extends AbstractController
              JOIN s.user u
              WHERE ws.isCompleted = true AND ws.loggedAt >= :start'
         )
-            ->setParameter('start', $weekStart)
+            ->setParameter('start', $periodStart)
             ->getResult();
 
         /** @var WorkoutSet $set */
@@ -153,44 +224,65 @@ class AdminStatsController extends AbstractController
             $uid = $set->getWorkoutSession()?->getUser()?->getId();
             $dayKey = $set->getLoggedAt()?->format('Y-m-d');
             if ($uid && $dayKey && isset($userSeries[$uid]['tonnage'][$dayKey])) {
-                $userSeries[$uid]['tonnage'][$dayKey] += round((float) $set->getWeight() * (int)$set->getReps(), 1);
+                $vol = round((float) $set->getWeight() * (int) $set->getReps(), 1);
+                $userSeries[$uid]['tonnage'][$dayKey] += $vol;
+                $userSeries[$uid]['totalTonnage'] += $vol;
             }
         }
 
-        // Formatujemy dane pod Chart.js
+        // Sortujemy użytkowników malejąco po tonażu i sesjach, aby łatwo wydzielić TOP 5
+        $sortedSeries = array_values($userSeries);
+        usort(
+            $sortedSeries,
+            static fn(array $a, array $b): int => [$b['totalTonnage'], $b['totalSessions']] <=> [$a['totalTonnage'], $a['totalSessions']]
+        );
+
         $chartPayload = [
             'labels' => $dateLabels,
+            'days' => $days,
             'tonnage' => [],
             'sessions' => [],
             'logins' => [],
         ];
 
-        foreach ($userSeries as $series) {
+        foreach ($sortedSeries as $rank => $series) {
+            $isTop5 = $rank < 5;
+
             $chartPayload['tonnage'][] = [
                 'label' => $series['label'],
                 'color' => $series['color'],
+                'isTop5' => $isTop5,
                 'data' => array_values($series['tonnage']),
             ];
             $chartPayload['sessions'][] = [
                 'label' => $series['label'],
                 'color' => $series['color'],
+                'isTop5' => $isTop5,
                 'data' => array_values($series['sessions']),
             ];
             $chartPayload['logins'][] = [
                 'label' => $series['label'],
                 'color' => $series['color'],
+                'isTop5' => $isTop5,
                 'data' => array_values($series['logins']),
             ];
         }
 
         return $this->render('admin/stats/index.html.twig', [
+            'days' => $days,
             'totalUsers' => $totalUsers,
             'loggedInToday' => $loggedInToday,
-            'loggedInLast7Days' => $loggedInLast7Days,
             'sessionsToday' => $sessionsToday,
-            'sessionsLast7Days' => $sessionsLast7Days,
             'tonnageTodayKg' => $tonnageTodayKg,
-            'tonnageLast7DaysKg' => $tonnageLast7DaysKg,
+            'loggedInPeriod' => $loggedInPeriod,
+            'sessionsPeriod' => $sessionsPeriod,
+            'abandonedSessionsPeriod' => $abandonedSessionsPeriod,
+            'tonnagePeriodKg' => $tonnagePeriodKg,
+            'activeTrainersPeriod' => $activeTrainersPeriod,
+            'avgTonnagePerSessionKg' => $avgTonnagePerSessionKg,
+            'completionRatePercent' => $completionRatePercent,
+            'topUsedMachines' => $topUsedMachines,
+            'topBannedMachines' => $topBannedMachines,
             'chartPayload' => $chartPayload,
         ]);
     }
