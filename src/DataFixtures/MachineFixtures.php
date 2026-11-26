@@ -569,7 +569,7 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'rumunski_martwy_ciag_rdl',
                 'incrementStep' => 2.5
             ],
-            // --- NOWE ---//
+            
             [
                 'name' => 'Wspięcia na palcach na maszynie Smitha',
                 'description' => 'Izolowane ćwiczenie angażujące mięśnie łydek poprzez dynamiczne zgięcie podeszwowe stawów skokowych przy wyprostowanych kolanach i ustabilizowanej sylwetce. Sztanga suwnicy Smitha spoczywa na górnej części mięśni czworobocznych, umożliwiając kontrolowany ruch wspięcia na samych palcach z pełnym napięciem w szczytowej fazie oraz powolnym opuszczaniem pięt do pozycji wyjściowej.',
@@ -636,6 +636,8 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'seated_hip_abduction_machine',
                 'incrementStep' => 5.0
             ],
+            // --- NOWE ---//
+            
             // --- MASZYNY CARDIO ---//
             [
                 'name' => 'Bieżnia Elektryczna',

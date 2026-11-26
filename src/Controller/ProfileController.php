@@ -147,8 +147,12 @@ class ProfileController extends AbstractController
         $platesRaw = $request->request->all('plates');
         $dumbbellsRaw = $request->request->all('dumbbells');
 
-        $user->setAvailablePlates(is_array($platesRaw) ? $platesRaw : []);
-        $user->setAvailableDumbbells(is_array($dumbbellsRaw) ? $dumbbellsRaw : []);
+        if (method_exists($user, 'setAvailablePlates')) {
+            $user->setAvailablePlates(is_array($platesRaw) ? $platesRaw : []);
+        }
+        if (method_exists($user, 'setAvailableDumbbells')) {
+            $user->setAvailableDumbbells(is_array($dumbbellsRaw) ? $dumbbellsRaw : []);
+        }
 
         $em->flush();
         $this->addFlash('success', 'Zapisano dostępne ciężary krążków i hantli.');

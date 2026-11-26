@@ -13,7 +13,7 @@ const KG_TO_LBS = 2.2046226218;
 const LBS_TO_KG = 0.45359237;
 
 /**
- * Formatuje wartość ciężaru do czytelnej postaci (bez zbędnych zer po przecinku).
+ * Formatuje wartość ciężaru w KG do czytelnej postaci (bez zbędnych zer po przecinku).
  */
 function formatWeightDisplay(val) {
     const rounded = Math.round(val * 100) / 100;
@@ -21,8 +21,29 @@ function formatWeightDisplay(val) {
 }
 
 /**
+ * Zaokrągla wartość w LBS do pełnej liczby całkowitej (lub zadanego kroku)
+ * i zwraca gotowy tekst do wyświetlenia.
+ */
+function formatLbsDisplay(lbsVal, step = 1) {
+    if (!Number.isFinite(lbsVal) || lbsVal <= 0) return "0";
+    const rounded = Math.round(lbsVal / step) * step;
+    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+/**
+ * Formatuje ciężar podany w KG zgodnie z aktualną jednostką bloku ('kg' lub 'lbs').
+ */
+function formatWeightForUnit(weightKg, unit) {
+    if (!Number.isFinite(weightKg) || weightKg <= 0) return "";
+    if (unit === "lbs") {
+        return formatLbsDisplay(weightKg * KG_TO_LBS, 1);
+    }
+    return formatWeightDisplay(weightKg);
+}
+
+/**
  * Pobiera wartość ciężaru z pola input i przelicza ją na kilogramy (KG)
- * na podstawie aktualnej jednostki wybranej w bloku ćwiczenia (KG lub LBS)[cite: 14].
+ * na podstawie aktualnej jednostki wybranej w bloku ćwiczenia (KG lub LBS).
  */
 function getWeightInKg(inputEl) {
     if (!inputEl) return 0;
@@ -36,8 +57,25 @@ function getWeightInKg(inputEl) {
 }
 
 /**
+ * Próbuje zablokować orientację ekranu w pionie (portrait) na urządzeniach mobilnych.
+ */
+async function lockPortraitOrientation() {
+    try {
+        if (
+            typeof screen !== "undefined" &&
+            screen.orientation &&
+            typeof screen.orientation.lock === "function"
+        ) {
+            await screen.orientation.lock("portrait");
+        }
+    } catch (e) {
+        // Przeglądarka może zignorować blokadę poza trybem PWA / fullscreen
+    }
+}
+
+/**
  * Zwraca domyślny krok (w KG) dla hantli na podstawie wybranego systemu
- * ('eu_2kg' -> 2.0 kg, 'us_2_5kg' -> 2.5 kg)[cite: 14].
+ * ('eu_2kg' -> 2.0 kg, 'us_2_5kg' -> 2.5 kg).
  */
 function resolveDumbbellStepKg(currentWeightKg, system = "us_2_5kg") {
     const isEu = system === "eu_2kg";
@@ -47,7 +85,7 @@ function resolveDumbbellStepKg(currentWeightKg, system = "us_2_5kg") {
 /**
  * Wyznacza efektywny krok zmiany ciężaru (w KG) dla danego bloku ćwiczenia:
  * priorytet ma własny krok użytkownika, a w dalszej kolejności typ sprzętu
- * (hantle, krążki/sztanga, wyciąg, mały stos, ciężki stos)[cite: 14].
+ * (hantle, krążki/sztanga, wyciąg, mały stos, ciężki stos).
  */
 function getEffectiveStepKg(block, currentWeightKg = 0) {
     if (!block) return 2.5;
@@ -85,7 +123,7 @@ function getEffectiveStepKg(block, currentWeightKg = 0) {
 
 /**
  * Przelicza krok zmiany ciężaru na aktualnie wyświetlaną jednostkę (KG lub LBS),
- * uwzględniając standardowe skoki sprzętu w funtach, gdy użytkownik nie ustawił własnego kroku[cite: 14].
+ * uwzględniając standardowe skoki sprzętu w funtach, gdy użytkownik nie ustawił własnego kroku.
  */
 function getStepInDisplayUnit(block, currentWeightKg = 0) {
     const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
@@ -107,12 +145,14 @@ function getStepInDisplayUnit(block, currentWeightKg = 0) {
     }
 
     const stepKg = getEffectiveStepKg(block, currentWeightKg);
-    return unit === "lbs" ? stepKg * KG_TO_LBS : stepKg;
+    return unit === "lbs"
+        ? Math.max(1, Math.round(stepKg * KG_TO_LBS))
+        : stepKg;
 }
 
 /**
  * Przełącza jednostkę ciężaru (KG / LBS) dla wybranego ćwiczenia,
- * aktualizując stan przycisków oraz wartości w aktywnych i ukończonych seriach[cite: 14].
+ * aktualizując stan przycisków oraz wartości w aktywnych i ukończonych seriach.
  */
 window.setExerciseUnit = function (btnEl, targetUnit) {
     const block = btnEl.closest(".exercise-block");
@@ -135,25 +175,21 @@ window.setExerciseUnit = function (btnEl, targetUnit) {
     block.querySelectorAll(".weight-input").forEach((input) => {
         const storedKg = parseFloat(input.getAttribute("data-weight-kg") || "");
         if (Number.isFinite(storedKg) && storedKg > 0) {
-            const displayVal =
-                targetUnit === "lbs" ? storedKg * KG_TO_LBS : storedKg;
-            input.value = formatWeightDisplay(displayVal);
+            input.value = formatWeightForUnit(storedKg, targetUnit);
         }
     });
 
     block.querySelectorAll(".completed-weight-display").forEach((el) => {
         const storedKg = parseFloat(el.getAttribute("data-weight-kg") || "");
         if (Number.isFinite(storedKg) && storedKg > 0) {
-            const displayVal =
-                targetUnit === "lbs" ? storedKg * KG_TO_LBS : storedKg;
-            el.innerText = formatWeightDisplay(displayVal);
+            el.innerText = formatWeightForUnit(storedKg, targetUnit);
         }
     });
 };
 
 /**
  * Zwiększa lub zmniejsza ciężar w polu serii o wyznaczony krok (direction: 1 lub -1),
- * zapisuje przeliczoną wartość w KG oraz uruchamia wykrywanie skoku między seriami[cite: 14].
+ * zapisuje przeliczoną wartość w KG oraz uruchamia wykrywanie skoku między seriami.
  */
 window.adjustWeightValue = function (inputId, direction) {
     const input = document.getElementById(inputId);
@@ -171,7 +207,13 @@ window.adjustWeightValue = function (inputId, direction) {
         currentDisplayVal + direction * stepInCurrentUnit,
     );
 
-    input.value = formatWeightDisplay(nextDisplayVal);
+    if (unit === "lbs") {
+        nextDisplayVal = Math.round(nextDisplayVal);
+        input.value = String(nextDisplayVal);
+    } else {
+        input.value = formatWeightDisplay(nextDisplayVal);
+    }
+
     const nextKg = unit === "lbs" ? nextDisplayVal * LBS_TO_KG : nextDisplayVal;
     input.setAttribute(
         "data-weight-kg",
@@ -185,7 +227,7 @@ window.adjustWeightValue = function (inputId, direction) {
 
 /**
  * Analizuje kolejne ciężary wpisane w seriach danego ćwiczenia i po wykryciu różnicy
- * aktualizuje krok w DOM oraz wysyła go na backend, aby zapisać go dla użytkownika[cite: 14].
+ * aktualizuje krok w DOM oraz wysyła go na backend, aby zapisać go dla użytkownika.
  */
 function detectAndSyncIncrementStep(block) {
     if (!block) return;
@@ -254,7 +296,7 @@ function detectAndSyncIncrementStep(block) {
 }
 
 /**
- * Ukrywa boks analizy serii widoczny na mobilnym ekranie przerwy[cite: 14].
+ * Ukrywa boks analizy serii widoczny na mobilnym ekranie przerwy.
  */
 function hideMobileCoachBox() {
     const mobileCoachBox = document.getElementById("mobileCoachBox");
@@ -300,10 +342,11 @@ window.expandMobileRestOverlay = function () {
 };
 
 /**
- * Ukrywa ekran powitalny (overlay), uruchamia główny zegar treningu
- * i wyświetla pierwsze ćwiczenie[cite: 14].
+ * Ukrywa ekran powitalny (overlay), uruchamia główny zegar treningu,
+ * blokuje orientację pionową i wyświetla pierwsze ćwiczenie.
  */
 window.startWorkoutSession = function () {
+    lockPortraitOrientation();
     const overlay = document.getElementById("readyOverlay");
     if (overlay) {
         overlay.style.opacity = "0";
@@ -320,7 +363,7 @@ window.startWorkoutSession = function () {
 
 /**
  * Przełącza aktywne ćwiczenie o wskazany kierunek (-1 poprzednie, +1 następne)
- * i przerywa aktywną przerwę[cite: 14].
+ * i przerywa aktywną przerwę.
  */
 window.navigateExercise = function (direction) {
     window.skipRestTime();
@@ -333,7 +376,7 @@ window.navigateExercise = function (direction) {
 
 /**
  * Przechodzi do najbliższego niezaczętego ćwiczenia, jeśli bieżące ćwiczenie
- * nie ma jeszcze żadnych ukończonych serii[cite: 14].
+ * nie ma jeszcze żadnych ukończonych serii.
  */
 window.skipOccupiedMachine = function () {
     const blocks = document.querySelectorAll(".exercise-block");
@@ -383,7 +426,7 @@ window.skipOccupiedMachine = function () {
 };
 
 /**
- * Normalizuje nazwę mięśnia do postaci klasy CSS używanej na mapie anatomicznej[cite: 14].
+ * Normalizuje nazwę mięśnia do postaci klasy CSS używanej na mapie anatomicznej.
  */
 function normalizeMuscleName(name) {
     if (!name) return "";
@@ -405,7 +448,7 @@ function normalizeMuscleName(name) {
 
 /**
  * Wyświetla ćwiczenie o podanym indeksie, aktualizuje nawigację, kolejkę treningową,
- * domyślny czas przerwy oraz podświetlenie mięśni głównych i pomocniczych na mapie[cite: 14].
+ * domyślny czas przerwy oraz podświetlenie mięśni głównych i pomocniczych na mapie.
  */
 function showExercise(index) {
     const blocks = document.querySelectorAll(".exercise-block");
@@ -519,7 +562,7 @@ function showExercise(index) {
 }
 
 /**
- * Zwiększa lub zmniejsza wartość w polu numerycznym (np. powtórzenia) o podaną deltę[cite: 14].
+ * Zwiększa lub zmniejsza wartość w polu numerycznym (np. powtórzenia) o podaną deltę.
  */
 window.adjustValue = function (inputId, delta) {
     const input = document.getElementById(inputId);
@@ -536,7 +579,7 @@ let currentVolume = 0;
 
 /**
  * Przelicza początkowe statystyki treningu (łączną liczbę serii, ukończone serie
- * oraz dotychczasowy tonaż) na podstawie stanu wierszy po załadowaniu strony[cite: 14].
+ * oraz dotychczasowy tonaż) na podstawie stanu wierszy po załadowaniu strony.
  */
 function recalculateInitialStats() {
     totalSets = document.querySelectorAll(".set-row").length;
@@ -569,7 +612,7 @@ function recalculateInitialStats() {
 }
 
 /**
- * Odświeża liczniki ukończonych serii, tonażu, pasek postępu oraz wizualne aktywowanie serii[cite: 14].
+ * Odświeża liczniki ukończonych serii, tonażu, pasek postępu oraz wizualne aktywowanie serii.
  */
 function updateStats() {
     let elCompleted = document.getElementById("setsCompletedCounter");
@@ -588,7 +631,7 @@ function updateStats() {
 }
 
 /**
- * Uruchamia licznik całkowitego czasu trwania sesji treningowej w formacie MM:SS / HH:MM:SS[cite: 14].
+ * Uruchamia licznik całkowitego czasu trwania sesji treningowej w formacie MM:SS / HH:MM:SS.
  */
 function startGlobalTimer() {
     let workoutSeconds = 0;
@@ -608,7 +651,7 @@ function startGlobalTimer() {
 }
 
 /**
- * Zatrzymuje odliczanie przerwy i przywraca przycisk ręcznego startu przerwy[cite: 14].
+ * Zatrzymuje odliczanie przerwy i przywraca przycisk ręcznego startu przerwy.
  */
 function showStartRestButton() {
     clearInterval(restInterval);
@@ -619,7 +662,7 @@ function showStartRestButton() {
 }
 
 /**
- * Ręcznie uruchamia zegar przerwy z czasem przypisanym do aktywnego ćwiczenia[cite: 14].
+ * Ręcznie uruchamia zegar przerwy z czasem przypisanym do aktywnego ćwiczenia.
  */
 window.initiateRest = function () {
     let timerView = document.getElementById("timerView");
@@ -638,7 +681,7 @@ window.initiateRest = function () {
 
 /**
  * Uruchamia odliczanie przerwy o zadanej liczbie sekund i zarządza widocznością
- * pełnoekranowego widoku przerwy oraz kompaktowego paska na urządzeniach mobilnych[cite: 13, 14].
+ * pełnoekranowego widoku przerwy oraz kompaktowego paska na urządzeniach mobilnych.
  */
 function startRestTimer(duration) {
     clearInterval(restInterval);
@@ -700,7 +743,7 @@ function startRestTimer(duration) {
 
 /**
  * Aktualizuje tekstowe liczniki oraz okręgi SVG odliczające czas przerwy
- * na desktopie, pełnym ekranie mobilnym oraz mini-pasku mobilnym[cite: 13, 14].
+ * na desktopie, pełnym ekranie mobilnym oraz mini-pasku mobilnym.
  */
 function updateRestDisplay() {
     const display = document.getElementById("restTimerDisplay");
@@ -729,7 +772,7 @@ function updateRestDisplay() {
 }
 
 /**
- * Dodaje określoną liczbę sekund do aktualnej przerwy lub uruchamia przerwę od nowa[cite: 14].
+ * Dodaje określoną liczbę sekund do aktualnej przerwy lub uruchamia przerwę od nowa.
  */
 window.addRestTime = function (seconds) {
     if (currentRestSeconds <= 0) currentRestSeconds = 0;
@@ -744,7 +787,7 @@ window.addRestTime = function (seconds) {
 };
 
 /**
- * Kończy i pomija bieżącą przerwę, zamykając widoki przerwy na urządzeniach mobilnych[cite: 13, 14].
+ * Kończy i pomija bieżącą przerwę, zamykając widoki przerwy na urządzeniach mobilnych.
  */
 window.skipRestTime = function () {
     const mobileOverlay = document.getElementById("mobileRestOverlay");
@@ -777,7 +820,7 @@ window.skipRestTime = function () {
 
 /**
  * Blokuje wszystkie kolejne nieukończone serie w każdym ćwiczeniu,
- * pozostawiając aktywną tylko pierwszą nieukończoną serię[cite: 14].
+ * pozostawiając aktywną tylko pierwszą nieukończoną serię.
  */
 function syncSequentialSetLocks() {
     document.querySelectorAll(".exercise-block").forEach((block) => {
@@ -806,7 +849,7 @@ function syncSequentialSetLocks() {
 }
 
 /**
- * Aktualizuje podświetlenie aktywnej serii w każdym ćwiczeniu oraz wywołuje synchronizację blokad[cite: 14].
+ * Aktualizuje podświetlenie aktywnej serii w każdym ćwiczeniu oraz wywołuje synchronizację blokad.
  */
 function updateActiveStateVisuals() {
     let rows = document.querySelectorAll(".set-row");
@@ -831,7 +874,7 @@ function updateActiveStateVisuals() {
 
 /**
  * Waliduje i zapisuje ukończoną serię na serwerze, aktualizuje wiersz serii,
- * wyświetla analizę trenera i sugerowany ciężar w kolejnej serii oraz uruchamia przerwę[cite: 14].
+ * wyświetla analizę trenera i sugerowany ciężar w kolejnej serii oraz uruchamia przerwę.
  */
 window.saveSet = function (setId, btnElement) {
     const weightInput = document.getElementById("weight-" + setId);
@@ -884,10 +927,10 @@ window.saveSet = function (setId, btnElement) {
                         row
                             .closest(".exercise-block")
                             ?.getAttribute("data-unit") || "kg";
-                    const displaySavedWeight =
-                        currentUnit === "lbs"
-                            ? formatWeightDisplay(weight * KG_TO_LBS)
-                            : formatWeightDisplay(weight);
+                    const displaySavedWeight = formatWeightForUnit(
+                        weight,
+                        currentUnit,
+                    );
 
                     if (col2)
                         col2.innerHTML = `<div class="bg-surface-container-highest py-2.5 text-center font-headline font-black text-xl text-on-surface completed-weight-display" data-weight-kg="${weight}">${displaySavedWeight}</div>`;
@@ -990,13 +1033,10 @@ window.saveSet = function (setId, btnElement) {
                                     currentExerciseBlock?.getAttribute(
                                         "data-unit",
                                     ) || "kg";
-                                const displayNext =
-                                    activeUnit === "lbs" &&
-                                    Number.isFinite(nextKgVal)
-                                        ? formatWeightDisplay(
-                                              nextKgVal * KG_TO_LBS,
-                                          )
-                                        : formatWeightDisplay(nextKgVal);
+                                const displayNext = formatWeightForUnit(
+                                    nextKgVal,
+                                    activeUnit,
+                                );
                                 const unitLabel =
                                     activeUnit === "lbs" ? "LBS" : "KG";
                                 mobileNextWeightText.innerText = `SUGEROWANY NASTĘPNY CIĘŻAR: ${displayNext} ${unitLabel}`;
@@ -1030,12 +1070,10 @@ window.saveSet = function (setId, btnElement) {
                                     "data-weight-kg",
                                     String(nextKg),
                                 );
-                                nextWeightInput.value =
-                                    unit === "lbs"
-                                        ? formatWeightDisplay(
-                                              nextKg * KG_TO_LBS,
-                                          )
-                                        : formatWeightDisplay(nextKg);
+                                nextWeightInput.value = formatWeightForUnit(
+                                    nextKg,
+                                    unit,
+                                );
                             }
                         }
                     }
@@ -1060,7 +1098,7 @@ window.saveSet = function (setId, btnElement) {
                                 .length;
 
                     // Przy przejściu do kolejnego ćwiczenia zwijamy pełny ekran przerwy do mini-paska,
-                    // aby użytkownik mógł od razu przeglądać nadchodzące ćwiczenie[cite: 13].
+                    // aby użytkownik mógł od razu przeglądać nadchodzące ćwiczenie.
                     isMobileRestMinimized = Boolean(isExerciseFinished);
 
                     let timerView = document.getElementById("timerView");
@@ -1094,7 +1132,7 @@ window.saveSet = function (setId, btnElement) {
 };
 
 /**
- * Wyświetla modal ostrzegawczy / walidacji z podaną treścią[cite: 14].
+ * Wyświetla modal ostrzegawczy / walidacji z podaną treścią.
  */
 window.showCustomAlert = function (message) {
     const msgEl = document.getElementById("customAlertMessage");
@@ -1107,7 +1145,7 @@ window.showCustomAlert = function (message) {
 };
 
 /**
- * Zamyka modal ostrzegawczy / walidacji[cite: 14].
+ * Zamyka modal ostrzegawczy / walidacji.
  */
 window.closeCustomAlert = function () {
     const modal = document.getElementById("customAlertModal");
@@ -1118,7 +1156,7 @@ window.closeCustomAlert = function () {
 };
 
 /**
- * Otwiera modal potwierdzenia zakończenia treningu[cite: 14].
+ * Otwiera modal potwierdzenia zakończenia treningu.
  */
 window.finishWorkout = function () {
     const modal = document.getElementById("customConfirmModal");
@@ -1129,7 +1167,7 @@ window.finishWorkout = function () {
 };
 
 /**
- * Zamyka modal potwierdzenia zakończenia treningu[cite: 14].
+ * Zamyka modal potwierdzenia zakończenia treningu.
  */
 window.closeCustomConfirm = function () {
     const modal = document.getElementById("customConfirmModal");
@@ -1140,7 +1178,7 @@ window.closeCustomConfirm = function () {
 };
 
 /**
- * Wysyła formularz POST kończący sesję treningową i zapisujący podsumowanie[cite: 14].
+ * Wysyła formularz POST kończący sesję treningową i zapisujący podsumowanie.
  */
 window.submitWorkoutForm = function () {
     isIntentionalExit = true;
@@ -1157,7 +1195,7 @@ window.submitWorkoutForm = function () {
 };
 
 /**
- * Przełącza widok na kolejne ćwiczenie, które ma jeszcze nieukończone serie[cite: 14].
+ * Przełącza widok na kolejne ćwiczenie, które ma jeszcze nieukończone serie.
  */
 function goToNextIncompleteExercise() {
     const blocks = document.querySelectorAll(".exercise-block");
@@ -1198,9 +1236,11 @@ function goToNextIncompleteExercise() {
 }
 
 /**
- * Inicjalizuje statystyki, blokady serii oraz nasłuchiwacze zdarzeń po załadowaniu DOM[cite: 14].
+ * Inicjalizuje statystyki, blokady serii, blokadę odświeżania oraz orientacji po załadowaniu DOM.
  */
 document.addEventListener("DOMContentLoaded", () => {
+    lockPortraitOrientation();
+
     recalculateInitialStats();
     updateStats();
     syncSequentialSetLocks();
@@ -1208,8 +1248,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".weight-input").forEach((input) => {
         input.addEventListener("change", () => {
             const block = input.closest(".exercise-block");
+            const unit = block ? block.getAttribute("data-unit") || "kg" : "kg";
             const kg = getWeightInKg(input);
             input.setAttribute("data-weight-kg", kg > 0 ? String(kg) : "");
+            if (unit === "lbs" && kg > 0) {
+                input.value = formatWeightForUnit(kg, "lbs");
+            }
             if (block) detectAndSyncIncrementStep(block);
         });
     });
@@ -1237,6 +1281,16 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    window.addEventListener("keydown", function (e) {
+        if (isIntentionalExit) return;
+        const isReloadKey =
+            e.key === "F5" ||
+            ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "r");
+        if (isReloadKey) {
+            e.preventDefault();
+        }
+    });
 
     window.addEventListener("beforeunload", function (e) {
         if (!isIntentionalExit) {
