@@ -10,22 +10,9 @@ import "./styles/app.css";
 
 async function lockPortraitOrientation() {
     if (window.innerWidth >= 1024) return;
-
-    const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        window.navigator.standalone === true;
-
-    if (isStandalone) {
-        try {
-            const docEl = document.documentElement;
-            if (!document.fullscreenElement && docEl.requestFullscreen) {
-                await docEl.requestFullscreen({ navigationUI: "hide" });
-            }
-        } catch (e) {}
-    }
-
     try {
         if (
+            typeof screen !== "undefined" &&
             screen.orientation &&
             typeof screen.orientation.lock === "function"
         ) {
@@ -36,7 +23,4 @@ async function lockPortraitOrientation() {
 
 document.addEventListener("DOMContentLoaded", () => {
     lockPortraitOrientation();
-    document.addEventListener("pointerdown", lockPortraitOrientation, {
-        once: true,
-    });
 });
