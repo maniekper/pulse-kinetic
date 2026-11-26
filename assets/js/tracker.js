@@ -1235,6 +1235,19 @@ function goToNextIncompleteExercise() {
     }
 }
 
+async function lockPortraitMode() {
+    try {
+        if (
+            screen.orientation &&
+            typeof screen.orientation.lock === "function"
+        ) {
+            await screen.orientation.lock("portrait");
+        }
+    } catch (e) {
+        // Niektóre przeglądarki blokują zmianę orientacji poza trybem fullscreen
+    }
+}
+
 /**
  * Inicjalizuje statystyki, blokady serii, blokadę odświeżania oraz orientacji po załadowaniu DOM.
  */
