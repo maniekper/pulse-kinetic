@@ -57,9 +57,18 @@ function getWeightInKg(inputEl) {
 }
 
 /**
- * Próbuje zablokować orientację ekranu w pionie (portrait) na urządzeniach mobilnych.
+ * Próbuje przełączyć aplikację w tryb pełnoekranowy i zablokować orientację
+ * pionową (portrait) na urządzeniach mobilnych.
  */
 async function lockPortraitOrientation() {
+    if (window.innerWidth >= 1024) return;
+    try {
+        const docEl = document.documentElement;
+        if (!document.fullscreenElement && docEl.requestFullscreen) {
+            await docEl.requestFullscreen({ navigationUI: "hide" });
+        }
+    } catch (e) {}
+
     try {
         if (
             typeof screen !== "undefined" &&
@@ -68,9 +77,7 @@ async function lockPortraitOrientation() {
         ) {
             await screen.orientation.lock("portrait");
         }
-    } catch (e) {
-        // Przeglądarka może zignorować blokadę poza trybem PWA / fullscreen
-    }
+    } catch (e) {}
 }
 
 /**
@@ -1232,19 +1239,6 @@ function goToNextIncompleteExercise() {
             currentBlock.style.opacity = "1";
             showExercise(nextIndex);
         }, 300);
-    }
-}
-
-async function lockPortraitMode() {
-    try {
-        if (
-            screen.orientation &&
-            typeof screen.orientation.lock === "function"
-        ) {
-            await screen.orientation.lock("portrait");
-        }
-    } catch (e) {
-        // Niektóre przeglądarki blokują zmianę orientacji poza trybem fullscreen
     }
 }
 
