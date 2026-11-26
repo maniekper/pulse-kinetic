@@ -569,7 +569,7 @@ class MachineFixtures extends Fixture
                 'image_prefix' => 'rumunski_martwy_ciag_rdl',
                 'incrementStep' => 2.5
             ],
-            
+
             [
                 'name' => 'Wspięcia na palcach na maszynie Smitha',
                 'description' => 'Izolowane ćwiczenie angażujące mięśnie łydek poprzez dynamiczne zgięcie podeszwowe stawów skokowych przy wyprostowanych kolanach i ustabilizowanej sylwetce. Sztanga suwnicy Smitha spoczywa na górnej części mięśni czworobocznych, umożliwiając kontrolowany ruch wspięcia na samych palcach z pełnym napięciem w szczytowej fazie oraz powolnym opuszczaniem pięt do pozycji wyjściowej.',
@@ -637,7 +637,85 @@ class MachineFixtures extends Fixture
                 'incrementStep' => 5.0
             ],
             // --- NOWE ---//
-            
+            [
+                'name' => 'Przenoszenie sztangi za głowę leżąc',
+                'description' => 'Ćwiczenie angażujące mięśnie najszersze grzbietu, grupę klatki piersiowej (szczególnie dół i środek) oraz tricepsy, polegające na przenoszeniu sztangi po łuku zza głowy nad klatkę piersiową w pozycji leżącej na ławce poziomej.',
+                'tips' => 'Utrzymuj stały, lekko ugięty kąt w łokciach przez cały ruch, aby izolować pracę mięśni grzbietu i klatki piersiowej i nie obciążać nadmiernie stawów łokciowych.',
+                'category' => 'Plecy',
+                'mechanicType' => 'isolation',
+                'primary' => 'Najszerszy grzbietu',
+                'secondary' => ['Klatka piersiowa - dół', 'Klatka piersiowa - środek', 'Triceps - głowa długa'],
+                'image_prefix' => 'przenoszenie_sztangi_za_glowe_lezac',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Szrugsy ze sztangą',
+                'description' => 'Ćwiczenie izolowane angażujące przede wszystkim górną część mięśnia czworobocznego grzbietu poprzez pionowe unoszenie barków ze sztangą trzymaną z przodu na wyprostowanych ramionach.',
+                'tips' => 'Unoś barki pionowo w stronę uszu na prostych ramionach i unikaj krążenia barkami ani uginania łokci podczas wznosu.',
+                'category' => 'Plecy',
+                'mechanicType' => 'isolation',
+                'primary' => 'Kaptur',
+                'secondary' => ['Górna część pleców', 'Przedramiona - zginacze (przód)'],
+                'image_prefix' => 'szrugsy_ze_sztanga',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Podciąganie sztangi do brody',
+                'description' => 'Wielostawowe ćwiczenie angażujące mięśnie naramienne oraz górną część mięśnia czworobocznego grzbietu poprzez pionowe podciąganie sztangi wzdłuż tułowia z pozycji zwisu przed udami w kierunku wysokości klatki piersiowej i brody przy jednoczesnym odwodzeniu ramion i zginaniu łokci.',
+                'tips' => 'Prowadź łokcie wysoko i na zewnątrz względem dłoni, utrzymując tułów prosto i unikając szarpania obciążenia.',
+                'category' => 'Barki',
+                'mechanicType' => 'compound',
+                'primary' => 'Barki - bok',
+                'secondary' => ['Barki - przód', 'Barki - tył', 'Kaptur', 'Górna część pleców', 'Biceps'],
+                'image_prefix' => 'podciaganie_sztangi_do_brody',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Przysiad ze sztangą',
+                'description' => 'Podstawowe ćwiczenie wielostawowe angażujące mięśnie czworogłowe uda oraz pośladki poprzez jednoczesne zgięcie w stawach biodrowych, kolanowych i skokowych ze sztangą spoczywającą na górnej części pleców, a następnie wyprost do pozycji wyjściowej.',
+                'tips' => 'Utrzymuj neutralny kręgosłup, napięty brzuch i ciężar równomiernie rozłożony na całych stopach, prowadząc kolana w linii stóp bez ich zapadania do środka.',
+                'category' => 'Nogi',
+                'mechanicType' => 'compound',
+                'primary' => 'Czworogłowy uda',
+                'secondary' => ['Pośladki', 'Tył uda (Kulszowo-goleniowe)', 'Przywodziciele', 'Prostownik grzbietu', 'Prosty brzucha'],
+                'image_prefix' => 'przysiad_ze_sztanga',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Uginanie przedramion ze sztangą łamaną',
+                'description' => 'To ćwiczenie izolacyjne angażuje głównie mięśnie dwugłowe ramion (bicepsy) oraz ramienno-promieniowe. Ruch polega na zginaniu przedramion w stawach łokciowych, trzymając sztangę łamaną (EZ-bar) podchwytem, przy zachowaniu stabilnej pozycji ciała.',
+                'tips' => 'Utrzymuj łokcie blisko tułowia i unikaj bujania ciałem, aby maksymalnie zaangażować bicepsy. Unoszenie sztangi do pełnego spięcia, a następnie kontrolowane opuszczanie.',
+                'category' => 'Biceps',
+                'mechanicType' => 'isolation',
+                'primary' => 'Biceps',
+                'secondary' => ['Przedramiona - zginacze (przód)'],
+                'image_prefix' => 'uginanie_przedramion_ze_sztanga_lamana',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Wyciskanie francuskie sztangi leżąc',
+                'description' => 'Ćwiczenie izolowane angażujące mięśnie trójgłowe ramion, polegające na zginaniu i prostowaniu przedramion w stawach łokciowych ze sztangą w pozycji leżącej na ławce poziomej przy stabilnym ułożeniu ramion.',
+                'tips' => 'Utrzymuj ramiona w miarę stabilnie i nie rozjeżdżaj łokci szeroko na boki, aby skupić pracę na mięśniach trójgłowych ramion i chronić stawy łokciowe.',
+                'category' => 'Triceps',
+                'mechanicType' => 'isolation',
+                'primary' => 'Triceps - głowa długa',
+                'secondary' => ['Triceps - głowa boczna', 'Triceps - głowa przyśrodkowa'],
+                'image_prefix' => 'wyciskanie_francuskie_sztangi_lezac',
+                'incrementStep' => 2.5
+            ],
+            [
+                'name' => 'Wyciskanie francuskie ze sztangą łamaną siedząc',
+                'description' => 'Ćwiczenie izolowane angażujące przede wszystkim głowę długą mięśnia trójgłowego ramienia poprzez zginanie i prostowanie przedramion w stawach łokciowych ze sztangą łamaną trzymaną nad głową w pozycji siedzącej.',
+                'tips' => 'Utrzymuj łokcie blisko głowy i nie rozsuwaj ich na boki podczas opuszczania sztangi łamanej za kark, aby maksymalnie rozciągnąć głowę długą tricepsa i chronić stawy łokciowe.',
+                'category' => 'Triceps',
+                'mechanicType' => 'isolation',
+                'primary' => 'Triceps - głowa długa',
+                'secondary' => ['Triceps - głowa boczna', 'Triceps - głowa przyśrodkowa', 'Przedramiona - prostowniki (tył)'],
+                'image_prefix' => 'wyciskanie_francuskie_ze_sztanga_lamana_siedzac',
+                'incrementStep' => 2.5
+            ],
+
+
             // --- MASZYNY CARDIO ---//
             [
                 'name' => 'Bieżnia Elektryczna',
