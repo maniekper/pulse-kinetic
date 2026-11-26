@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20261125135157 extends AbstractMigration
+final class Version20261126173549 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -30,7 +30,7 @@ final class Version20261125135157 extends AbstractMigration
         $this->addSql('CREATE TABLE muscle_group (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE routine (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, user_id INT NOT NULL, INDEX IDX_4BF6D8D6A76ED395 (user_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE routine_machine (id INT AUTO_INCREMENT NOT NULL, sort_order INT NOT NULL, routine_id INT NOT NULL, machine_id INT NOT NULL, INDEX IDX_D5FB9F1CF27A94C7 (routine_id), INDEX IDX_D5FB9F1CF6B75B26 (machine_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, email VARCHAR(180) NOT NULL, exercise_increment_steps JSON DEFAULT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, age INT NOT NULL, gender VARCHAR(255) NOT NULL, weight DOUBLE PRECISION NOT NULL, height DOUBLE PRECISION NOT NULL, name VARCHAR(255) NOT NULL, current_weight DOUBLE PRECISION DEFAULT NULL, current_goal_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), INDEX IDX_8D93D649CC709F7B (current_goal_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
+        $this->addSql('CREATE TABLE user (id INT AUTO_INCREMENT NOT NULL, last_login_at DATETIME DEFAULT NULL, email VARCHAR(180) NOT NULL, exercise_increment_steps JSON DEFAULT NULL, roles JSON NOT NULL, password VARCHAR(255) NOT NULL, age INT NOT NULL, gender VARCHAR(255) NOT NULL, weight DOUBLE PRECISION NOT NULL, height DOUBLE PRECISION NOT NULL, name VARCHAR(255) NOT NULL, current_weight DOUBLE PRECISION DEFAULT NULL, current_goal_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email), INDEX IDX_8D93D649CC709F7B (current_goal_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE user_banned_machines (user_id INT NOT NULL, machine_id INT NOT NULL, INDEX IDX_CB9BDEEEA76ED395 (user_id), INDEX IDX_CB9BDEEEF6B75B26 (machine_id), PRIMARY KEY (user_id, machine_id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE workout_exercise (id INT AUTO_INCREMENT NOT NULL, day_number INT NOT NULL, sets INT NOT NULL, reps VARCHAR(255) NOT NULL, workout_plan_id INT NOT NULL, machine_id INT NOT NULL, INDEX IDX_76AB38AA945F6E33 (workout_plan_id), INDEX IDX_76AB38AAF6B75B26 (machine_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
         $this->addSql('CREATE TABLE workout_plan (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(255) NOT NULL, target_gender VARCHAR(20) DEFAULT NULL, user_id INT NOT NULL, INDEX IDX_A5D45801A76ED395 (user_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');

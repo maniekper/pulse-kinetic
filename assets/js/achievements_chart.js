@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("strengthChart");
     const emptyMsg = document.getElementById("strengthChartEmpty");
     const metricButtons = document.querySelectorAll(".strength-metric-btn");
+    const dateAxisBar = document.getElementById("strengthDateAxisBar");
+    const latestDateLabel = document.getElementById("strengthLatestDateLabel");
 
     if (!select || !canvas) {
         return;
@@ -27,6 +29,31 @@ document.addEventListener("DOMContentLoaded", () => {
         return val || "#d1fc00";
     };
 
+    const hexToRgba = (hex, alpha) => {
+        const clean = hex.replace("#", "").trim();
+        if (clean.length !== 6) {
+            return `rgba(209, 252, 0, ${alpha})`;
+        }
+        const r = parseInt(clean.substring(0, 2), 16);
+        const g = parseInt(clean.substring(2, 4), 16);
+        const b = parseInt(clean.substring(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    };
+
+    const updateDateAxisSummary = () => {
+        if (!dateAxisBar || !latestDateLabel) return;
+        const labels = currentData?.labels || [];
+        if (labels.length === 0) {
+            dateAxisBar.classList.add("hidden");
+            return;
+        }
+        dateAxisBar.classList.remove("hidden");
+        const firstDate = labels[0];
+        const lastDate = labels[labels.length - 1];
+        latestDateLabel.textContent =
+            labels.length > 1 ? `${firstDate} — ${lastDate}` : lastDate;
+    };
+
     const renderChart = () => {
         if (
             !currentData ||
@@ -39,11 +66,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             canvas.classList.add("hidden");
             if (emptyMsg) emptyMsg.classList.remove("hidden");
+            updateDateAxisSummary();
             return;
         }
 
         canvas.classList.remove("hidden");
         if (emptyMsg) emptyMsg.classList.add("hidden");
+        updateDateAxisSummary();
 
         const color = getThemeColor();
         const cfg = metricConfig[activeMetric];
@@ -55,8 +84,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const ctx = canvas.getContext("2d");
         const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, "rgba(209, 252, 0, 0.25)");
-        gradient.addColorStop(1, "rgba(209, 252, 0, 0.0)");
+        gradient.addColorStop(0, hexToRgba(color, 0.25));
+        gradient.addColorStop(1, hexToRgba(color, 0.0));
 
         chartInstance = new Chart(ctx, {
             type: "line",
@@ -82,30 +111,66 @@ document.addEventListener("DOMContentLoaded", () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: "index",
+                    intersect: false,
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: "#111111",
                         borderColor: "rgba(255,255,255,0.15)",
                         borderWidth: 1,
-                        titleColor: "#767575",
-                        bodyColor: "#ffffff",
+                        titleColor: "#ffffff",
+                        bodyColor: "#e5e5e5",
                         padding: 12,
                         callbacks: {
+                            title: (items) => {
+                                const label = items[0]?.label || "";
+                                return label ? `Data treningu: ${label}` : "";
+                            },
                             label: (context) =>
-                                ` ${context.parsed.y} ${cfg.unit}`,
+                                ` ${cfg.label}: ${context.parsed.y} ${cfg.unit}`,
                         },
                     },
                 },
                 scales: {
                     x: {
-                        grid: { color: "rgba(255,255,255,0.04)" },
-                        ticks: { color: "#767575", font: { size: 11 } },
+                        grid: { color: "rgba(255,255,255,0.05)" },
+                        border: {
+                            display: true,
+                            color: "rgba(255,255,255,0.22)",
+                            width: 1.5,
+                        },
+                        ticks: {
+                            color: "#b0b0b0",
+                            font: {
+                                family: "Space Grotesk, sans-serif",
+                                weight: "700",
+                                size: 11,
+                            },
+                        },
+                        title: {
+                            display: true,
+                            text: "DATA TRENINGU",
+                            color: "#9e9e9e",
+                            font: {
+                                family: "Space Grotesk, sans-serif",
+                                weight: "700",
+                                size: 11,
+                            },
+                        },
                     },
                     y: {
+                        beginAtZero: true,
                         grid: { color: "rgba(255,255,255,0.06)" },
+                        border: {
+                            display: true,
+                            color: "rgba(255,255,255,0.18)",
+                            width: 1,
+                        },
                         ticks: {
-                            color: "#767575",
+                            color: "#9e9e9e",
                             font: { size: 11 },
                             callback: (val) => `${val} kg`,
                         },

@@ -1,0 +1,312 @@
+{% extends 'app_layout.html.twig' %}
+
+{% block title %}Statystyki Systemu | PULSE KINETIC{% endblock %}
+
+{% block app_content %}
+    <main class="kinetic-bg-container">
+        <div class="kinetic-bg-gradient"></div>
+
+        <header class="kinetic-main-header">
+            <div class="kinetic-main-header-stripe"></div>
+            <div>
+                <h1 class="kinetic-main-header-title">PANEL <span class="text-[color:var(--theme-main)]">STATYSTYK</span></h1>
+                <p class="kinetic-main-header-subtitle">AKTYWNOŚĆ UŻYTKOWNIKÓW, SESJE TRENINGOWE I PRZERZUCONY TONAŻ</p>
+            </div>
+            <div class="hidden md:flex items-center gap-3">
+                <span class="bg-[#1a1a1a] px-4 py-2 border border-white/10 font-headline font-bold text-xs tracking-widest text-[#767575]">
+                    WSZYSTKIE KONTA: <strong class="text-white">{{ totalUsers }}</strong>
+                </span>
+            </div>
+        </header>
+
+        <!-- WYKRES AKTYWNOŚCI UŻYTKOWNIKÓW (7 DNI) -->
+        <section class="relative z-10 mb-10">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div class="kinetic-section-title-wrap">
+                    <h2 class="kinetic-section-title">ANALIZA DZIENNA UŻYTKOWNIKÓW (OSTATNIE 7 DNI)</h2>
+                </div>
+
+                <!-- Zakładki przełączające oś Y -->
+                <div class="inline-flex bg-[#141414] border border-white/10 p-1 self-start">
+                    <button
+                        type="button"
+                        data-metric="tonnage"
+                        onclick="switchAdminChartMetric('tonnage')"
+                        class="admin-chart-tab px-4 py-2 font-headline font-black text-xs uppercase tracking-widest transition-colors bg-[color:var(--theme-main)] text-[color:var(--theme-text)]"
+                    >
+                        Tonaż (kg)
+                    </button>
+                    <button
+                        type="button"
+                        data-metric="sessions"
+                        onclick="switchAdminChartMetric('sessions')"
+                        class="admin-chart-tab px-4 py-2 font-headline font-bold text-xs uppercase tracking-widest transition-colors text-[#767575] hover:text-white"
+                    >
+                        Sesje
+                    </button>
+                    <button
+                        type="button"
+                        data-metric="logins"
+                        onclick="switchAdminChartMetric('logins')"
+                        class="admin-chart-tab px-4 py-2 font-headline font-bold text-xs uppercase tracking-widest transition-colors text-[#767575] hover:text-white"
+                    >
+                        Logowania
+                    </button>
+                </div>
+            </div>
+
+            <div class="kinetic-panel">
+                <div class="relative w-full h-[320px] md:h-[380px]">
+                    <canvas id="adminActivityChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEKCJA: DZIŚ -->
+        <section class="relative z-10 mb-10">
+            <div class="kinetic-section-title-wrap mb-5">
+                <h2 class="kinetic-section-title">DZISIEJSZA AKTYWNOŚĆ (OD 00:00)</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">ZALOGOWANI UŻYTKOWNICY</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">person_check</span>
+                    </div>
+                    <div class="font-headline font-black text-4xl text-white tracking-tight">
+                        {{ loggedInToday }}
+                    </div>
+                    <p class="font-body text-xs text-[#767575]">Unikalne konta aktywne dzisiaj</p>
+                </div>
+
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">ODBYTE SESJE</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">fitness_center</span>
+                    </div>
+                    <div class="font-headline font-black text-4xl text-white tracking-tight">
+                        {{ sessionsToday }}
+                    </div>
+                    <p class="font-body text-xs text-[#767575]">Ukończone treningi w dniu dzisiejszym</p>
+                </div>
+
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">PRZERZUCONY TONAŻ</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">weight</span>
+                    </div>
+                    <div>
+                        <div class="font-headline font-black text-4xl text-[color:var(--theme-main)] tracking-tight">
+                            {{ (tonnageTodayKg / 1000)|number_format(2, ',', ' ') }} <span class="text-lg text-white">T</span>
+                        </div>
+                        <div class="font-label text-xs text-[#9e9e9e] mt-1">
+                            ({{ tonnageTodayKg|number_format(0, ',', ' ') }} kg)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEKCJA: OSTATNIE 7 DNI -->
+        <section class="relative z-10">
+            <div class="kinetic-section-title-wrap mb-5">
+                <h2 class="kinetic-section-title">OSTATNIE 7 DNI</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">AKTYWNI UŻYTKOWNICY (7 DNI)</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">groups</span>
+                    </div>
+                    <div class="font-headline font-black text-4xl text-white tracking-tight">
+                        {{ loggedInLast7Days }}
+                    </div>
+                    <p class="font-body text-xs text-[#767575]">Unikalne konta zalogowane w ostatnim tygodniu</p>
+                </div>
+
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">ODBYTE SESJE (7 DNI)</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">event_available</span>
+                    </div>
+                    <div class="font-headline font-black text-4xl text-white tracking-tight">
+                        {{ sessionsLast7Days }}
+                    </div>
+                    <p class="font-body text-xs text-[#767575]">Wszystkie ukończone treningi z 7 dni</p>
+                </div>
+
+                <div class="kinetic-panel flex flex-col justify-between gap-4">
+                    <div class="flex items-center justify-between">
+                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">PRZERZUCONY TONAŻ (7 DNI)</span>
+                        <span class="material-symbols-outlined text-[color:var(--theme-main)]">monitoring</span>
+                    </div>
+                    <div>
+                        <div class="font-headline font-black text-4xl text-[color:var(--theme-main)] tracking-tight">
+                            {{ (tonnageLast7DaysKg / 1000)|number_format(2, ',', ' ') }} <span class="text-lg text-white">T</span>
+                        </div>
+                        <div class="font-label text-xs text-[#9e9e9e] mt-1">
+                            ({{ tonnageLast7DaysKg|number_format(0, ',', ' ') }} kg)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script>
+        const adminChartData = {{ chartPayload|json_encode|raw }};
+        let adminActivityChartInstance = null;
+
+        function buildDatasets(metricKey) {
+            const list = adminChartData[metricKey] || [];
+            return list.map(item => ({
+                label: item.label,
+                data: item.data,
+                borderColor: item.color,
+                backgroundColor: item.color,
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.25,
+                fill: false
+            }));
+        }
+
+        function getMetricMeta(metricKey) {
+            if (metricKey === 'sessions') {
+                return { title: 'Liczba sesji', stepSize: 1, unit: ' sesji' };
+            }
+            if (metricKey === 'logins') {
+                return { title: 'Aktywność logowania (1 = zalogowany)', stepSize: 1, unit: '' };
+            }
+            return { title: 'Przerzucony tonaż (kg)', stepSize: undefined, unit: ' kg' };
+        }
+
+        window.switchAdminChartMetric = function (metricKey) {
+            document.querySelectorAll('.admin-chart-tab').forEach(btn => {
+                const isActive = btn.getAttribute('data-metric') === metricKey;
+                btn.classList.toggle('bg-[color:var(--theme-main)]', isActive);
+                btn.classList.toggle('text-[color:var(--theme-text)]', isActive);
+                btn.classList.toggle('font-black', isActive);
+                btn.classList.toggle('text-[#767575]', !isActive);
+                btn.classList.toggle('font-bold', !isActive);
+            });
+
+            if (!adminActivityChartInstance) return;
+            const meta = getMetricMeta(metricKey);
+
+            adminActivityChartInstance.data.datasets = buildDatasets(metricKey);
+            adminActivityChartInstance.options.scales.y.title.text = meta.title;
+            adminActivityChartInstance.options.scales.y.ticks.stepSize = meta.stepSize;
+            adminActivityChartInstance.options.plugins.tooltip.callbacks.label = function (ctx) {
+                return ` ${ctx.dataset.label}: ${ctx.parsed.y}${meta.unit}`;
+            };
+            adminActivityChartInstance.update();
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('adminActivityChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+
+            const meta = getMetricMeta('tonnage');
+
+            adminActivityChartInstance = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: adminChartData.labels || [],
+                    datasets: buildDatasets('tonnage')
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e5e5e5',
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 18,
+                                font: {
+                                    family: 'Space Grotesk, sans-serif',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#111111',
+                            borderColor: 'rgba(255,255,255,0.15)',
+                            borderWidth: 1,
+                            titleColor: '#ffffff',
+                            bodyColor: '#e5e5e5',
+                            padding: 12,
+                            callbacks: {
+                                label: function (ctx) {
+                                    return ` ${ctx.dataset.label}: ${ctx.parsed.y}${meta.unit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)'
+                            },
+                            ticks: {
+                                color: '#9e9e9e',
+                                font: {
+                                    family: 'Space Grotesk, sans-serif',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Dni (ostatnie 7 dni)',
+                                color: '#767575',
+                                font: {
+                                    family: 'Space Grotesk, sans-serif',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.06)'
+                            },
+                            ticks: {
+                                color: '#9e9e9e',
+                                precision: 0,
+                                font: {
+                                    family: 'Space Grotesk, sans-serif',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: meta.title,
+                                color: '#767575',
+                                font: {
+                                    family: 'Space Grotesk, sans-serif',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

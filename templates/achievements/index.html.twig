@@ -148,6 +148,12 @@
                             </div>
                         </div>
 
+                        <!-- Pozioma linia informacyjna z zakresem dat -->
+                        <div id="strengthDateAxisBar" class="hidden flex items-center justify-between gap-4 border-b border-white/10 pb-3 text-[10px] font-label uppercase tracking-widest text-[#9e9e9e]">
+                            <span>OŚ CZASU TRENINGÓW</span>
+                            <span id="strengthLatestDateLabel" class="font-headline font-bold text-primary-container"></span>
+                        </div>
+
                         <!-- Kontener na wykres -->
                         <div class="relative h-72 md:h-80 w-full">
                             <canvas id="strengthChart"></canvas>
@@ -172,7 +178,15 @@
                                 <div class="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary-container transition-colors"></div>
                                 
                                 <div class="flex flex-col z-10 sm:ml-2 mb-2 sm:mb-0">
-                                    <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest mb-1">{{ record.machine.mechanicType|default('Maszyna') }}</span>
+                                    <div class="flex flex-wrap items-center gap-3 mb-1">
+                                        <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">{{ record.machine.mechanicType|default('Maszyna') }}</span>
+                                        {% set recordDate = record.achievedAt is defined and record.achievedAt ? record.achievedAt : (record.updatedAt is defined and record.updatedAt ? record.updatedAt : (record.createdAt is defined and record.createdAt ? record.createdAt : null)) %}
+                                        {% if recordDate %}
+                                            <span class="font-label text-[10px] text-primary-container uppercase tracking-widest border-l border-white/15 pl-3">
+                                                DATA: {{ recordDate|date('d.m.Y') }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                     <h3 class="font-headline font-bold text-lg text-white uppercase tracking-widest leading-tight">
                                         {{ record.machine.name }}
                                     </h3>
