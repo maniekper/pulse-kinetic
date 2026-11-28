@@ -139,10 +139,13 @@
                             TRENING W TOKU: <span class="text-primary-container">{{ app.user.currentGoal ? app.user.currentGoal.name : 'TRENING' }}</span>
                         </h1>
                     </div>
-                    <div class="w-full md:w-72">
-                        <div class="flex justify-between items-end mb-2">
+                    <div class="w-full md:w-80">
+                        <div class="flex justify-between items-end mb-2 gap-2">
                             <span class="font-label text-[10px] font-bold text-outline tracking-widest uppercase">Progress</span>
-                            <span class="font-headline font-bold text-primary-container" id="workoutProgressText">0%</span>
+                            <div class="flex items-center gap-3">
+                                <span class="font-label text-[10px] font-bold text-[#9e9e9e] tracking-wider uppercase" id="exerciseRemainingTime">~--:--</span>
+                                <span class="font-headline font-bold text-primary-container" id="workoutProgressText">0%</span>
+                            </div>
                         </div>
                         <div class="h-2 bg-surface-container-highest w-full sheared-progress">
                             <div class="h-full bg-primary-container w-0" id="workoutProgressBar" style="transition: width 0.3s ease;"></div>
@@ -531,4 +534,3 @@
     {{ parent() }}
     {{ encore_entry_script_tags('tracker') }}
 {% endblock %}
-

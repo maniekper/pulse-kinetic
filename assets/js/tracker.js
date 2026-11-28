@@ -57,6 +57,85 @@ function getWeightInKg(inputEl) {
 }
 
 /**
+ * Formatuje liczbę sekund do postaci MM:SS.
+ */
+function formatRemainingTime(totalSeconds) {
+    const safeSec = Math.max(0, Math.round(totalSeconds));
+    const mins = Math.floor(safeSec / 60);
+    const secs = safeSec % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+/**
+ * Oblicza i wyświetla szacowany czas pozostały do ukończenia CAŁEGO treningu
+ * w etykiecie obok paska postępu (#exerciseRemainingTime).
+ */
+function updateExerciseRemainingTime() {
+    const targetEl = document.getElementById("exerciseRemainingTime");
+    if (!targetEl) return;
+
+    const blocks = Array.from(
+        document.querySelectorAll("#exercisesContainer .exercise-block"),
+    );
+
+    if (blocks.length === 0) {
+        targetEl.textContent = "~00:00";
+        return;
+    }
+
+    let remainingTotalSeconds = 0;
+    let totalRemainingSets = 0;
+    let unfinishedBlocksCount = 0;
+
+    blocks.forEach((block) => {
+        const restSeconds =
+            parseInt(block.getAttribute("data-rest-time") || "90", 10) || 90;
+        const setRows = Array.from(block.querySelectorAll(".set-row"));
+        const remainingRows = setRows.filter(
+            (row) => !row.classList.contains("bg-surface-container-low"),
+        );
+
+        if (remainingRows.length === 0) {
+            return;
+        }
+
+        unfinishedBlocksCount++;
+        totalRemainingSets += remainingRows.length;
+
+        let blockWorkSeconds = 0;
+        remainingRows.forEach((row) => {
+            const repsInput = row.querySelector('input[id^="reps-"]');
+            const rawReps = repsInput
+                ? parseInt(
+                      repsInput.value ||
+                          row.getAttribute("data-target-reps") ||
+                          "10",
+                      10,
+                  )
+                : parseInt(row.getAttribute("data-target-reps") || "10", 10);
+            const safeReps =
+                Number.isFinite(rawReps) && rawReps > 0 ? rawReps : 10;
+            blockWorkSeconds += safeReps * 4;
+        });
+
+        const restsInBlock =
+            Math.max(0, remainingRows.length - 1) * restSeconds;
+        remainingTotalSeconds += blockWorkSeconds + restsInBlock;
+    });
+
+    if (totalRemainingSets === 0) {
+        targetEl.textContent = "UKOŃCZONO";
+        return;
+    }
+
+    // Doliczamy ok. 60s na zmianę maszyny pomiędzy pozostałymi ćwiczeniami
+    const transitionsSeconds = Math.max(0, unfinishedBlocksCount - 1) * 60;
+    remainingTotalSeconds += transitionsSeconds;
+
+    targetEl.textContent = `~${formatRemainingTime(remainingTotalSeconds)} DO KOŃCA`;
+}
+
+/**
  * Próbuje przełączyć aplikację w tryb pełnoekranowy i zablokować orientację
  * pionową (portrait) na urządzeniach mobilnych.
  */
@@ -566,6 +645,7 @@ function showExercise(index) {
     }
 
     updateActiveStateVisuals();
+    updateExerciseRemainingTime();
 }
 
 /**
@@ -578,6 +658,7 @@ window.adjustValue = function (inputId, delta) {
     val += delta;
     if (val < 0) val = 0;
     input.value = val % 1 === 0 ? val : val.toFixed(1);
+    updateExerciseRemainingTime();
 };
 
 let totalSets = 0;
@@ -619,7 +700,8 @@ function recalculateInitialStats() {
 }
 
 /**
- * Odświeża liczniki ukończonych serii, tonażu, pasek postępu oraz wizualne aktywowanie serii.
+ * Odświeża liczniki ukończonych serii, tonażu, pasek postępu, wizualne aktywowanie serii
+ * oraz pozostały czas do końca bieżącego ćwiczenia.
  */
 function updateStats() {
     let elCompleted = document.getElementById("setsCompletedCounter");
@@ -635,6 +717,7 @@ function updateStats() {
     if (progText) progText.innerText = progress + "%";
     if (progBar) progBar.style.width = progress + "%";
     updateActiveStateVisuals();
+    updateExerciseRemainingTime();
 }
 
 /**
@@ -1251,6 +1334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     recalculateInitialStats();
     updateStats();
     syncSequentialSetLocks();
+    updateExerciseRemainingTime();
 
     document.querySelectorAll(".weight-input").forEach((input) => {
         input.addEventListener("change", () => {
