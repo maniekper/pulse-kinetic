@@ -44,7 +44,6 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                    <!-- Filtr TOP 5 / WSZYSCY -->
                     {% if totalUsers > 5 %}
                         <div class="inline-flex bg-[#141414] border border-white/10 p-1">
                             <button
@@ -66,7 +65,6 @@
                         </div>
                     {% endif %}
 
-                    <!-- Zakładki przełączające oś Y -->
                     <div class="inline-flex bg-[#141414] border border-white/10 p-1">
                         <button
                             type="button"
@@ -156,7 +154,6 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Aktywni ćwiczący (retencja treningowa) -->
                 <div class="kinetic-panel flex flex-col justify-between gap-4">
                     <div class="flex items-center justify-between">
                         <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">AKTYWNI ĆWICZĄCY</span>
@@ -171,7 +168,6 @@
                     </p>
                 </div>
 
-                <!-- Ukończone sesje vs porzucone -->
                 <div class="kinetic-panel flex flex-col justify-between gap-4">
                     <div class="flex items-center justify-between">
                         <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">SESJE UKOŃCZONE / PORZUCONE</span>
@@ -188,7 +184,6 @@
                     </p>
                 </div>
 
-                <!-- Tonaż w okresie i średnia na sesję -->
                 <div class="kinetic-panel flex flex-col justify-between gap-4">
                     <div class="flex items-center justify-between">
                         <span class="font-label text-[10px] text-[#767575] uppercase tracking-widest">TONAŻ OKRESU (ŚR. NA SESJĘ)</span>
@@ -207,13 +202,12 @@
         </section>
 
         <!-- SEKCJA 4: ANALITYKA MASZYN (TOP UŻYWANE VS NAJCZĘŚCIEJ BANOWANE) -->
-        <section class="relative z-10">
+        <section class="relative z-10 mb-10">
             <div class="kinetic-section-title-wrap mb-5">
                 <h2 class="kinetic-section-title">ANALITYKA SPRZĘTU (OSTATNIE {{ days }} DNI / WYKLUCZENIA)</h2>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- TOP 5 Najpopularniejsze maszyny -->
                 <div class="kinetic-panel">
                     <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
                         <div>
@@ -251,7 +245,6 @@
                     {% endif %}
                 </div>
 
-                <!-- TOP 5 Najczęściej banowane maszyny -->
                 <div class="kinetic-panel">
                     <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
                         <div>
@@ -285,6 +278,106 @@
                         <p class="font-body text-xs text-[#767575] py-6 text-center">Żaden użytkownik nie wykluczył jeszcze żadnej maszyny.</p>
                     {% endif %}
                 </div>
+            </div>
+        </section>
+
+        <!-- SEKCJA 5: ANALIZA PŁYTEK I SKOKÓW OBCIĄŻENIA NA MASZYNACH -->
+        <section class="relative z-10">
+            <div class="kinetic-section-title-wrap mb-5">
+                <h2 class="kinetic-section-title">ANALIZA PŁYTEK I SKOKÓW OBCIĄŻENIA (KALIBRACJA PROGRESJI)</h2>
+            </div>
+
+            <div class="kinetic-panel overflow-hidden !p-0">
+                <div class="px-6 py-4 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="font-headline font-black text-sm text-white uppercase tracking-widest">WARTOŚCI PŁYTEK I REALNE SKOKI CIĘŻARU</h3>
+                        <p class="font-label text-[10px] text-[#767575] uppercase tracking-wider mt-0.5">
+                            ZESTAWIENIE WSZYSTKICH UŻYTYCH OBCIĄŻEŃ NA MASZYNIE ORAZ WYKRYTYCH RÓŻNIC MIĘDZY PŁYTKAMI STOSU
+                        </p>
+                    </div>
+                    <span class="font-label text-[10px] text-[#9e9e9e] uppercase tracking-widest">
+                        MASZYN Z DANYMI: <strong class="text-white">{{ machinePlatesAnalysis|length }}</strong>
+                    </span>
+                </div>
+
+                {% if machinePlatesAnalysis|length > 0 %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 bg-[#0d0d0d] font-label text-[10px] text-[#767575] uppercase tracking-widest">
+                                    <th class="py-3.5 px-6">Maszyna</th>
+                                    <th class="py-3.5 px-4">Używane wartości na stosie / ciężary (kg)</th>
+                                    <th class="py-3.5 px-4 text-right whitespace-nowrap">Min. różnica płytek</th>
+                                    <th class="py-3.5 px-4 text-right whitespace-nowrap">Najczęstszy skok</th>
+                                    <th class="py-3.5 px-4 text-right whitespace-nowrap">Krok userów</th>
+                                    <th class="py-3.5 px-6 text-right">Serie</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5 text-sm">
+                                {% for row in machinePlatesAnalysis %}
+                                    <tr class="hover:bg-white/[0.03] transition-colors align-top">
+                                        <td class="py-4 px-6">
+                                            <div class="font-headline font-bold text-white uppercase tracking-wide">
+                                                {{ row.name }}
+                                            </div>
+                                            <div class="font-label text-[10px] text-[#767575] uppercase tracking-widest mt-0.5">
+                                                {{ row.category }} · {{ row.mechanicType }}
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 px-4">
+                                            <div class="flex flex-wrap gap-1.5 max-w-md">
+                                                {% for w in row.uniqueWeights %}
+                                                    <span class="px-2 py-0.5 bg-[#1a1a1a] border border-white/10 font-headline font-bold text-xs text-white">
+                                                        {{ w }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                                            {% if row.minGap is not null %}
+                                                <span class="font-headline font-black text-sm text-[color:var(--theme-main)]">
+                                                    +{{ row.minGap }} kg
+                                                </span>
+                                            {% else %}
+                                                <span class="font-label text-xs text-[#767575]">—</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                                            {% if row.mostCommonDelta is not null %}
+                                                <span class="font-headline font-bold text-sm text-white">
+                                                    +{{ row.mostCommonDelta }} kg
+                                                </span>
+                                            {% else %}
+                                                <span class="font-label text-xs text-[#767575]">—</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="py-4 px-4 text-right whitespace-nowrap">
+                                            {% if row.configuredSteps|length > 0 %}
+                                                <span class="font-label text-xs text-primary-container font-bold">
+                                                    {{ row.configuredSteps|join(' / ') }} kg
+                                                </span>
+                                            {% else %}
+                                                <span class="font-label text-[10px] text-[#767575] uppercase">Domyślny</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="py-4 px-6 text-right font-label text-xs text-[#9e9e9e]">
+                                            {{ row.setsCount }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="font-body text-xs text-[#767575] py-8 text-center">
+                        Brak ukończonych serii z zapisanym ciężarem — dane o płytkach pojawią się po pierwszych treningach.
+                    </p>
+                {% endif %}
             </div>
         </section>
     </main>
